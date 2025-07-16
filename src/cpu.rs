@@ -47,4 +47,16 @@ impl CPU {
     pub const FLAG_C: u8 = 0b0000_0010;
     pub const FLAG_N: u8 = 0b0000_0100;
     pub const FLAG_Y: u8 = 0b0000_1000;
+
+    pub fn set_flag(&mut self, bit: u8) {
+        self.flags |= bit;
+    }
+
+    pub fn clear_flag(&mut self, bit: u8) {
+        self.flags &= !bit;
+    }
+
+    pub fn get_flag(&self, bit: u8) -> bool {
+        (self.flags & bit) != 0
+    }
 }
