@@ -44,10 +44,127 @@ impl Computer {
 
         println!("Program loaded. PC set to {:#04X}", self.cpu.pc);
     }
+
+    pub fn cycle(&mut self) {
+        // FETCH
+        let opcode = self.cpu.memory[self.cpu.pc as usize];
+        let mut instruction_len = 1;
+
+        // DECODE
+        let op: Op = opcode.into();
+        let operands = match op {
+            Op::HLT | Op::NOP => Operands::None,
+            Op::LDI => {
+                instruction_len = 2;
+                let reg = opcode & 0b0000_0111;
+                let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
+
+                Operands::RegImm(reg, value)
+            }
+            Op::INC => {
+                let reg = opcode & 0b0000_0111;
+
+                Operands::Reg(reg)
+            }
+            Op::ADD => {
+                let rd = (opcode >> 3) & 0b0000_0111;
+                let rs = opcode & 0b0000_0111;
+
+                Operands::RegReg(rd, rs)
+            }
+            Op::JMP => {
+                instruction_len = 2;
+                let addr = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
+
+                Operands::Addr(addr)
+            }
+            Op::PRINT => {
+                let reg = opcode & 0b0000_0111;
+
+                Operands::Reg(reg)
+            }
+        };
+
+        // EXECUTE
+        let mut pc_override = false;
+
+        match op {
+            Op::HLT => {
+                self.cpu.is_halted = true;
+
+                print!(" -> HLT");
+            }
+            Op::LDI => {
+                let Operands::RegImm(reg, value) = operands else {
+                    panic!("Invalid!");
+                };
+
+                self.cpu.registers[reg as usize] = value;
+                self.cpu.update_zn_flags(value);
+
+                println!(" -> LDI R{reg}: {value:#04X}");
+            }
+            Op::INC => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid!");
+                };
+
+                self.cpu.registers[reg as usize] += 1;
+
+                println!(" -> INC R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
+            }
+            Op::ADD => {
+                let Operands::RegReg(rd, rs) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let v1 = self.cpu.registers[rd as usize];
+                let v2 = self.cpu.registers[rs as usize];
+
+                let (result, carry) = v1.overflowing_add(v2);
+                self.cpu.registers[rd as usize] = result;
+                self.cpu.update_zn_flags(result);
+
+                if carry {
+                    self.cpu.set_flag(CPU::FLAG_C);
+                } else {
+                    self.cpu.clear_flag(CPU::FLAG_C);
+                }
+
+                println!(" -> ADD R{rd}, R{rs}: {v1:#04X} + {v2:#04X} = {result:#04X}");
+            }
+            Op::JMP => {
+                let Operands::Addr(a) = operands else {
+                    panic!("Invalid!");
+                };
+
+                self.cpu.pc = a;
+                pc_override = true;
+
+                println!(" -> JMP {a:#04X}");
+            }
+            Op::PRINT => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let value = self.cpu.registers[reg as usize];
+
+                println!(" -> PRINT R{reg}: '{}' ({value})", value as char);
+
+                println!("{}", value as char);
+            }
+            Op::NOP => {}
+        }
+
+        if !pc_override {
+            self.cpu.pc += self.cpu.pc.wrapping_add(instruction_len);
+        }
+    }
 }
 
 #[derive(Debug)]
-pub enum Operand {
+pub enum Operands {
     None,
     Reg(u8),
     RegImm(u8, u8),

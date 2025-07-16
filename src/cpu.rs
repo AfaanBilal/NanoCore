@@ -71,4 +71,13 @@ impl CPU {
             _ => self.set_flag(Self::FLAG_N), // MSB non-zero
         }
     }
+
+    pub fn print_state(&self) {
+        println!("Registers:");
+        for i in 0..self.registers.len() {
+            println!("R{i}: {}", self.registers[i]);
+        }
+
+        println!("Flags: {}", self.flags);
+    }
 }
