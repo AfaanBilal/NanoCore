@@ -19,7 +19,7 @@ struct CPU {
     pub registers: [u8; 8],
     pub pc: u8,
     pub sp: u8,
-    pub ram: [u8; 256],
+    pub memory: [u8; 256],
     pub flags: u8,
     pub is_halted: bool,
 }
@@ -30,7 +30,7 @@ impl CPU {
             registers: [0; 8],
             pc: 0,
             sp: 0xFF,
-            ram: [0; 256],
+            memory: [0; 256],
             flags: 0,
             is_halted: false,
         }
