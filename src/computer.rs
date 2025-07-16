@@ -54,3 +54,28 @@ pub enum Operand {
     RegReg(u8, u8),
     Addr(u8),
 }
+
+#[derive(Debug)]
+pub enum Op {
+    HLT,
+    LDI,
+    INC,
+    ADD,
+    JMP,
+    NOP,
+    PRINT,
+}
+
+impl From<u8> for Op {
+    fn from(value: u8) -> Self {
+        match value & 0xF0 {
+            0x00 => Op::HLT,
+            0x10 => Op::LDI,
+            0x20 => Op::INC,
+            0x30 => Op::ADD,
+            0x40 => Op::JMP,
+            0x50 => Op::PRINT,
+            _ => Op::NOP,
+        }
+    }
+}
