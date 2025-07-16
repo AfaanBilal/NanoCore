@@ -45,3 +45,12 @@ impl Computer {
         println!("Program loaded. PC set to {:#04X}", self.cpu.pc);
     }
 }
+
+#[derive(Debug)]
+pub enum Operand {
+    None,
+    Reg(u8),
+    RegImm(u8, u8),
+    RegReg(u8, u8),
+    Addr(u8),
+}
