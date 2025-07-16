@@ -59,4 +59,16 @@ impl CPU {
     pub fn get_flag(&self, bit: u8) -> bool {
         (self.flags & bit) != 0
     }
+
+    pub fn update_zn_flags(&mut self, result: u8) {
+        match result {
+            0 => self.set_flag(Self::FLAG_Z),
+            _ => self.clear_flag(Self::FLAG_Z),
+        }
+
+        match result & 0x80 {
+            0 => self.clear_flag(Self::FLAG_N),
+            _ => self.set_flag(Self::FLAG_N), // MSB non-zero
+        }
+    }
 }
