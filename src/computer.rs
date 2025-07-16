@@ -26,4 +26,22 @@ impl Computer {
     pub fn new() -> Self {
         Computer { cpu: CPU::new() }
     }
+
+    pub fn load_program(&mut self, program: &[u8], start_address: u8) {
+        if (start_address as usize + program.len()) > 256 {
+            panic!(
+                "Error: Program ({} bytes) starting at {:#04X} exceeds 256-byte memory limit!",
+                program.len(),
+                start_address
+            );
+        }
+
+        for (i, &byte) in program.iter().enumerate() {
+            self.cpu.memory[start_address.wrapping_add(i as u8) as usize] = byte;
+        }
+
+        self.cpu.pc = start_address;
+
+        println!("Program loaded. PC set to {:#04X}", self.cpu.pc);
+    }
 }
