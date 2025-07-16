@@ -15,9 +15,22 @@
 //! language programming.
 //!
 
+use crate::computer::Computer;
+
 pub mod computer;
 pub mod cpu;
 
 fn main() {
-    println!("Hello, world!");
+    let program: [u8; 5] = [
+        0x10 | 0x01,
+        0x41,        // LDI R1 65 'A'
+        0x20 | 0x01, // INC R2
+        0x50 | 0x01, // PRINT R1
+        0x00,        // HLT
+    ];
+
+    let mut c = Computer::new();
+
+    c.load_program(&program, 0x00);
+    c.run();
 }

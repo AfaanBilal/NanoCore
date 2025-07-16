@@ -45,6 +45,22 @@ impl Computer {
         println!("Program loaded. PC set to {:#04X}", self.cpu.pc);
     }
 
+    pub fn run(&mut self) {
+        println!("NanoCore Start");
+
+        let mut cycle = 0;
+
+        while !self.cpu.is_halted {
+            cycle += 1;
+            println!("Cycle: {cycle}");
+            self.cpu.print_state();
+
+            self.cycle();
+        }
+
+        println!("NanoCore Halt");
+    }
+
     pub fn cycle(&mut self) {
         // FETCH
         let opcode = self.cpu.memory[self.cpu.pc as usize];
@@ -92,7 +108,8 @@ impl Computer {
             Op::HLT => {
                 self.cpu.is_halted = true;
 
-                print!(" -> HLT");
+                println!(" -> HLT");
+                return;
             }
             Op::LDI => {
                 let Operands::RegImm(reg, value) = operands else {
