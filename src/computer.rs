@@ -1,6 +1,3 @@
-#![deny(clippy::all)]
-#![warn(clippy::pedantic)]
-#![allow(clippy::wildcard_imports)]
 //! # `NanoCore`
 //!
 //! (c) 2025 Afaan Bilal <https://afaan.dev>
@@ -17,9 +14,16 @@
 //! language programming.
 //!
 
-pub mod computer;
-pub mod cpu;
+use crate::cpu::CPU;
 
-fn main() {
-    println!("Hello, world!");
+#[derive(Default)]
+pub struct Computer {
+    pub cpu: CPU,
+}
+
+impl Computer {
+    #[must_use]
+    pub fn new() -> Self {
+        Computer { cpu: CPU::new() }
+    }
 }

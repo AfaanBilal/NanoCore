@@ -15,7 +15,7 @@
 //!
 
 #[allow(clippy::upper_case_acronyms)]
-struct CPU {
+pub struct CPU {
     pub registers: [u8; 8],
     pub pc: u8,
     pub sp: u8,
@@ -24,7 +24,14 @@ struct CPU {
     pub is_halted: bool,
 }
 
+impl Default for CPU {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CPU {
+    #[must_use]
     pub fn new() -> Self {
         CPU {
             registers: [0; 8],
