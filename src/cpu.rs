@@ -1,6 +1,6 @@
-//! # NanoCore
+//! # `NanoCore`
 //!
-//! (c) 2025 Afaan Bilal https://afaan.dev
+//! (c) 2025 Afaan Bilal <https://afaan.dev>
 //!
 //! `NanoCore` is a meticulously crafted emulator for a custom, true 8-bit CPU.
 //!
@@ -14,6 +14,7 @@
 //! language programming.
 //!
 
+#[allow(clippy::upper_case_acronyms)]
 struct CPU {
     pub registers: [u8; 8],
     pub pc: u8,
