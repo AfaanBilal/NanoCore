@@ -1,6 +1,9 @@
-//! # NanoCore
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::wildcard_imports)]
+//! # `NanoCore`
 //!
-//! (c) 2025 Afaan Bilal https://afaan.dev
+//! (c) 2025 Afaan Bilal <https://afaan.dev>
 //!
 //! `NanoCore` is a meticulously crafted emulator for a custom, true 8-bit CPU.
 //!
