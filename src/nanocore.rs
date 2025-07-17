@@ -68,6 +68,20 @@ impl NanoCore {
     }
 
     pub fn cycle(&mut self) {
+        let (op, operands, instruction_len) = self.fetch_decode();
+
+        let pc_override = self.execute(op, operands);
+
+        if self.cpu.is_halted {
+            return;
+        }
+
+        if !pc_override {
+            self.cpu.pc = self.cpu.pc.wrapping_add(instruction_len);
+        }
+    }
+
+    pub fn fetch_decode(&self) -> (Op, Operands, u8) {
         // FETCH
         let opcode = self.cpu.memory[self.cpu.pc as usize];
         let mut instruction_len = 1;
@@ -108,7 +122,10 @@ impl NanoCore {
             }
         };
 
-        // EXECUTE
+        (op, operands, instruction_len)
+    }
+
+    pub fn execute(&mut self, op: Op, operands: Operands) -> bool {
         let mut pc_override = false;
 
         match op {
@@ -116,7 +133,6 @@ impl NanoCore {
                 self.cpu.is_halted = true;
 
                 println!("-> HLT");
-                return;
             }
             Op::LDI => {
                 let Operands::RegImm(reg, value) = operands else {
@@ -199,9 +215,7 @@ impl NanoCore {
             }
         }
 
-        if !pc_override {
-            self.cpu.pc = self.cpu.pc.wrapping_add(instruction_len);
-        }
+        pc_override
     }
 }
 
