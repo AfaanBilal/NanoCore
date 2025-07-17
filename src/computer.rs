@@ -52,8 +52,12 @@ impl Computer {
 
         while !self.cpu.is_halted {
             cycle += 1;
-            print!("Cycle: {cycle} | ");
+            print!("\nCycle: {cycle:03} | ");
             self.cpu.print_state();
+
+            if cycle >= 20 {
+                break;
+            }
 
             self.cycle();
         }
@@ -108,7 +112,7 @@ impl Computer {
             Op::HLT => {
                 self.cpu.is_halted = true;
 
-                println!(" -> HLT");
+                println!("-> HLT");
                 return;
             }
             Op::LDI => {
@@ -119,7 +123,7 @@ impl Computer {
                 self.cpu.registers[reg as usize] = value;
                 self.cpu.update_zn_flags(value);
 
-                println!(" -> LDI R{reg}: {value:#04X}");
+                println!("-> LDI R{reg}: {value:#04X}");
             }
             Op::INC => {
                 let Operands::Reg(reg) = operands else {
@@ -128,7 +132,7 @@ impl Computer {
 
                 self.cpu.registers[reg as usize] += 1;
 
-                println!(" -> INC R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
+                println!("-> INC R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
             }
             Op::ADD => {
                 let Operands::RegReg(rd, rs) = operands else {
@@ -148,7 +152,7 @@ impl Computer {
                     self.cpu.clear_flag(CPU::FLAG_C);
                 }
 
-                println!(" -> ADD R{rd}, R{rs}: {v1:#04X} + {v2:#04X} = {result:#04X}");
+                println!("-> ADD R{rd}, R{rs}: {v1:#04X} + {v2:#04X} = {result:#04X}");
             }
             Op::JMP => {
                 let Operands::Addr(a) = operands else {
@@ -158,7 +162,7 @@ impl Computer {
                 self.cpu.pc = a;
                 pc_override = true;
 
-                println!(" -> JMP {a:#04X}");
+                println!("-> JMP {a:#04X}");
             }
             Op::PRINT => {
                 let Operands::Reg(reg) = operands else {
@@ -167,12 +171,12 @@ impl Computer {
 
                 let value = self.cpu.registers[reg as usize];
 
-                println!(" -> PRINT R{reg}: '{}' ({value})", value as char);
+                println!("-> PRINT R{reg}: '{}' ({value})", value as char);
 
                 println!("{}", value as char);
             }
             Op::NOP => {
-                println!(" -> NOP");
+                println!("-> NOP");
             }
         }
 
