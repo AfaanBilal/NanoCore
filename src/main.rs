@@ -24,9 +24,11 @@ fn main() {
     let program: &[u8] = &[
         0x10 | 0x01,
         0x41,        // LDI R1 65 'A'
-        0x20 | 0x01, // INC R2
+        0x20 | 0x01, // INC R1
         0x50 | 0x01, // PRINT R1
-        0x00,        // HLT
+        0x40,
+        0x02, // JMP 0x02 (-> INC R2)
+        0x00, // HLT
     ];
 
     println!("Program: ");
