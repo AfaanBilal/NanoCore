@@ -21,13 +21,19 @@ pub mod cpu;
 pub mod nanocore;
 
 fn main() {
+    #[allow(clippy::identity_op)]
     let program: &[u8] = &[
+        0x10 | 0x00,
+        0b1111_1101, // LDI R0 253
         0x10 | 0x01,
-        0x41,        // LDI R1 65 'A'
-        0x20 | 0x01, // INC R1
+        0x41,        // LDI R1 65 ('A')
         0x50 | 0x01, // PRINT R1
+        0x20 | 0x00, // INC R0
+        0x41,
+        0x0B,        // JZ 0x0B (HLT)
+        0x20 | 0x01, // INC R1
         0x40,
-        0x02, // JMP 0x02 (-> INC R2)
+        0x04, // JMP 0x04 (-> PRINT R1)
         0x00, // HLT
     ];
 

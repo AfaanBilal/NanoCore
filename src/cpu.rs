@@ -73,7 +73,10 @@ impl CPU {
     }
 
     pub fn print_state(&self) {
-        print!("Flags: {} | PC: {} | Registers: ", self.flags, self.pc);
+        print!(
+            "Flags: {:03} | PC: {:03} | Registers: ",
+            self.flags, self.pc
+        );
         for i in 0..self.registers.len() {
             print!("R{i}: {:03} ", self.registers[i]);
         }
