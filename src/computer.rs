@@ -46,19 +46,19 @@ impl Computer {
     }
 
     pub fn run(&mut self) {
-        println!("NanoCore Start");
+        println!("\n === NanoCore Start === \n");
 
         let mut cycle = 0;
 
         while !self.cpu.is_halted {
             cycle += 1;
-            println!("Cycle: {cycle}");
+            print!("Cycle: {cycle} | ");
             self.cpu.print_state();
 
             self.cycle();
         }
 
-        println!("NanoCore Halt");
+        println!("\n === NanoCore Halt === \n");
     }
 
     pub fn cycle(&mut self) {
@@ -171,11 +171,13 @@ impl Computer {
 
                 println!("{}", value as char);
             }
-            Op::NOP => {}
+            Op::NOP => {
+                println!(" -> NOP");
+            }
         }
 
         if !pc_override {
-            self.cpu.pc += self.cpu.pc.wrapping_add(instruction_len);
+            self.cpu.pc = self.cpu.pc.wrapping_add(instruction_len);
         }
     }
 }

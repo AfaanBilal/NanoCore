@@ -29,6 +29,12 @@ fn main() {
         0x00,        // HLT
     ];
 
+    println!("Program: ");
+    for byte in &program {
+        println!("{byte:#04X} : {:04b} {:04b} ", byte >> 4, byte & 0x0F);
+    }
+    println!();
+
     let mut c = Computer::new();
 
     c.load_program(&program, 0x00);
