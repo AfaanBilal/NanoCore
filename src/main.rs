@@ -21,7 +21,7 @@ pub mod computer;
 pub mod cpu;
 
 fn main() {
-    let program: [u8; 5] = [
+    let program: &[u8] = &[
         0x10 | 0x01,
         0x41,        // LDI R1 65 'A'
         0x20 | 0x01, // INC R2
@@ -30,13 +30,13 @@ fn main() {
     ];
 
     println!("Program: ");
-    for byte in &program {
+    for byte in program {
         println!("{byte:#04X} : {:04b} {:04b} ", byte >> 4, byte & 0x0F);
     }
     println!();
 
     let mut c = Computer::new();
 
-    c.load_program(&program, 0x00);
+    c.load_program(program, 0x00);
     c.run();
 }
