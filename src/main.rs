@@ -15,10 +15,10 @@
 //! language programming.
 //!
 
-use crate::computer::Computer;
+use crate::nanocore::NanoCore;
 
-pub mod computer;
 pub mod cpu;
+pub mod nanocore;
 
 fn main() {
     let program: &[u8] = &[
@@ -37,7 +37,7 @@ fn main() {
     }
     println!();
 
-    let mut c = Computer::new();
+    let mut c = NanoCore::new();
 
     c.load_program(program, 0x00);
     c.run();
