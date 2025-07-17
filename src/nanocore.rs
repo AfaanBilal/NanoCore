@@ -14,6 +14,8 @@
 //! language programming.
 //!
 
+use std::fmt::Display;
+
 use crate::cpu::CPU;
 
 #[derive(Default)]
@@ -42,7 +44,7 @@ impl NanoCore {
 
         self.cpu.pc = start_address;
 
-        println!("Program loaded. PC set to {:#04X}", self.cpu.pc);
+        println!("Program loaded.");
     }
 
     pub fn run(&mut self) {
@@ -72,6 +74,7 @@ impl NanoCore {
 
         // DECODE
         let op: Op = opcode.into();
+
         let operands = match op {
             Op::HLT | Op::NOP => Operands::None,
             Op::LDI => {
@@ -92,7 +95,7 @@ impl NanoCore {
 
                 Operands::RegReg(rd, rs)
             }
-            Op::JMP => {
+            Op::JMP | Op::JZ | Op::JNZ => {
                 instruction_len = 2;
                 let addr = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
 
@@ -130,7 +133,9 @@ impl NanoCore {
                     panic!("Invalid!");
                 };
 
-                self.cpu.registers[reg as usize] += 1;
+                let value = self.cpu.registers[reg as usize].wrapping_add(1);
+                self.cpu.registers[reg as usize] = value;
+                self.cpu.update_zn_flags(value);
 
                 println!("-> INC R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
             }
@@ -164,6 +169,20 @@ impl NanoCore {
 
                 println!("-> JMP {a:#04X}");
             }
+            Op::JZ | Op::JNZ => {
+                let Operands::Addr(a) = operands else {
+                    panic!("Invalid!");
+                };
+
+                if self.cpu.get_flag(CPU::FLAG_Z) == (op == Op::JZ) {
+                    self.cpu.pc = a;
+                    pc_override = true;
+
+                    println!("-> {op} {a:#04X}");
+                } else {
+                    println!("-> {op} {a:#04X} (SKIP)");
+                }
+            }
             Op::PRINT => {
                 let Operands::Reg(reg) = operands else {
                     panic!("Invalid!");
@@ -195,26 +214,52 @@ pub enum Operands {
     Addr(u8),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Op {
     HLT,
     LDI,
     INC,
     ADD,
     JMP,
-    NOP,
+    JZ,
+    JNZ,
     PRINT,
+    NOP,
+}
+
+impl Display for Op {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Op::HLT => "HLT",
+                Op::LDI => "LDI",
+                Op::INC => "INC",
+                Op::ADD => "ADD",
+                Op::JMP => "JMP",
+                Op::JZ => "JZ",
+                Op::JNZ => "JNZ",
+                Op::NOP => "NOP",
+                Op::PRINT => "PRINT",
+            }
+        )
+    }
 }
 
 impl From<u8> for Op {
     fn from(value: u8) -> Self {
-        match value & 0xF0 {
+        let high = value & 0xF0;
+
+        match value {
             0x00 => Op::HLT,
-            0x10 => Op::LDI,
-            0x20 => Op::INC,
-            0x30 => Op::ADD,
+            _ if high == 0x10 => Op::LDI,
+            _ if high == 0x20 => Op::INC,
+            _ if high == 0x30 => Op::ADD,
             0x40 => Op::JMP,
-            0x50 => Op::PRINT,
+            0x41 => Op::JZ,
+            0x42 => Op::JNZ,
+            _ if high == 0x50 => Op::PRINT,
             _ => Op::NOP,
         }
     }
