@@ -17,14 +17,14 @@
 use crate::cpu::CPU;
 
 #[derive(Default)]
-pub struct Computer {
+pub struct NanoCore {
     pub cpu: CPU,
 }
 
-impl Computer {
+impl NanoCore {
     #[must_use]
     pub fn new() -> Self {
-        Computer { cpu: CPU::new() }
+        NanoCore { cpu: CPU::new() }
     }
 
     pub fn load_program(&mut self, program: &[u8], start_address: u8) {
