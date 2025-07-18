@@ -24,6 +24,8 @@ pub struct NanoCore {
 }
 
 impl NanoCore {
+    pub const MAX_CYCLES: u8 = 100;
+
     #[must_use]
     pub fn new() -> Self {
         NanoCore { cpu: CPU::new() }
@@ -48,7 +50,7 @@ impl NanoCore {
     }
 
     pub fn run(&mut self) {
-        println!("\n === NanoCore Start === \n");
+        println!("\n=== NanoCore Start === \n");
 
         let mut cycle = 0;
 
@@ -57,14 +59,15 @@ impl NanoCore {
             print!("\nCycle: {cycle:03} | ");
             self.cpu.print_state();
 
-            if cycle >= 20 {
+            if cycle >= Self::MAX_CYCLES {
+                println!("\n== FORCE HALT - max cycles ==\n");
                 break;
             }
 
             self.cycle();
         }
 
-        println!("\n === NanoCore Halt === \n");
+        println!("\n=== NanoCore Halt === \n");
     }
 
     pub fn cycle(&mut self) {
