@@ -43,9 +43,7 @@ fn main() {
     ];
 
     println!("Program: ");
-    for byte in program {
-        println!("{byte:#04X} : {:04b} {:04b} ", byte >> 4, byte & 0x0F);
-    }
+    Compiler::print_program(program);
     println!();
 
     let mut nano = NanoCore::new();
@@ -68,9 +66,7 @@ fn main() {
     ",
     );
     println!("Compiled: ");
-    for byte in &c.compiled {
-        println!("{byte:#04X} : {:04b} {:04b} ", byte >> 4, byte & 0x0F);
-    }
+    Compiler::print_program(&c.compiled);
     println!();
 
     let mut nano = NanoCore::new();
