@@ -17,13 +17,13 @@
 use crate::nanocore::Op;
 
 #[derive(Default)]
-pub struct Compiler {
+pub struct Assembler {
     pub asm: String,
-    pub compiled: Vec<u8>,
+    pub program: Vec<u8>,
 }
 
-impl Compiler {
-    pub fn compile(&mut self, asm: &str) {
+impl Assembler {
+    pub fn assemble(&mut self, asm: &str) {
         self.asm = asm.to_owned();
 
         let lines = self.asm.lines();
@@ -38,28 +38,28 @@ impl Compiler {
             let op: Op = parts[0].into();
 
             match op {
-                Op::HLT => self.compiled.push(0x00),
+                Op::HLT => self.program.push(0x00),
                 Op::LDI => {
                     let register = Self::register(parts[1]);
-                    self.compiled.push(0x10 | register);
-                    self.compiled
+                    self.program.push(0x10 | register);
+                    self.program
                         .push(parts[2].parse::<u8>().expect("Invalid value"));
                 }
                 Op::INC => {
                     let register = Self::register(parts[1]);
-                    self.compiled.push(0x20 | register);
+                    self.program.push(0x20 | register);
                 }
                 Op::ADD | Op::SUB => {
                     let rd = Self::register(parts[1]);
                     let rs = Self::register(parts[2]);
 
                     match op {
-                        Op::ADD => self.compiled.push(0x30),
-                        Op::SUB => self.compiled.push(0x31),
+                        Op::ADD => self.program.push(0x30),
+                        Op::SUB => self.program.push(0x31),
                         _ => unreachable!(),
                     }
 
-                    self.compiled.push((rd << 4) | rs);
+                    self.program.push((rd << 4) | rs);
                 }
                 Op::JMP | Op::JZ | Op::JNZ => {
                     let addr =
@@ -67,17 +67,17 @@ impl Compiler {
                             .expect("Expected address")[0];
 
                     match op {
-                        Op::JMP => self.compiled.push(0x40),
-                        Op::JZ => self.compiled.push(0x41),
-                        Op::JNZ => self.compiled.push(0x42),
+                        Op::JMP => self.program.push(0x40),
+                        Op::JZ => self.program.push(0x41),
+                        Op::JNZ => self.program.push(0x42),
                         _ => unreachable!(),
                     }
 
-                    self.compiled.push(addr);
+                    self.program.push(addr);
                 }
                 Op::PRINT => {
                     let register = Self::register(parts[1]);
-                    self.compiled.push(0x50 | register);
+                    self.program.push(0x50 | register);
                 }
                 Op::NOP => {}
             }
@@ -111,9 +111,9 @@ mod tests {
 
     #[test]
     #[allow(clippy::identity_op)]
-    fn test_compile() {
-        let mut c = Compiler::default();
-        c.compile(
+    fn test_assemble() {
+        let mut c = Assembler::default();
+        c.assemble(
             "LDI R0 253
                  LDI R1 65
                  PRINT R1
@@ -127,7 +127,7 @@ mod tests {
         );
 
         assert_eq!(
-            &c.compiled,
+            &c.program,
             &[
                 0x10 | 0x00,
                 0b1111_1101, // LDI R0 253

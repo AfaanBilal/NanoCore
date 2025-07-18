@@ -15,9 +15,9 @@
 //! language programming.
 //!
 
-use crate::{compiler::Compiler, nanocore::NanoCore};
+use crate::{assembler::Assembler, nanocore::NanoCore};
 
-pub mod compiler;
+pub mod assembler;
 pub mod cpu;
 pub mod nanocore;
 
@@ -43,15 +43,15 @@ fn main() {
     ];
 
     println!("Program: ");
-    Compiler::print_program(program);
+    Assembler::print_program(program);
     println!();
 
     let mut nano = NanoCore::new();
     nano.load_program(program, 0x00);
     nano.run();
 
-    let mut c = Compiler::default();
-    c.compile(
+    let mut c = Assembler::default();
+    c.assemble(
         "
     LDI R0 253
     LDI R1 65
@@ -65,11 +65,11 @@ fn main() {
     HLT
     ",
     );
-    println!("Compiled: ");
-    Compiler::print_program(&c.compiled);
+    println!("Binary: ");
+    Assembler::print_program(&c.program);
     println!();
 
     let mut nano = NanoCore::new();
-    nano.load_program(&c.compiled, 0x00);
+    nano.load_program(&c.program, 0x00);
     nano.run();
 }
