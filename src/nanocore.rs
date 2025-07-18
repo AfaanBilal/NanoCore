@@ -94,20 +94,20 @@ impl NanoCore {
         let operands = match op {
             Op::HLT | Op::NOP => Operands::None,
             Op::LDI => {
-                let reg = opcode & 0b0000_0111;
+                let reg = opcode & 0x0F;
                 let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
 
                 Operands::RegImm(reg, value)
             }
             Op::INC => {
-                let reg = opcode & 0b0000_0111;
+                let reg = opcode & 0x0F;
 
                 Operands::Reg(reg)
             }
             Op::ADD | Op::SUB => {
                 let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
-                let rd = (value >> 4) & 0b0000_0111;
-                let rs = value & 0b0000_0111;
+                let rd = (value >> 4) & 0x0F;
+                let rs = value & 0x0F;
 
                 Operands::RegReg(rd, rs)
             }
@@ -117,7 +117,7 @@ impl NanoCore {
                 Operands::Addr(addr)
             }
             Op::PRINT => {
-                let reg = opcode & 0b0000_0111;
+                let reg = opcode & 0x0F;
 
                 Operands::Reg(reg)
             }

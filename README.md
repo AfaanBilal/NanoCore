@@ -12,7 +12,7 @@ This project serves as an educational exercise in understanding the fundamental 
 
 ## ✨ Key Features
 
-  * **True 8-bit Architecture:** All general-purpose registers (R0-R7), Program Counter (PC), and Stack Pointer (SP) are 8-bit.
+  * **True 8-bit Architecture:** All general-purpose registers (R0-R15), Program Counter (PC), and Stack Pointer (SP) are 8-bit.
   * **256-byte Memory:** The entire addressable memory space is limited to 256 bytes (`0x00` to `0xFF`), making it a challenge to write highly optimized and compact code.
   * **Variable-Length Instruction Set:** Supports both 1-byte and 2-byte instructions to maximize opcode efficiency and flexibility within the limited address space.
   * **Modular Design:** CPU cycle is broken down into distinct Fetch, Decode, and Execute phases for clarity.
