@@ -104,8 +104,10 @@ impl NanoCore {
                 Operands::Reg(reg)
             }
             Op::ADD => {
-                let rd = (opcode >> 3) & 0b0000_0111;
-                let rs = opcode & 0b0000_0111;
+                instruction_len = 2;
+                let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
+                let rd = (value >> 4) & 0b0000_0111;
+                let rs = value & 0b0000_0111;
 
                 Operands::RegReg(rd, rs)
             }
