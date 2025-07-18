@@ -25,7 +25,7 @@ fn main() {
     #[allow(clippy::identity_op)]
     let program: &[u8] = &[
         0x10 | 0x00,
-        0b1111_1101, // LDI R0 253
+        253, // LDI R0 253
         0x10 | 0x01,
         0x41,        // LDI R1 65 ('A')
         0x50 | 0x01, // PRINT R1
