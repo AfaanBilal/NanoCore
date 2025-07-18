@@ -97,6 +97,12 @@ impl Compiler {
 
         register
     }
+
+    pub fn print_program(p: &[u8]) {
+        for byte in p {
+            println!("{byte:#04X} : {:04b} {:04b} ", byte >> 4, byte & 0x0F);
+        }
+    }
 }
 
 #[cfg(test)]
