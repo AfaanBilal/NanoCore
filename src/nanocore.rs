@@ -103,7 +103,7 @@ impl NanoCore {
 
                 Operands::Reg(reg)
             }
-            Op::ADD => {
+            Op::ADD | Op::SUB => {
                 instruction_len = 2;
                 let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
                 let rd = (value >> 4) & 0b0000_0111;
@@ -157,7 +157,7 @@ impl NanoCore {
 
                 println!("-> INC R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
             }
-            Op::ADD => {
+            Op::ADD | Op::SUB => {
                 let Operands::RegReg(rd, rs) = operands else {
                     panic!("Invalid!");
                 };
@@ -165,7 +165,12 @@ impl NanoCore {
                 let v1 = self.cpu.registers[rd as usize];
                 let v2 = self.cpu.registers[rs as usize];
 
-                let (result, carry) = v1.overflowing_add(v2);
+                let (result, carry) = match op {
+                    Op::ADD => v1.overflowing_add(v2),
+                    Op::SUB => v1.overflowing_sub(v2),
+                    _ => unreachable!(),
+                };
+
                 self.cpu.registers[rd as usize] = result;
                 self.cpu.update_zn_flags(result);
 
@@ -175,7 +180,10 @@ impl NanoCore {
                     self.cpu.clear_flag(CPU::FLAG_C);
                 }
 
-                println!("-> ADD R{rd}, R{rs}: {v1:#04X} + {v2:#04X} = {result:#04X}");
+                println!(
+                    "-> {op} R{rd}, R{rs}: {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
+                    if op == Op::ADD { "+" } else { "-" }
+                );
             }
             Op::JMP => {
                 let Operands::Addr(a) = operands else {
@@ -236,6 +244,7 @@ pub enum Op {
     LDI,
     INC,
     ADD,
+    SUB,
     JMP,
     JZ,
     JNZ,
@@ -253,6 +262,7 @@ impl Display for Op {
                 Op::LDI => "LDI",
                 Op::INC => "INC",
                 Op::ADD => "ADD",
+                Op::SUB => "SUB",
                 Op::JMP => "JMP",
                 Op::JZ => "JZ",
                 Op::JNZ => "JNZ",
@@ -271,7 +281,8 @@ impl From<u8> for Op {
             0x00 => Op::HLT,
             _ if high == 0x10 => Op::LDI,
             _ if high == 0x20 => Op::INC,
-            _ if high == 0x30 => Op::ADD,
+            0x30 => Op::ADD,
+            0x31 => Op::SUB,
             0x40 => Op::JMP,
             0x41 => Op::JZ,
             0x42 => Op::JNZ,
