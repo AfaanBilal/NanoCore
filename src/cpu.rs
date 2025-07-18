@@ -16,7 +16,7 @@
 
 #[allow(clippy::upper_case_acronyms)]
 pub struct CPU {
-    pub registers: [u8; 8],
+    pub registers: [u8; 16],
     pub pc: u8,
     pub sp: u8,
     pub memory: [u8; 256],
@@ -34,7 +34,7 @@ impl CPU {
     #[must_use]
     pub fn new() -> Self {
         CPU {
-            registers: [0; 8],
+            registers: [0; 16],
             pc: 0,
             sp: 0xFF,
             memory: [0; 256],
