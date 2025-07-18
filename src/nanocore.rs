@@ -71,7 +71,7 @@ impl NanoCore {
     }
 
     pub fn cycle(&mut self) {
-        let (op, operands, instruction_len) = self.fetch_decode();
+        let (op, operands) = self.fetch_decode();
 
         let pc_override = self.execute(op, operands);
 
@@ -80,14 +80,13 @@ impl NanoCore {
         }
 
         if !pc_override {
-            self.cpu.pc = self.cpu.pc.wrapping_add(instruction_len);
+            self.cpu.pc = self.cpu.pc.wrapping_add(op.instruction_len());
         }
     }
 
-    pub fn fetch_decode(&self) -> (Op, Operands, u8) {
+    pub fn fetch_decode(&self) -> (Op, Operands) {
         // FETCH
         let opcode = self.cpu.memory[self.cpu.pc as usize];
-        let mut instruction_len = 1;
 
         // DECODE
         let op: Op = opcode.into();
@@ -95,7 +94,6 @@ impl NanoCore {
         let operands = match op {
             Op::HLT | Op::NOP => Operands::None,
             Op::LDI => {
-                instruction_len = 2;
                 let reg = opcode & 0b0000_0111;
                 let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
 
@@ -107,7 +105,6 @@ impl NanoCore {
                 Operands::Reg(reg)
             }
             Op::ADD | Op::SUB => {
-                instruction_len = 2;
                 let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
                 let rd = (value >> 4) & 0b0000_0111;
                 let rs = value & 0b0000_0111;
@@ -115,7 +112,6 @@ impl NanoCore {
                 Operands::RegReg(rd, rs)
             }
             Op::JMP | Op::JZ | Op::JNZ => {
-                instruction_len = 2;
                 let addr = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
 
                 Operands::Addr(addr)
@@ -127,7 +123,7 @@ impl NanoCore {
             }
         };
 
-        (op, operands, instruction_len)
+        (op, operands)
     }
 
     pub fn execute(&mut self, op: Op, operands: Operands) -> bool {
@@ -241,7 +237,7 @@ pub enum Operands {
     Addr(u8),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Op {
     HLT,
     LDI,
@@ -253,6 +249,15 @@ pub enum Op {
     JNZ,
     PRINT,
     NOP,
+}
+
+impl Op {
+    pub fn instruction_len(&self) -> u8 {
+        match self {
+            Op::LDI | Op::ADD | Op::SUB | Op::JMP | Op::JZ | Op::JNZ => 2,
+            _ => 1,
+        }
+    }
 }
 
 impl Display for Op {
