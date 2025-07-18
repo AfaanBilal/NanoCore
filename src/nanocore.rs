@@ -56,7 +56,7 @@ impl NanoCore {
 
         while !self.cpu.is_halted {
             cycle += 1;
-            print!("\nCycle: {cycle:03} | ");
+            print!("\nCycle: {cycle:03}");
             self.cpu.print_state();
 
             if cycle >= Self::MAX_CYCLES {
