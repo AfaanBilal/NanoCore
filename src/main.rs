@@ -17,6 +17,7 @@
 
 use crate::nanocore::NanoCore;
 
+pub mod compiler;
 pub mod cpu;
 pub mod nanocore;
 
