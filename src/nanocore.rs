@@ -299,3 +299,21 @@ impl From<u8> for Op {
         }
     }
 }
+
+impl From<&str> for Op {
+    fn from(value: &str) -> Self {
+        match value {
+            "HLT" => Op::HLT,
+            "LDI" => Op::LDI,
+            "INC" => Op::INC,
+            "ADD" => Op::ADD,
+            "SUB" => Op::SUB,
+            "JMP" => Op::JMP,
+            "JZ" => Op::JZ,
+            "JNZ" => Op::JNZ,
+            "NOP" => Op::NOP,
+            "PRINT" => Op::PRINT,
+            _ => panic!("Invalid operation: {value}"),
+        }
+    }
+}
