@@ -61,9 +61,9 @@ To run the NanoCore emulator, you'll need to setup Rust locally.
 
 ## 🛠️ Assembling
 
-To assemble a program (say `example.nca`), run the assemble:
+To assemble a program (say `example.nca`), run the NanoCore Assembler (`nca`):
 ```bash
-cargo r --bin assembler -- -i example.nca -o example.ncb
+cargo r --bin nca -- -i example.nca -o example.ncb
 ```
 This should assemble the `example.nca` (NanoCore Assembly) to `example.ncb` (NanoCore Binary).
 
