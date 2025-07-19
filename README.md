@@ -59,6 +59,21 @@ To run the NanoCore emulator, you'll need to setup Rust locally.
     ```
     You should see the emulator's debug output and the program's output to your console. The source assembly file is `programs/test.nca`.
 
+## 🛠️ Assembling
+
+To assemble a program (say `example.nca`), run the assemble:
+```bash
+cargo r --bin assembler -- -i example.nca -o example.ncb
+```
+This should assemble the `example.nca` (NanoCore Assembly) to `example.ncb` (NanoCore Binary).
+
+## ⚙️ Running
+
+To run this assembled binary, run:
+```bash
+cargo r -- example.ncb
+```
+
 ## 📂 Code Structure
 
   * `CPU (cpu.rs)`: Defines the CPU's internal state, including registers, program counter, stack pointer, memory, and flag bits.
