@@ -52,9 +52,9 @@ impl NanoCore {
     pub fn run(&mut self) {
         println!("\n");
         CPU::start_color();
-        print!("=== NanoCore Start ===");
+        print!("{}  NanoCore Start  {}", "━".repeat(45), "━".repeat(50));
         CPU::end_color();
-        println!();
+        println!("\n");
 
         let mut cycle = 0;
 
@@ -72,7 +72,7 @@ impl NanoCore {
 
         println!();
         CPU::start_color();
-        print!("=== NanoCore Halt ===");
+        print!("{}  NanoCore Halt  {}", "━".repeat(46), "━".repeat(50));
         CPU::end_color();
         println!();
     }
