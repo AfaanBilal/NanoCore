@@ -14,6 +14,9 @@
 //! language programming.
 //!
 
+pub mod assembler;
+pub mod cpu;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Op {
     HLT,

@@ -19,7 +19,6 @@ use std::fs;
 
 use crate::nanocore::NanoCore;
 
-pub mod cpu;
 pub mod nanocore;
 
 fn main() {
