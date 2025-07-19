@@ -53,11 +53,11 @@ To run the NanoCore emulator, you'll need to setup Rust locally.
     cd nanocore
     ```
 2.  **Run the example program:**
-    The `main.rs` file contains a small, hand-assembled program that demonstrates the CPU's basic functionality.
+    The `programs/test.ncb` file contains a small, assembled program that demonstrates the CPU's basic functionality.
     ```bash
-    cargo run
+    cargo run -- programs/test.ncb
     ```
-    You should see the emulator's debug output and the program's output to your console.
+    You should see the emulator's debug output and the program's output to your console. The source assembly file is `programs/test.nca`.
 
 ## 📂 Code Structure
 
