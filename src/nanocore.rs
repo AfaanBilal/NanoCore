@@ -206,14 +206,16 @@ impl NanoCore {
                     panic!("Invalid!");
                 };
 
+                print!("-> {op} {a:#04X}");
+
                 if self.cpu.get_flag(CPU::FLAG_Z) == (op == Op::JZ) {
                     self.cpu.pc = a;
                     pc_override = true;
-
-                    println!("-> {op} {a:#04X}");
                 } else {
-                    println!("-> {op} {a:#04X} (SKIP)");
+                    print!(" (SKIP)");
                 }
+
+                println!();
             }
             Op::PRINT => {
                 let Operands::Reg(reg) = operands else {
