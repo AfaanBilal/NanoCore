@@ -72,14 +72,18 @@ impl CPU {
         }
     }
 
-    pub fn print_state(&self) {
+    pub fn print_state(&self, cycle: u8) {
+        println!();
+        println!("+{}+", "-".repeat(self.registers.len() * 6 + 16));
+        print!("| Cycle: {cycle:03} {}|", " ".repeat(self.registers.len() * 6 + 4));
+
         print!("\n+----------+-----+");
         for _ in 0..self.registers.len() {
             print!("-----+");
         }
         println!();
 
-        print!("| Flag     | PC  |");
+        print!("| Flags    | PC  |");
         for i in 0..self.registers.len() {
             print!(" R{i} {}|", if i < 10 { " " } else { "" });
         }
@@ -90,5 +94,7 @@ impl CPU {
             print!(" {:03} |", self.registers[i]);
         }
         println!();
+
+        println!("\n{}", "▔".repeat(self.registers.len() * 6 + 18));
     }
 }
