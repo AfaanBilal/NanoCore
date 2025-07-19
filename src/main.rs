@@ -35,8 +35,10 @@ fn main() {
         (0x02 << 4) | 0x00, // SUB R2 R0
         0x20 | 0x00,        // INC R0
         0x41,
-        0x0F,        // JZ 0x0F (HLT)
+        0x11,        // JZ 0x11 (HLT)
         0x20 | 0x01, // INC R1
+        0x60 | 0x01, // SHL R1
+        0x70 | 0x01, // SHR R1
         0x40,
         0x04, // JMP 0x04 (-> PRINT R1)
         0x00, // HLT
@@ -59,8 +61,10 @@ fn main() {
     ADD R2 R1
     SUB R2 R0
     INC R0
-    JZ 0x0F
+    JZ 0x11
     INC R1
+    SHL R1
+    SHR R1
     JMP 0x04
     HLT
     ",

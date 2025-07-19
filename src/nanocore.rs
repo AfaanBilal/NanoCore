@@ -264,7 +264,7 @@ impl NanoCore {
                 }
 
                 println!(
-                    "-> SHL R{reg}: {value} {} 1 = {result}",
+                    "-> {op} R{reg}: {value} ({value:08b}) {} 1 = {result} ({result:08b})",
                     if op == Op::SHL { "<<" } else { ">>" }
                 );
             }
