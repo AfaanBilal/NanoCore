@@ -50,7 +50,11 @@ impl NanoCore {
     }
 
     pub fn run(&mut self) {
-        Self::print_colored(&format!("{}  NanoCore Start  {}", "━".repeat(45), "━".repeat(50)));
+        Self::print_colored(&format!(
+            "{}  NanoCore Start  {}",
+            "━".repeat(45),
+            "━".repeat(50)
+        ));
 
         let mut cycle = 0;
 
@@ -66,7 +70,11 @@ impl NanoCore {
             self.cycle();
         }
 
-        Self::print_colored(&format!("{}  NanoCore Halt  {}", "━".repeat(46), "━".repeat(50)));
+        Self::print_colored(&format!(
+            "{}  NanoCore Halt  {}",
+            "━".repeat(46),
+            "━".repeat(50)
+        ));
     }
 
     pub fn print_colored(s: &str) {
@@ -122,6 +130,11 @@ impl NanoCore {
                 let addr = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
 
                 Operands::Addr(addr)
+            }
+            Op::SHL | Op::SHR => {
+                let reg = opcode & 0x0F;
+
+                Operands::Reg(reg)
             }
             Op::PRINT => {
                 let reg = opcode & 0x0F;
@@ -228,6 +241,33 @@ impl NanoCore {
 
                 println!("{}", value as char);
             }
+            Op::SHL | Op::SHR => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let value = self.cpu.registers[reg as usize];
+
+                let (result, carry) = match op {
+                    Op::SHL => value.overflowing_shl(1),
+                    Op::SHR => value.overflowing_shr(1),
+                    _ => unreachable!(),
+                };
+
+                self.cpu.registers[reg as usize] = result;
+                self.cpu.update_zn_flags(result);
+
+                if carry {
+                    self.cpu.set_flag(CPU::FLAG_C);
+                } else {
+                    self.cpu.clear_flag(CPU::FLAG_C);
+                }
+
+                println!(
+                    "-> SHL R{reg}: {value} {} 1 = {result}",
+                    if op == Op::SHL { "<<" } else { ">>" }
+                );
+            }
             Op::NOP => {
                 println!("-> NOP");
             }
@@ -257,6 +297,8 @@ pub enum Op {
     JZ,
     JNZ,
     PRINT,
+    SHL,
+    SHR,
     NOP,
 }
 
@@ -283,8 +325,10 @@ impl Display for Op {
                 Op::JMP => "JMP",
                 Op::JZ => "JZ",
                 Op::JNZ => "JNZ",
-                Op::NOP => "NOP",
                 Op::PRINT => "PRINT",
+                Op::SHL => "SHL",
+                Op::SHR => "SHR",
+                Op::NOP => "NOP",
             }
         )
     }
@@ -304,6 +348,8 @@ impl From<u8> for Op {
             0x41 => Op::JZ,
             0x42 => Op::JNZ,
             _ if high == 0x50 => Op::PRINT,
+            _ if high == 0x60 => Op::SHL,
+            _ if high == 0x70 => Op::SHR,
             _ => Op::NOP,
         }
     }
@@ -320,8 +366,10 @@ impl From<&str> for Op {
             "JMP" => Op::JMP,
             "JZ" => Op::JZ,
             "JNZ" => Op::JNZ,
-            "NOP" => Op::NOP,
+            "SHL" => Op::SHL,
+            "SHR" => Op::SHR,
             "PRINT" => Op::PRINT,
+            "NOP" => Op::NOP,
             _ => panic!("Invalid operation: {value}"),
         }
     }
