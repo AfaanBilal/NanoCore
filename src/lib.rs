@@ -97,9 +97,9 @@ impl From<&str> for Op {
             "JMP" => Op::JMP,
             "JZ" => Op::JZ,
             "JNZ" => Op::JNZ,
+            "PRINT" => Op::PRINT,
             "SHL" => Op::SHL,
             "SHR" => Op::SHR,
-            "PRINT" => Op::PRINT,
             "NOP" => Op::NOP,
             _ => panic!("Invalid operation: {value}"),
         }
