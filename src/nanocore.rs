@@ -14,9 +14,7 @@
 //! language programming.
 //!
 
-use nanocore::{Op, end_color, start_color};
-
-use crate::cpu::CPU;
+use nanocore::{Op, cpu::CPU, end_color, start_color};
 
 #[derive(Default)]
 pub struct NanoCore {

@@ -14,7 +14,7 @@
 //! language programming.
 //!
 
-use nanocore::{end_color, start_color};
+use crate::{end_color, start_color};
 
 #[allow(clippy::upper_case_acronyms)]
 pub struct CPU {
