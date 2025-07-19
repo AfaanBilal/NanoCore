@@ -50,11 +50,7 @@ impl NanoCore {
     }
 
     pub fn run(&mut self) {
-        println!("\n");
-        CPU::start_color();
-        print!("{}  NanoCore Start  {}", "━".repeat(45), "━".repeat(50));
-        CPU::end_color();
-        println!("\n");
+        Self::print_colored(&format!("{}  NanoCore Start  {}", "━".repeat(45), "━".repeat(50)));
 
         let mut cycle = 0;
 
@@ -70,9 +66,13 @@ impl NanoCore {
             self.cycle();
         }
 
+        Self::print_colored(&format!("{}  NanoCore Halt  {}", "━".repeat(46), "━".repeat(50)));
+    }
+
+    pub fn print_colored(s: &str) {
         println!();
         CPU::start_color();
-        print!("{}  NanoCore Halt  {}", "━".repeat(46), "━".repeat(50));
+        print!("{s}");
         CPU::end_color();
         println!();
     }
