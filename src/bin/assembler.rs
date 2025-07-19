@@ -14,7 +14,7 @@
 //! language programming.
 //!
 
-use crate::nanocore::Op;
+use nanocore::Op;
 
 #[derive(Default)]
 pub struct Assembler {
@@ -114,6 +114,29 @@ impl Assembler {
             println!("{byte:#04X} : {:04b} {:04b} ", byte >> 4, byte & 0x0F);
         }
     }
+}
+
+fn main() {
+    let mut c = Assembler::default();
+    c.assemble(
+        "
+    LDI R0 253
+    LDI R1 65
+    PRINT R1
+    ADD R2 R1
+    SUB R2 R0
+    INC R0
+    JZ 0x11
+    INC R1
+    SHL R1
+    SHR R1
+    JMP 0x04
+    HLT
+    ",
+    );
+    println!("Binary: ");
+    Assembler::print_program(&c.program);
+    println!();
 }
 
 #[cfg(test)]

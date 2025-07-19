@@ -2,6 +2,7 @@
 name = "nanocore"
 version = "0.1.0"
 edition = "2024"
+default-run = "nanocore"
 
 [dependencies]
 hex = "0.4.3"
