@@ -40,6 +40,8 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 | `0x41` | `JZ Addr`       | Jumps to the 8-bit address `Addr` if the Zero Flag (Z) is set.          | `0x41`, `Addr8` (2 bytes)                              |
 | `0x42` | `JNZ Addr`      | Jumps to the 8-bit address `Addr` if the Zero Flag (Z) is not set.      | `0x42`, `Addr8` (2 bytes)                              |
 | `0x5X` | `PRINT REG`     | Outputs the ASCII character stored in `REG` to console.                 | `0x50 \| REG` (e.g., `0x10` for `R0`, `0x11` for `R1`) |
+| `0x6X` | `SHL REG`       | Shifts the bits in `REG` left by 1 (`<< 1`).                            | `0x60 \| REG` (e.g., `0x10` for `R0`, `0x11` for `R1`) |
+| `0x7X` | `SHR REG`       | Shifts the bits in `REG` right by 1 (`>> 1`).                           | `0x70 \| REG` (e.g., `0x10` for `R0`, `0x11` for `R1`) |
 
 ## 🚀 Getting Started
 
