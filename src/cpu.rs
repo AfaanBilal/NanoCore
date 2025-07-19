@@ -76,17 +76,18 @@ impl CPU {
         println!();
 
         Self::start_color();
-        print!("┌{}┐", "─".repeat(self.registers.len() * 6 - 1));
+        print!("┌{}┐", "─".repeat(self.registers.len() * 6 + 15));
         Self::end_color();
 
         println!();
 
         Self::start_color();
         print!(
-            "│ Cycle: {cycle:03} / PC: {:03} / Flags: {:08b} {}│",
+            "│ Cycle: {cycle:03} / PC: {:#04X} ({:03}) / Flags: {:08b} {}│",
+            self.pc,
             self.pc,
             self.flags,
-            " ".repeat(self.registers.len() * 6 - 41)
+            " ".repeat(self.registers.len() * 6 - 32)
         );
         Self::end_color();
 
@@ -96,7 +97,7 @@ impl CPU {
         print!("├");
         for i in 0..self.registers.len() {
             print!(
-                "─────{}",
+                "──────{}",
                 if i == self.registers.len() - 1 {
                     "┤"
                 } else {
@@ -111,7 +112,7 @@ impl CPU {
         Self::start_color();
         print!("│");
         for i in 0..self.registers.len() {
-            print!(" R{i} {}│", if i < 10 { " " } else { "" });
+            print!(" R{i}  {}│", if i < 10 { " " } else { "" });
         }
         Self::end_color();
 
@@ -120,7 +121,16 @@ impl CPU {
         Self::start_color();
         print!("│");
         for i in 0..self.registers.len() {
-            print!(" {:03} │", self.registers[i]);
+            print!(" {:04} │", self.registers[i]);
+        }
+        Self::end_color();
+
+        println!();
+
+        Self::start_color();
+        print!("│");
+        for i in 0..self.registers.len() {
+            print!(" {:#04X} │", self.registers[i]);
         }
         Self::end_color();
 
@@ -130,7 +140,7 @@ impl CPU {
         print!("└");
         for i in 0..self.registers.len() {
             print!(
-                "─────{}",
+                "──────{}",
                 if i == self.registers.len() - 1 {
                     "┘"
                 } else {
