@@ -34,8 +34,8 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 | `0x00` | `HLT`           | Halts CPU execution.                                                    | `0x00`                                                 |
 | `0x1X` | `LDI REG, #val` | Loads an 8-bit immediate value `val` into register `REG`.               | `0x10 \| REG`, `Imm8` (2 bytes)                        |
 | `0x2X` | `INC REG`       | Increment `REG` by `1` (wrapping addition).                             | `0x20 \| REG`                                          |
-| `0x30` | `ADD Rd Rs`     | Adds the value of register `Rs` to register `Rd`. Flags updated.        | `0x30, (Rd << 3) \| Rs`                                |
-| `0x31` | `SUB Rd Rs`     | Subtracts the value of register `Rs` from register `Rd`. Flags updated. | `0x31, (Rd << 4) \| Rs`                                |
+| `0x30` | `ADD Rd Rs`     | Adds the value of register `Rs` to register `Rd`. Flags updated.        | `0x30, (Rd << 4) \| Rs` (2 bytes)                      |
+| `0x31` | `SUB Rd Rs`     | Subtracts the value of register `Rs` from register `Rd`. Flags updated. | `0x31, (Rd << 4) \| Rs` (2 bytes)                      |
 | `0x40` | `JMP Addr`      | Unconditionally jumps to the 8-bit address `Addr`.                      | `0x40`, `Addr8` (2 bytes)                              |
 | `0x41` | `JZ Addr`       | Jumps to the 8-bit address `Addr` if the Zero Flag (Z) is set.          | `0x41`, `Addr8` (2 bytes)                              |
 | `0x42` | `JNZ Addr`      | Jumps to the 8-bit address `Addr` if the Zero Flag (Z) is not set.      | `0x42`, `Addr8` (2 bytes)                              |
