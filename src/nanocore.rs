@@ -14,7 +14,7 @@
 //! language programming.
 //!
 
-use nanocore::Op;
+use nanocore::{Op, end_color, start_color};
 
 use crate::cpu::CPU;
 
@@ -79,9 +79,9 @@ impl NanoCore {
 
     pub fn print_colored(s: &str) {
         println!();
-        CPU::start_color();
+        start_color();
         print!("{s}");
-        CPU::end_color();
+        end_color();
         println!();
     }
 
