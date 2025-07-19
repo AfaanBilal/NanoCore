@@ -63,12 +63,13 @@ To run the NanoCore emulator, you'll need to setup Rust locally.
 
   * `CPU (cpu.rs)`: Defines the CPU's internal state, including registers, program counter, stack pointer, memory, and flag bits.
   * `NanoCore (nanocore.rs)`: The main emulator struct, responsible for loading programs, running cycles, and managing the `CPU`.
-      * `Computer::new()`: Initializes a fresh computer state.
-      * `Computer::load_program()`: Places machine code into the simulated memory.
-      * `Computer::run()`: Executes the CPU cycle loop until halted.
-      * `Computer::cycle()`: Performs a single CPU cycle (Fetch, Decode, Execute).
-      * `Computer::fetch_decode()`: Reads the instruction byte(s) from memory and determines its type and operands.
-      * `Computer::execute_instruction()`: Performs the operation defined by the decoded instruction, updating the CPU state.
+      * `NanoCore::new()`: Initializes a fresh computer state.
+      * `NanoCore::load_program()`: Places machine code into the simulated memory.
+      * `NanoCore::run()`: Executes the CPU cycle loop until halted.
+      * `NanoCore::cycle()`: Performs a single CPU cycle (Fetch, Decode, Execute).
+      * `NanoCore::fetch_decode()`: Reads the instruction byte(s) from memory and determines its type and operands.
+      * `NanoCore::execute_instruction()`: Performs the operation defined by the decoded instruction, updating the CPU state.
+  * `Assembler (assembler.rs)`: The NanoCore assembler.
 
 ---
 
