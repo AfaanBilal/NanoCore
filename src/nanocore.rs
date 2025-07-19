@@ -43,8 +43,6 @@ impl NanoCore {
         }
 
         self.cpu.pc = start_address;
-
-        println!("Program loaded.");
     }
 
     pub fn run(&mut self) {

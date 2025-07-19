@@ -17,13 +17,27 @@
 
 use std::fs;
 
+use ::nanocore::assembler::Assembler;
+
 use crate::nanocore::NanoCore;
 
 pub mod nanocore;
 
 fn main() {
     let bin = std::env::args().nth(1).expect("Missing filename.");
-    let bytes = fs::read(bin).unwrap();
+
+    let bytes = if bin.ends_with(".nca") {
+        let asm = fs::read_to_string(&bin).unwrap();
+
+        println!("Assembling {}", &bin);
+
+        let mut c = Assembler::default();
+        c.assemble(&asm);
+
+        c.program
+    } else {
+        fs::read(bin).unwrap()
+    };
 
     let mut nano = NanoCore::new();
     nano.load_program(&bytes, 0x00);
