@@ -79,6 +79,17 @@ impl Assembler {
                     let register = Self::register(parts[1]);
                     self.program.push(0x50 | register);
                 }
+                Op::SHL | Op::SHR => {
+                    let register = Self::register(parts[1]);
+
+                    let opcode = match op {
+                        Op::SHL => 0x60,
+                        Op::SHR => 0x70,
+                        _ => unreachable!(),
+                    };
+
+                    self.program.push(opcode | register);
+                }
                 Op::NOP => {}
             }
         }
