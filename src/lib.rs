@@ -102,3 +102,11 @@ impl From<&str> for Op {
         }
     }
 }
+
+pub fn start_color() {
+    print!("\x1b[92;40m");
+}
+
+pub fn end_color() {
+    print!("\x1b[0m");
+}

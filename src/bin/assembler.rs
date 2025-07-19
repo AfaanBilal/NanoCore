@@ -14,7 +14,10 @@
 //! language programming.
 //!
 
-use nanocore::Op;
+use std::fs;
+
+use clap::Parser;
+use nanocore::{Op, end_color, start_color};
 
 #[derive(Default)]
 pub struct Assembler {
@@ -116,27 +119,44 @@ impl Assembler {
     }
 }
 
-fn main() {
-    let mut c = Assembler::default();
-    c.assemble(
-        "
-    LDI R0 253
-    LDI R1 65
-    PRINT R1
-    ADD R2 R1
-    SUB R2 R0
-    INC R0
-    JZ 0x11
-    INC R1
-    SHL R1
-    SHR R1
-    JMP 0x04
-    HLT
-    ",
-    );
-    println!("Binary: ");
-    Assembler::print_program(&c.program);
+#[derive(Parser, Debug)]
+#[command(name = "assembler")]
+#[command(about = "Assembles NanoCore ASM (.nca) file into binary output (.ncb)", long_about = None)]
+struct Args {
+    /// Path to the source assembly file
+    #[arg(short, long)]
+    input: String,
+
+    /// Path to the output binary file
+    #[arg(short, long, default_value = "out.ncb")]
+    output: String,
+}
+
+fn main() -> std::io::Result<()> {
+    let args = Args::parse();
+
+    let asm = fs::read_to_string(&args.input)?;
+    print!("\nAssembling:\n  Input: ");
+    start_color();
+    print!("{}", args.input);
+    end_color();
+    print!("\n Output: ");
+    start_color();
+    print!("{}", args.output);
+    end_color();
     println!();
+
+    let mut c = Assembler::default();
+
+    c.assemble(&asm);
+
+    print!("Assembled. Writing to bin.");
+
+    fs::write(&args.output, c.program)?;
+
+    println!("\nDone.");
+
+    Ok(())
 }
 
 #[cfg(test)]

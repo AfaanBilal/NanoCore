@@ -14,6 +14,8 @@
 //! language programming.
 //!
 
+use nanocore::{end_color, start_color};
+
 #[allow(clippy::upper_case_acronyms)]
 pub struct CPU {
     pub registers: [u8; 16],
@@ -75,13 +77,13 @@ impl CPU {
     pub fn print_state(&self, cycle: u8) {
         println!();
 
-        Self::start_color();
+        start_color();
         print!("┌{}┐", "─".repeat(self.registers.len() * 6 + 15));
-        Self::end_color();
+        end_color();
 
         println!();
 
-        Self::start_color();
+        start_color();
         print!(
             "│ Cycle: {cycle:03} / PC: {:#04X} ({:03}) / Flags: {:08b} {}│",
             self.pc,
@@ -89,11 +91,11 @@ impl CPU {
             self.flags,
             " ".repeat(self.registers.len() * 6 - 32)
         );
-        Self::end_color();
+        end_color();
 
         println!();
 
-        Self::start_color();
+        start_color();
         print!("├");
         for i in 0..self.registers.len() {
             print!(
@@ -105,38 +107,38 @@ impl CPU {
                 }
             );
         }
-        Self::end_color();
+        end_color();
 
         println!();
 
-        Self::start_color();
+        start_color();
         print!("│");
         for i in 0..self.registers.len() {
             print!(" R{i}  {}│", if i < 10 { " " } else { "" });
         }
-        Self::end_color();
+        end_color();
 
         println!();
 
-        Self::start_color();
+        start_color();
         print!("│");
         for i in 0..self.registers.len() {
             print!(" {:04} │", self.registers[i]);
         }
-        Self::end_color();
+        end_color();
 
         println!();
 
-        Self::start_color();
+        start_color();
         print!("│");
         for i in 0..self.registers.len() {
             print!(" {:#04X} │", self.registers[i]);
         }
-        Self::end_color();
+        end_color();
 
         println!();
 
-        Self::start_color();
+        start_color();
         print!("└");
         for i in 0..self.registers.len() {
             print!(
@@ -148,16 +150,8 @@ impl CPU {
                 }
             );
         }
-        Self::end_color();
+        end_color();
 
         println!();
-    }
-
-    pub fn start_color() {
-        print!("\x1b[92;40m");
-    }
-
-    pub fn end_color() {
-        print!("\x1b[0m");
     }
 }
