@@ -74,13 +74,15 @@ impl CPU {
 
     pub fn print_state(&self, cycle: u8) {
         println!();
-        println!("┌{}┐", "─".repeat(self.registers.len() * 6 + 16));
+        println!("┌{}┐", "─".repeat(self.registers.len() * 6 - 1));
         print!(
-            "│ Cycle: {cycle:03} {}│",
-            " ".repeat(self.registers.len() * 6 + 4)
+            "│ Cycle: {cycle:03} / PC: {:03} / Flags: {:08b} {}│",
+            self.pc,
+            self.flags,
+            " ".repeat(self.registers.len() * 6 - 41)
         );
 
-        print!("\n├──────────┬─────┬");
+        print!("\n├");
         for i in 0..self.registers.len() {
             print!(
                 "─────{}",
@@ -93,18 +95,18 @@ impl CPU {
         }
         println!();
 
-        print!("│ Flags    │ PC  │");
+        print!("│");
         for i in 0..self.registers.len() {
             print!(" R{i} {}│", if i < 10 { " " } else { "" });
         }
         println!();
 
-        print!("│ {:08b} │ {:03} │", self.flags, self.pc);
+        print!("│");
         for i in 0..self.registers.len() {
             print!(" {:03} │", self.registers[i]);
         }
 
-        print!("\n└──────────┴─────┴");
+        print!("\n└");
         for i in 0..self.registers.len() {
             print!(
                 "─────{}",
