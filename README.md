@@ -74,6 +74,14 @@ To run this assembled binary, run:
 cargo r -- example.ncb
 ```
 
+## 🪄 Assemble and Run
+
+To assemble and run without saving a binary:
+```bash
+cargo r -- example.nca
+```
+> Note that the filename MUST end with the `.nca` extension to be considered a NanoCore Assembly file which will be automatically assembled before running.
+
 ## 📂 Code Structure
 
   * `CPU (cpu.rs)`: Defines the CPU's internal state, including registers, program counter, stack pointer, memory, and flag bits.
