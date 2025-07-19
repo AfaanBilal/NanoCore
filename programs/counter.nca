@@ -1,0 +1,10 @@
+; Count down from 5
+LDI R0 5
+LDI R1 1
+LDI R2 48
+ADD R2 R0
+PRINT R2
+SUB R0 R1
+JZ 0x0F
+JMP 0x04
+HLT
