@@ -74,15 +74,26 @@ impl CPU {
 
     pub fn print_state(&self, cycle: u8) {
         println!();
-        println!("┌{}┐", "─".repeat(self.registers.len() * 6 - 1));
+
+        Self::start_color();
+        print!("┌{}┐", "─".repeat(self.registers.len() * 6 - 1));
+        Self::end_color();
+
+        println!();
+
+        Self::start_color();
         print!(
             "│ Cycle: {cycle:03} / PC: {:03} / Flags: {:08b} {}│",
             self.pc,
             self.flags,
             " ".repeat(self.registers.len() * 6 - 41)
         );
+        Self::end_color();
 
-        print!("\n├");
+        println!();
+
+        Self::start_color();
+        print!("├");
         for i in 0..self.registers.len() {
             print!(
                 "─────{}",
@@ -93,20 +104,30 @@ impl CPU {
                 }
             );
         }
+        Self::end_color();
+
         println!();
 
+        Self::start_color();
         print!("│");
         for i in 0..self.registers.len() {
             print!(" R{i} {}│", if i < 10 { " " } else { "" });
         }
+        Self::end_color();
+
         println!();
 
+        Self::start_color();
         print!("│");
         for i in 0..self.registers.len() {
             print!(" {:03} │", self.registers[i]);
         }
+        Self::end_color();
 
-        print!("\n└");
+        println!();
+
+        Self::start_color();
+        print!("└");
         for i in 0..self.registers.len() {
             print!(
                 "─────{}",
@@ -117,6 +138,16 @@ impl CPU {
                 }
             );
         }
+        Self::end_color();
+
         println!();
+    }
+
+    pub fn start_color() {
+        print!("\x1b[92;40m");
+    }
+
+    pub fn end_color() {
+        print!("\x1b[0m");
     }
 }
