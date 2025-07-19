@@ -73,18 +73,22 @@ impl CPU {
     }
 
     pub fn print_state(&self) {
-        print!("\n| Flag     | PC  |");
+        print!("\n+----------+-----+");
+        for _ in 0..self.registers.len() {
+            print!("-----+");
+        }
+        println!();
+
+        print!("| Flag     | PC  |");
         for i in 0..self.registers.len() {
             print!(" R{i} {}|", if i < 10 { " " } else { "" });
         }
         println!();
 
         print!("| {:08b} | {:03} |", self.flags, self.pc);
-
         for i in 0..self.registers.len() {
             print!(" {:03} |", self.registers[i]);
         }
-
         println!();
     }
 }
