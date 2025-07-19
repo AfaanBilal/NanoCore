@@ -50,7 +50,11 @@ impl NanoCore {
     }
 
     pub fn run(&mut self) {
-        println!("\n=== NanoCore Start === \n");
+        println!("\n");
+        CPU::start_color();
+        print!("=== NanoCore Start ===");
+        CPU::end_color();
+        println!();
 
         let mut cycle = 0;
 
@@ -66,7 +70,11 @@ impl NanoCore {
             self.cycle();
         }
 
-        println!("\n=== NanoCore Halt === \n");
+        println!();
+        CPU::start_color();
+        print!("=== NanoCore Halt ===");
+        CPU::end_color();
+        println!();
     }
 
     pub fn cycle(&mut self) {
