@@ -15,35 +15,18 @@
 //! language programming.
 //!
 
+use std::fs;
+
 use crate::nanocore::NanoCore;
 
 pub mod cpu;
 pub mod nanocore;
 
 fn main() {
-    #[allow(clippy::identity_op)]
-    let program: &[u8] = &[
-        0x10 | 0x00,
-        253, // LDI R0 253
-        0x10 | 0x01,
-        0x41,        // LDI R1 65 ('A')
-        0x50 | 0x01, // PRINT R1
-        0x30,
-        (0x02 << 4) | 0x01, // ADD R2 R1
-        0x31,
-        (0x02 << 4) | 0x00, // SUB R2 R0
-        0x20 | 0x00,        // INC R0
-        0x41,
-        0x11,        // JZ 0x11 (HLT)
-        0x20 | 0x01, // INC R1
-        0x60 | 0x01, // SHL R1
-        0x70 | 0x01, // SHR R1
-        0x40,
-        0x04, // JMP 0x04 (-> PRINT R1)
-        0x00, // HLT
-    ];
+    let bin = std::env::args().nth(1).expect("Missing filename.");
+    let bytes = fs::read(bin).unwrap();
 
     let mut nano = NanoCore::new();
-    nano.load_program(program, 0x00);
+    nano.load_program(&bytes, 0x00);
     nano.run();
 }
