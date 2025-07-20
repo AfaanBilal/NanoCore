@@ -21,6 +21,7 @@ pub struct NanoCore {
     pub cpu: CPU,
     pub cycle: u8,
     pub current_instruction: String,
+    pub current_skipped: bool,
     pub output: String,
     pub print: bool,
 }
@@ -34,6 +35,7 @@ impl NanoCore {
             cpu: CPU::new(),
             cycle: 0,
             current_instruction: String::new(),
+            current_skipped: false,
             output: String::new(),
             print: false,
         }
@@ -161,6 +163,7 @@ impl NanoCore {
 
     pub fn execute(&mut self, op: Op, operands: Operands) -> bool {
         let mut pc_override = false;
+        self.current_skipped = false;
 
         match op {
             Op::HLT => {
@@ -226,7 +229,7 @@ impl NanoCore {
                 }
 
                 self.current_instruction = format!(
-                    "{op} R{rd}, R{rs}: {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
+                    "{op} R{rd} R{rs}: {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
                     if op == Op::ADD { "+" } else { "-" }
                 );
 
@@ -263,7 +266,7 @@ impl NanoCore {
                     self.cpu.pc = a;
                     pc_override = true;
                 } else {
-                    self.current_instruction.push_str(" (SKIP)");
+                    self.current_skipped = true;
 
                     if self.print {
                         print!(" (SKIP)");

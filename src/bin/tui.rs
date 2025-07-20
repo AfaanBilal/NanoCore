@@ -23,7 +23,7 @@ use ratatui::{
     layout::{Constraint, Layout, Spacing},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Paragraph},
+    widgets::{Block, Padding, Paragraph},
 };
 
 #[derive(Debug, Default)]
@@ -66,21 +66,21 @@ impl App {
 
         frame.render_widget(Paragraph::new(description).block(block), main[0]);
 
-        let inner = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+        let inner = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(main[1]);
 
-        let memory = Block::bordered().title(" Memory ");
-        let cpu_block = Block::bordered().title(" CPU ").title(Span::styled(
-            (if self.nano_core.cpu.is_halted {
-                " HLT "
-            } else {
-                ""
-            })
-            .to_string(),
-            Style::default().bg(Color::Red).fg(Color::White),
-        ));
-
-        frame.render_widget(memory, inner[1]);
+        let cpu_block = Block::bordered()
+            .padding(Padding::top(1))
+            .title(Line::from(" CPU ").centered())
+            .title(Span::styled(
+                (if self.nano_core.cpu.is_halted {
+                    " HLT "
+                } else {
+                    ""
+                })
+                .to_string(),
+                Style::default().bg(Color::Red).fg(Color::White),
+            ));
 
         let cpu_block_inner = cpu_block.inner(inner[0]);
         frame.render_widget(cpu_block, inner[0]);
@@ -102,18 +102,36 @@ impl App {
         .split(cpu[0]);
 
         frame.render_widget(
-            Paragraph::new(Line::from(format!(" {:03} ", self.nano_core.cycle)).centered())
-                .block(Block::bordered().title(" Cycle ")),
+            Paragraph::new(
+                Line::from(format!(
+                    " {:#04X} ({:03}) ",
+                    self.nano_core.cycle, self.nano_core.cycle
+                ))
+                .centered(),
+            )
+            .block(Block::bordered().title(" Cycle ")),
             cpu_top[0],
         );
         frame.render_widget(
-            Paragraph::new(Line::from(format!(" {:03} ", self.nano_core.cpu.pc)).centered())
-                .block(Block::bordered().title(" PC ")),
+            Paragraph::new(
+                Line::from(format!(
+                    " {:#04X} ({:03}) ",
+                    self.nano_core.cpu.pc, self.nano_core.cpu.pc
+                ))
+                .centered(),
+            )
+            .block(Block::bordered().title(" PC ")),
             cpu_top[1],
         );
         frame.render_widget(
-            Paragraph::new(Line::from(format!(" {:03} ", self.nano_core.cpu.sp)).centered())
-                .block(Block::bordered().title(" SP ")),
+            Paragraph::new(
+                Line::from(format!(
+                    " {:#04X} ({:03}) ",
+                    self.nano_core.cpu.sp, self.nano_core.cpu.sp
+                ))
+                .centered(),
+            )
+            .block(Block::bordered().title(" SP ")),
             cpu_top[2],
         );
         frame.render_widget(
@@ -159,14 +177,59 @@ impl App {
         }
 
         frame.render_widget(
-            Paragraph::new(self.nano_core.current_instruction.clone())
-                .block(Block::bordered().title(" Current Instruction ")),
+            Paragraph::new(Line::from(vec![
+                self.nano_core.current_instruction.clone().green(),
+                if self.nano_core.current_skipped {
+                    " (SKIP)".red()
+                } else {
+                    "".red()
+                },
+            ]))
+            .block(Block::bordered().title(" Current Instruction ")),
             cpu[2],
         );
         frame.render_widget(
             Paragraph::new(self.nano_core.output.clone())
                 .block(Block::bordered().title(" Output ")),
             cpu[3],
+        );
+
+        let memory_block = Block::bordered()
+            .title(Line::from(" Memory ").centered())
+            .padding(Padding::top(1));
+        let memory_block_inner = memory_block.inner(inner[1]);
+        frame.render_widget(memory_block, inner[1]);
+
+        let memory = Layout::horizontal([Constraint::Percentage(20), Constraint::Fill(1)])
+            .split(memory_block_inner);
+
+        let mut addr_vec = vec![];
+        let mut mem_vec = vec![];
+        for i in 0..self.nano_core.cpu.memory.len() {
+            mem_vec.push(Line::from(format!(
+                " {:08b} ({:#04X})",
+                self.nano_core.cpu.memory[i], self.nano_core.cpu.memory[i]
+            )));
+
+            if i as u8 == self.nano_core.cpu.pc {
+                addr_vec.push(Line::from(format!("-> {i:#04X}")));
+            } else {
+                addr_vec.push(Line::from(format!("   {i:#04X}")));
+            }
+
+            if self.nano_core.cpu.memory[i] == 0 {
+                break;
+            }
+        }
+
+        frame.render_widget(
+            Paragraph::new(Text::from(addr_vec)).block(Block::bordered().title(" Address ")),
+            memory[0],
+        );
+
+        frame.render_widget(
+            Paragraph::new(Text::from(mem_vec)).block(Block::bordered().title(" Data ")),
+            memory[1],
         );
     }
 
