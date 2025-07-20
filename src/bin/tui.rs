@@ -78,7 +78,7 @@ impl App {
         let description = Text::from(vec![
             Line::from("(c) Afaan Bilal".blue()).centered(),
             Line::from("https://afaan.dev".blue()).centered(),
-            Line::from("https://github.com/AfaanBilal/nanocore".blue()).centered(),
+            Line::from("https://github.com/AfaanBilal/NanoCore".blue()).centered(),
             Line::from(
                 format!(
                     "Running: {} | Tick rate: {}ms",
