@@ -14,21 +14,28 @@
 //! language programming.
 //!
 
-use std::{fs, io};
+use std::{
+    fs, io,
+    ops::AddAssign,
+    time::{Duration, Instant},
+};
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use nanocore::{assembler::Assembler, nanocore::NanoCore};
 use ratatui::{
     DefaultTerminal, Frame,
-    layout::{Constraint, Layout, Spacing},
+    layout::{Constraint, Layout},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Padding, Paragraph},
+    widgets::{Block, List, Padding, Paragraph},
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct App {
     nano_core: NanoCore,
+    running: bool,
+    tick_rate: Duration,
+    last_tick: Instant,
     exit: bool,
 }
 
@@ -37,6 +44,10 @@ impl App {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;
+
+            if self.running {
+                self.run_full();
+            }
         }
 
         Ok(())
@@ -45,9 +56,15 @@ impl App {
     fn draw(&self, frame: &mut Frame) {
         let title = Line::from(" NanoCore ".green().on_black().bold());
         let instructions = Line::from(vec![
-            " Next ".into(),
+            " Next Instruction ".into(),
             "<Space>".blue().bold(),
-            " Quit ".into(),
+            " | Run Full ".into(),
+            "<Enter>".blue().bold(),
+            " | Faster ".into(),
+            "<->".blue().bold(),
+            " | Slower ".into(),
+            "<+>".blue().bold(),
+            " | Quit ".into(),
             "<Q> ".blue().bold(),
         ]);
         let block = Block::bordered()
@@ -62,6 +79,15 @@ impl App {
             Line::from("(c) Afaan Bilal".blue()).centered(),
             Line::from("https://afaan.dev".blue()).centered(),
             Line::from("https://github.com/AfaanBilal/nanocore".blue()).centered(),
+            Line::from(
+                format!(
+                    "Running: {} | Tick rate: {}ms",
+                    if self.running { "Yes" } else { "No" },
+                    self.tick_rate.as_millis()
+                )
+                .green(),
+            )
+            .centered(),
         ]);
 
         frame.render_widget(Paragraph::new(description).block(block), main[0]);
@@ -87,8 +113,9 @@ impl App {
 
         let cpu = Layout::vertical([
             Constraint::Percentage(5),
-            Constraint::Percentage(30),
+            Constraint::Percentage(20),
             Constraint::Percentage(7),
+            Constraint::Percentage(30),
             Constraint::Fill(1),
         ])
         .split(cpu_block_inner);
@@ -144,7 +171,6 @@ impl App {
         let register_block_inner = register_block.inner(cpu[1]);
 
         let registers = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .spacing(Spacing::Space(1))
             .split(register_block_inner);
 
         let registers_top =
@@ -157,10 +183,10 @@ impl App {
         for i in 0..8 {
             frame.render_widget(
                 Paragraph::new(Text::from(vec![
-                    Line::from(format!("{:04}", self.nano_core.cpu.registers[i])),
-                    Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])),
+                    Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered(),
+                    Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered(),
                 ]))
-                .block(Block::bordered().title(format!(" R{i} "))),
+                .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
                 registers_top[i],
             );
         }
@@ -168,10 +194,10 @@ impl App {
         for i in 8..16 {
             frame.render_widget(
                 Paragraph::new(Text::from(vec![
-                    Line::from(format!("{:04}", self.nano_core.cpu.registers[i])),
-                    Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])),
+                    Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered(),
+                    Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered(),
                 ]))
-                .block(Block::bordered().title(format!(" R{i} "))),
+                .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
                 registers_bottom[i - 8],
             );
         }
@@ -188,10 +214,23 @@ impl App {
             .block(Block::bordered().title(" Current Instruction ")),
             cpu[2],
         );
+
+        let log = List::new(
+            self.nano_core
+                .instruction_log
+                .clone()
+                .into_iter()
+                .rev()
+                .take(15)
+                .collect::<Vec<String>>(),
+        )
+        .block(Block::bordered().title(" Instruction Log "));
+
+        frame.render_widget(log, cpu[3]);
         frame.render_widget(
             Paragraph::new(self.nano_core.output.clone())
                 .block(Block::bordered().title(" Output ")),
-            cpu[3],
+            cpu[4],
         );
 
         let memory_block = Block::bordered()
@@ -234,16 +273,25 @@ impl App {
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
-        match event::read()? {
-            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                match key_event.code {
-                    KeyCode::Char('q') => self.exit(),
-                    KeyCode::Char(' ') => self.next(),
-                    _ => {}
+        if event::poll(Duration::from_millis(10))? {
+            match event::read()? {
+                Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                    match key_event.code {
+                        KeyCode::Char('q') => self.exit(),
+                        KeyCode::Char(' ') => self.next(),
+                        KeyCode::Enter => self.running = !self.running,
+                        KeyCode::Char('+') => self.tick_rate.add_assign(Duration::from_millis(100)),
+                        KeyCode::Char('-') => {
+                            self.tick_rate =
+                                self.tick_rate.saturating_sub(Duration::from_millis(100))
+                        }
+                        _ => {}
+                    }
                 }
-            }
-            _ => {}
-        };
+                _ => {}
+            };
+        }
+
         Ok(())
     }
 
@@ -253,6 +301,13 @@ impl App {
 
     fn next(&mut self) {
         self.nano_core.cycle();
+    }
+
+    fn run_full(&mut self) {
+        if self.last_tick.elapsed() >= self.tick_rate {
+            self.nano_core.cycle();
+            self.last_tick = Instant::now();
+        }
     }
 }
 
@@ -275,6 +330,9 @@ fn main() -> io::Result<()> {
 
     let mut app = App {
         nano_core: NanoCore::new(),
+        running: false,
+        tick_rate: Duration::from_millis(100),
+        last_tick: Instant::now(),
         exit: false,
     };
 
