@@ -16,6 +16,7 @@
 
 pub mod assembler;
 pub mod cpu;
+pub mod nanocore;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Op {

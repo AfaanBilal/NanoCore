@@ -18,10 +18,7 @@
 use std::fs;
 
 use ::nanocore::assembler::Assembler;
-
-use crate::nanocore::NanoCore;
-
-pub mod nanocore;
+use nanocore::nanocore::NanoCore;
 
 fn main() {
     let bin = std::env::args().nth(1).expect("Missing filename.");
@@ -40,6 +37,7 @@ fn main() {
     };
 
     let mut nano = NanoCore::new();
+    nano.print = true;
     nano.load_program(&bytes, 0x00);
     nano.run();
 }
