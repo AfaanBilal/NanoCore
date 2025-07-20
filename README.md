@@ -82,6 +82,18 @@ cargo r -- example.nca
 ```
 > Note that the filename MUST end with the `.nca` extension to be considered a NanoCore Assembly file which will be automatically assembled before running.
 
+## 📟 Terminal Interface
+
+To run the TUI visualizer:
+```bash
+cargo r --bin tui -- programs/counter.nca
+```
+
+Example output:
+
+<img src="assets/NanoCore-TUI.gif" alt="NanoCore TUI" width="600">
+
+
 ## 📂 Code Structure
 
   * `CPU (cpu.rs)`: Defines the CPU's internal state, including registers, program counter, stack pointer, memory, and flag bits.

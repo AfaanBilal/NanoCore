@@ -314,11 +314,10 @@ impl App {
 fn main() -> io::Result<()> {
     let mut terminal = ratatui::init();
 
-    // let bin = std::env::args().nth(1).expect("Missing filename.");
-    let bin = "programs/counter.nca";
+    let bin = std::env::args().nth(1).expect("Missing filename.");
 
     let bytes = if bin.ends_with(".nca") {
-        let asm = fs::read_to_string(bin).unwrap();
+        let asm = fs::read_to_string(&bin).unwrap();
 
         let mut c = Assembler::default();
         c.assemble(&asm);
