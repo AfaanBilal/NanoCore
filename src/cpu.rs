@@ -17,6 +17,7 @@
 use crate::{end_color, start_color};
 
 #[allow(clippy::upper_case_acronyms)]
+#[derive(Debug)]
 pub struct CPU {
     pub registers: [u8; 16],
     pub pc: u8,

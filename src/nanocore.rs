@@ -14,11 +14,15 @@
 //! language programming.
 //!
 
-use nanocore::{Op, cpu::CPU, end_color, start_color};
+use crate::{Op, cpu::CPU, end_color, start_color};
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct NanoCore {
     pub cpu: CPU,
+    pub cycle: u8,
+    pub current_instruction: String,
+    pub output: String,
+    pub print: bool,
 }
 
 impl NanoCore {
@@ -26,7 +30,13 @@ impl NanoCore {
 
     #[must_use]
     pub fn new() -> Self {
-        NanoCore { cpu: CPU::new() }
+        NanoCore {
+            cpu: CPU::new(),
+            cycle: 0,
+            current_instruction: String::new(),
+            output: String::new(),
+            print: false,
+        }
     }
 
     pub fn load_program(&mut self, program: &[u8], start_address: u8) {
@@ -46,19 +56,18 @@ impl NanoCore {
     }
 
     pub fn run(&mut self) {
-        Self::print_colored(&format!(
+        self.print_colored(&format!(
             "{}  NanoCore Start  {}",
             "━".repeat(45),
             "━".repeat(50)
         ));
 
-        let mut cycle = 0;
-
         while !self.cpu.is_halted {
-            cycle += 1;
-            self.cpu.print_state(cycle);
+            if self.print {
+                self.cpu.print_state(self.cycle);
+            }
 
-            if cycle >= Self::MAX_CYCLES {
+            if self.cycle >= Self::MAX_CYCLES {
                 println!("\n== FORCE HALT - max cycles ==\n");
                 break;
             }
@@ -66,14 +75,18 @@ impl NanoCore {
             self.cycle();
         }
 
-        Self::print_colored(&format!(
+        self.print_colored(&format!(
             "{}  NanoCore Halt  {}",
             "━".repeat(46),
             "━".repeat(50)
         ));
     }
 
-    pub fn print_colored(s: &str) {
+    pub fn print_colored(&self, s: &str) {
+        if !self.print {
+            return;
+        }
+
         println!();
         start_color();
         print!("{s}");
@@ -82,6 +95,10 @@ impl NanoCore {
     }
 
     pub fn cycle(&mut self) {
+        if !self.cpu.is_halted {
+            self.cycle += 1;
+        }
+
         let (op, operands) = self.fetch_decode();
 
         let pc_override = self.execute(op, operands);
@@ -149,7 +166,11 @@ impl NanoCore {
             Op::HLT => {
                 self.cpu.is_halted = true;
 
-                println!("-> HLT");
+                self.current_instruction = "HLT".into();
+
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                }
             }
             Op::LDI => {
                 let Operands::RegImm(reg, value) = operands else {
@@ -159,7 +180,11 @@ impl NanoCore {
                 self.cpu.registers[reg as usize] = value;
                 self.cpu.update_zn_flags(value);
 
-                println!("-> LDI R{reg}: {value:#04X}");
+                self.current_instruction = format!("LDI R{reg}: {value:#04X}");
+
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                }
             }
             Op::INC => {
                 let Operands::Reg(reg) = operands else {
@@ -170,7 +195,12 @@ impl NanoCore {
                 self.cpu.registers[reg as usize] = value;
                 self.cpu.update_zn_flags(value);
 
-                println!("-> INC R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
+                self.current_instruction =
+                    format!("INC R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
+
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                }
             }
             Op::ADD | Op::SUB => {
                 let Operands::RegReg(rd, rs) = operands else {
@@ -195,10 +225,14 @@ impl NanoCore {
                     self.cpu.clear_flag(CPU::FLAG_C);
                 }
 
-                println!(
-                    "-> {op} R{rd}, R{rs}: {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
+                self.current_instruction = format!(
+                    "{op} R{rd}, R{rs}: {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
                     if op == Op::ADD { "+" } else { "-" }
                 );
+
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                }
             }
             Op::JMP => {
                 let Operands::Addr(a) = operands else {
@@ -208,23 +242,37 @@ impl NanoCore {
                 self.cpu.pc = a;
                 pc_override = true;
 
-                println!("-> JMP {a:#04X}");
+                self.current_instruction = format!("JMP {a:#04X}");
+
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                }
             }
             Op::JZ | Op::JNZ => {
                 let Operands::Addr(a) = operands else {
                     panic!("Invalid!");
                 };
 
-                print!("-> {op} {a:#04X}");
+                self.current_instruction = format!("{op} {a:#04X}");
+
+                if self.print {
+                    print!("-> {}", self.current_instruction);
+                }
 
                 if self.cpu.get_flag(CPU::FLAG_Z) == (op == Op::JZ) {
                     self.cpu.pc = a;
                     pc_override = true;
                 } else {
-                    print!(" (SKIP)");
+                    self.current_instruction.push_str(" (SKIP)");
+
+                    if self.print {
+                        print!(" (SKIP)");
+                    }
                 }
 
-                println!();
+                if self.print {
+                    println!();
+                }
             }
             Op::PRINT => {
                 let Operands::Reg(reg) = operands else {
@@ -233,9 +281,13 @@ impl NanoCore {
 
                 let value = self.cpu.registers[reg as usize];
 
-                println!("-> PRINT R{reg}: '{}' ({value})", value as char);
+                self.current_instruction = format!("PRINT R{reg}: '{}' ({value})", value as char);
+                self.output.push(value as char);
 
-                println!("{}", value as char);
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                    println!("{}", value as char);
+                }
             }
             Op::SHL | Op::SHR => {
                 let Operands::Reg(reg) = operands else {
@@ -259,13 +311,21 @@ impl NanoCore {
                     self.cpu.clear_flag(CPU::FLAG_C);
                 }
 
-                println!(
-                    "-> {op} R{reg}: {value} ({value:08b}) {} 1 = {result} ({result:08b})",
+                self.current_instruction = format!(
+                    "{op} R{reg}: {value} ({value:08b}) {} 1 = {result} ({result:08b})",
                     if op == Op::SHL { "<<" } else { ">>" }
                 );
+
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                }
             }
             Op::NOP => {
-                println!("-> NOP");
+                self.current_instruction = "NOP".into();
+
+                if self.print {
+                    println!("-> {}", self.current_instruction);
+                }
             }
         }
 
