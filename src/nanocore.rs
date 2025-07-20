@@ -22,6 +22,7 @@ pub struct NanoCore {
     pub cycle: u8,
     pub current_instruction: String,
     pub current_skipped: bool,
+    pub instruction_log: Vec<String>,
     pub output: String,
     pub print: bool,
 }
@@ -36,6 +37,7 @@ impl NanoCore {
             cycle: 0,
             current_instruction: String::new(),
             current_skipped: false,
+            instruction_log: vec![],
             output: String::new(),
             print: false,
         }
@@ -97,9 +99,11 @@ impl NanoCore {
     }
 
     pub fn cycle(&mut self) {
-        if !self.cpu.is_halted {
-            self.cycle += 1;
+        if self.cpu.is_halted {
+            return;
         }
+
+        self.cycle += 1;
 
         let (op, operands) = self.fetch_decode();
 
@@ -331,6 +335,12 @@ impl NanoCore {
                 }
             }
         }
+
+        self.instruction_log.push(format!(
+            "{} {}",
+            self.current_instruction,
+            if self.current_skipped { " (SKIP)" } else { "" }
+        ));
 
         pc_override
     }
