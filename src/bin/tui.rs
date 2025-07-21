@@ -71,32 +71,33 @@ impl App {
             .title(title.centered())
             .title_bottom(instructions.centered());
 
-        let main = Layout::vertical([Constraint::Percentage(10), Constraint::Percentage(90)])
+        let main = Layout::vertical([Constraint::Percentage(10), Constraint::Fill(1)])
             .margin(1)
             .split(frame.area());
 
         let description = Text::from(vec![
-            Line::from("(c) Afaan Bilal".blue()).centered(),
-            Line::from("https://afaan.dev".blue()).centered(),
-            Line::from("https://github.com/AfaanBilal/NanoCore".blue()).centered(),
+            Line::from(
+                "(c) Afaan Bilal <https://afaan.dev> | https://github.com/AfaanBilal/NanoCore"
+                    .gray(),
+            )
+            .centered(),
             Line::from(
                 format!(
                     "Running: {} | Tick rate: {}ms",
                     if self.running { "Yes" } else { "No" },
                     self.tick_rate.as_millis()
                 )
-                .green(),
+                .cyan(),
             )
             .centered(),
         ]);
 
         frame.render_widget(Paragraph::new(description).block(block), main[0]);
 
-        let inner = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(main[1]);
+        let inner =
+            Layout::horizontal([Constraint::Percentage(70), Constraint::Fill(1)]).split(main[1]);
 
         let cpu_block = Block::bordered()
-            .padding(Padding::top(1))
             .title(Line::from(" CPU ").centered())
             .title(Span::styled(
                 (if self.nano_core.cpu.is_halted {
@@ -112,7 +113,7 @@ impl App {
         frame.render_widget(cpu_block, inner[0]);
 
         let cpu = Layout::vertical([
-            Constraint::Percentage(5),
+            Constraint::Percentage(7),
             Constraint::Percentage(20),
             Constraint::Percentage(7),
             Constraint::Percentage(30),
@@ -233,27 +234,31 @@ impl App {
             cpu[4],
         );
 
-        let memory_block = Block::bordered()
-            .title(Line::from(" Memory ").centered())
-            .padding(Padding::top(1));
+        let memory_block = Block::bordered().title(Line::from(" Memory ").centered());
         let memory_block_inner = memory_block.inner(inner[1]);
         frame.render_widget(memory_block, inner[1]);
 
-        let memory = Layout::horizontal([Constraint::Percentage(20), Constraint::Fill(1)])
+        let memory = Layout::horizontal([Constraint::Percentage(40), Constraint::Fill(1)])
             .split(memory_block_inner);
 
-        let mut addr_vec = vec![];
-        let mut mem_vec = vec![];
+        let mut addr_vec = vec![Line::from("   Hex   Dec".blue())];
+        let mut mem_vec = vec![Line::from(" Binary    Hex   Dec".blue())];
         for i in 0..self.nano_core.cpu.memory.len() {
-            mem_vec.push(Line::from(format!(
-                " {:08b} ({:#04X})",
-                self.nano_core.cpu.memory[i], self.nano_core.cpu.memory[i]
-            )));
+            let mem_line = Line::from(format!(
+                " {:08b}  {:#04X}  {:03} ",
+                self.nano_core.cpu.memory[i],
+                self.nano_core.cpu.memory[i],
+                self.nano_core.cpu.memory[i]
+            ));
 
             if i as u8 == self.nano_core.cpu.pc {
-                addr_vec.push(Line::from(format!("-> {i:#04X}")));
+                addr_vec.push(Line::from(
+                    format!("-> {i:#04X}  {i:03} ").white().on_magenta(),
+                ));
+                mem_vec.push(mem_line.white().on_magenta());
             } else {
-                addr_vec.push(Line::from(format!("   {i:#04X}")));
+                addr_vec.push(Line::from(format!("   {i:#04X}  {i:03}")));
+                mem_vec.push(mem_line);
             }
 
             if self.nano_core.cpu.memory[i] == 0 {
