@@ -191,7 +191,7 @@ impl NanoCore {
                 self.cpu.registers[reg as usize] = value;
                 self.cpu.update_zn_flags(value);
 
-                self.current_instruction = format!("LDI   R{reg}| {value:#04X}");
+                self.current_instruction = format!("LDI   R{reg} {value:#04X}| ({value:03})");
             }
             Op::INC => {
                 let Operands::Reg(reg) = operands else {
