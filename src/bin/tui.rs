@@ -197,10 +197,12 @@ impl App {
         let registers = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(register_block_inner);
 
-        let registers_top =
-            Layout::horizontal([Constraint::Percentage(100 / 8); 8]).split(registers[0]);
-        let registers_bottom =
-            Layout::horizontal([Constraint::Percentage(100 / 8); 8]).split(registers[1]);
+        let registers_top = Layout::horizontal([Constraint::Percentage(100 / 8); 8])
+            .spacing(1)
+            .split(registers[0]);
+        let registers_bottom = Layout::horizontal([Constraint::Percentage(100 / 8); 8])
+            .spacing(1)
+            .split(registers[1]);
 
         frame.render_widget(register_block, cpu[1]);
 
@@ -265,7 +267,7 @@ impl App {
             .split(memory_block_inner);
 
         let mut addr_vec = vec![Line::from("   Hex   Dec".light_blue())];
-        let mut mem_vec = vec![Line::from(" Binary    Hex   Dec".light_blue())];
+        let mut mem_vec = vec![Line::from(" Bin       Hex   Dec".light_blue())];
         for i in 0..self.nano_core.cpu.memory.len() {
             let mem_line = Line::from(format!(
                 " {:08b}  {:#04X}  {:03} ",
