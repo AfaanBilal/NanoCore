@@ -91,7 +91,7 @@ cargo r --bin tui -- programs/counter.nca
 
 Example output:
 
-<img src="assets/NanoCore-TUI.gif" alt="NanoCore TUI" width="600">
+<img src="assets/NanoCoreTUI.gif" alt="NanoCore TUI">
 
 
 ## 📂 Code Structure
