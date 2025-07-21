@@ -27,7 +27,7 @@ use ratatui::{
     layout::{Constraint, Layout},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, List, Padding, Paragraph},
+    widgets::{Block, List, Paragraph},
 };
 
 #[derive(Debug)]
@@ -60,10 +60,10 @@ impl App {
             "<Space>".blue().bold(),
             " | Run Full ".into(),
             "<Enter>".blue().bold(),
-            " | Faster ".into(),
-            "<->".blue().bold(),
-            " | Slower ".into(),
-            "<+>".blue().bold(),
+            " | Faster (-100ms) ".into(),
+            "<⬆>".blue().bold(),
+            " | Slower (+100ms) ".into(),
+            "<⬇>".blue().bold(),
             " | Quit ".into(),
             "<Q> ".blue().bold(),
         ]);
@@ -285,11 +285,11 @@ impl App {
                         KeyCode::Char('q') => self.exit(),
                         KeyCode::Char(' ') => self.next(),
                         KeyCode::Enter => self.running = !self.running,
-                        KeyCode::Char('+') => self.tick_rate.add_assign(Duration::from_millis(100)),
-                        KeyCode::Char('-') => {
+                        KeyCode::Up => {
                             self.tick_rate =
                                 self.tick_rate.saturating_sub(Duration::from_millis(100))
                         }
+                        KeyCode::Down => self.tick_rate.add_assign(Duration::from_millis(100)),
                         _ => {}
                     }
                 }
