@@ -1,7 +1,5 @@
 # NanoCore: An 8-bit CPU Emulator
 
-[](https://opensource.org/licenses/MIT)
-
 ## 🌟 Introduction
 
 `NanoCore` is a meticulously crafted emulator for a custom 8-bit CPU.
