@@ -370,17 +370,23 @@ impl App {
                         .unwrap_or("")
                         .to_owned();
 
+                    let mut op_span = Span::raw(format!("{:5}", op.clone())).cyan();
+                    let mut rest_span = Span::raw(format!(" {:<8} │", rest.trim()));
+
+                    if rest.contains("(SKIP)") {
+                        rest_span = rest_span.dim();
+                        op_span = op_span.dim();
+                    }
+
                     Line::from(vec![
                         Span::styled(format!("{i:03}"), Style::default().fg(Color::DarkGray)),
                         Span::raw(" "),
-                        Span::styled(
-                            format!("{:5}", op.clone()),
-                            Style::default().fg(Color::Cyan),
-                        ),
-                        Span::raw(format!(" {:<12} │", rest.trim())),
+                        op_span,
+                        rest_span,
                         Span::raw(
                             Self::get_instruction_rest(&l, &format!("{op}{rest}")).replace('|', ""),
-                        ),
+                        )
+                        .dark_gray(),
                     ])
                 })
                 .rev()
