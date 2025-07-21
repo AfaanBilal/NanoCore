@@ -10,6 +10,8 @@ Designed with extreme minimalism in mind, this CPU operates within a strict 256-
 
 This project serves as an educational exercise in understanding the fundamental principles of computer architecture, low-level instruction set design, memory management under severe constraints, and assembly language programming.
 
+<img src="assets/NanoCoreTUI.gif" alt="NanoCore TUI">
+
 ## ✨ Key Features
 
   * **True 8-bit Architecture:** All general-purpose registers (R0-R15), Program Counter (PC), and Stack Pointer (SP) are 8-bit.
@@ -88,11 +90,6 @@ To run the TUI visualizer:
 ```bash
 cargo r --bin tui -- programs/counter.nca
 ```
-
-Example output:
-
-<img src="assets/NanoCoreTUI.gif" alt="NanoCore TUI">
-
 
 ## 📂 Code Structure
 
