@@ -172,7 +172,7 @@ impl NanoCore {
             self.instruction_log.push(format!(
                 "{} {}",
                 self.current_instruction,
-                if self.current_skipped { " (SKIP)" } else { "" }
+                if self.current_skipped { "(SKIP)" } else { "" }
             ));
         }
 
@@ -191,7 +191,7 @@ impl NanoCore {
                 self.cpu.registers[reg as usize] = value;
                 self.cpu.update_zn_flags(value);
 
-                self.current_instruction = format!("LDI   R{reg}: {value:#04X}");
+                self.current_instruction = format!("LDI   R{reg}| {value:#04X}");
             }
             Op::INC => {
                 let Operands::Reg(reg) = operands else {
@@ -203,7 +203,7 @@ impl NanoCore {
                 self.cpu.update_zn_flags(value);
 
                 self.current_instruction =
-                    format!("INC   R{reg}: {:#04X}", self.cpu.registers[reg as usize]);
+                    format!("INC   R{reg}| {:#04X}", self.cpu.registers[reg as usize]);
             }
             Op::ADD | Op::SUB => {
                 let Operands::RegReg(rd, rs) = operands else {
@@ -229,7 +229,7 @@ impl NanoCore {
                 }
 
                 self.current_instruction = format!(
-                    "{op}   R{rd} R{rs}: {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
+                    "{op}   R{rd} R{rs}| {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
                     if op == Op::ADD { "+" } else { "-" }
                 );
             }
@@ -269,7 +269,7 @@ impl NanoCore {
 
                 let value = self.cpu.registers[reg as usize];
 
-                self.current_instruction = format!("{op} R{reg}: '{}' ({value})", value as char);
+                self.current_instruction = format!("{op} R{reg}| '{}' ({value})", value as char);
                 self.output.push(value as char);
 
                 if self.print {
@@ -299,7 +299,7 @@ impl NanoCore {
                 }
 
                 self.current_instruction = format!(
-                    "{op}   R{reg}: {value} ({value:08b}) {} 1 = {result} ({result:08b})",
+                    "{op}   R{reg}| {value} ({value:08b}) {} 1 = {result} ({result:08b})",
                     if op == Op::SHL { "<<" } else { ">>" }
                 );
             }
