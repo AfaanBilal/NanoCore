@@ -126,7 +126,7 @@ impl App {
             Constraint::Percentage(20),
             Constraint::Percentage(20),
             Constraint::Fill(1),
-            Constraint::Percentage(10),
+            Constraint::Percentage(15),
         ])
         .split(cpu[0]);
 
@@ -166,7 +166,7 @@ impl App {
         frame.render_widget(
             Paragraph::new(
                 Line::from(format!(
-                    " Z: {:01} | C: {:01} | N: {:01} | Y: {:01} ",
+                    "{:01}{:01}{:01}{:01}",
                     self.nano_core.cpu.get_flag(CPU::FLAG_Z) as u8,
                     self.nano_core.cpu.get_flag(CPU::FLAG_C) as u8,
                     self.nano_core.cpu.get_flag(CPU::FLAG_N) as u8,
@@ -174,7 +174,7 @@ impl App {
                 ))
                 .centered(),
             )
-            .block(Block::bordered().title(" Flags ")),
+            .block(Block::bordered().title(" Flags (ZCNY) ")),
             cpu_top[3],
         );
 
