@@ -241,15 +241,19 @@ impl NanoCore {
                 self.cpu.pc = a;
                 pc_override = true;
 
-                self.current_instruction = format!("JMP   {a:#04X}");
+                self.current_instruction =
+                    format!("JMP   {a:#04X}| Mem({:#04X})", self.cpu.memory[a as usize]);
             }
             Op::JZ | Op::JNZ => {
                 let Operands::Addr(a) = operands else {
                     panic!("Invalid!");
                 };
 
-                self.current_instruction =
-                    format!("{op}{}   {a:#04X}", if op == Op::JZ { " " } else { "" });
+                self.current_instruction = format!(
+                    "{op}{}   {a:#04X}| Z({})",
+                    if op == Op::JZ { " " } else { "" },
+                    self.cpu.get_flag(CPU::FLAG_Z) as u8
+                );
 
                 if self.cpu.get_flag(CPU::FLAG_Z) == (op == Op::JZ) {
                     self.cpu.pc = a;
