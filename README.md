@@ -101,7 +101,9 @@ cargo r --bin tui -- programs/counter.nca
       * `NanoCore::cycle()`: Performs a single CPU cycle (Fetch, Decode, Execute).
       * `NanoCore::fetch_decode()`: Reads the instruction byte(s) from memory and determines its type and operands.
       * `NanoCore::execute_instruction()`: Performs the operation defined by the decoded instruction, updating the CPU state.
-  * `Assembler (assembler.rs)`: The NanoCore assembler.
+  * `Assembler (assembler.rs)`: The NanoCore assembler core.
+  * `Assembler bin (bin/nca.rs)`: The NanoCore assembler binary.
+  * `TUI bin (bin/tui.rs)`: The NanoCore Terminal UI.
 
 ---
 
