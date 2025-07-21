@@ -17,8 +17,7 @@
 
 use std::fs;
 
-use ::nanocore::assembler::Assembler;
-use nanocore::nanocore::NanoCore;
+use nanocore::{assembler::Assembler, nanocore::NanoCore};
 
 fn main() {
     let bin = std::env::args().nth(1).expect("Missing filename.");
