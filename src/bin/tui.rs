@@ -21,7 +21,7 @@ use std::{
 };
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
-use nanocore::{assembler::Assembler, nanocore::NanoCore};
+use nanocore::{assembler::Assembler, cpu::CPU, nanocore::NanoCore};
 use ratatui::{
     DefaultTerminal, Frame,
     layout::{Constraint, Layout},
@@ -122,10 +122,11 @@ impl App {
         .split(cpu_block_inner);
 
         let cpu_top = Layout::horizontal([
-            Constraint::Percentage(25),
-            Constraint::Percentage(25),
-            Constraint::Percentage(25),
-            Constraint::Percentage(25),
+            Constraint::Percentage(20),
+            Constraint::Percentage(20),
+            Constraint::Percentage(20),
+            Constraint::Fill(1),
+            Constraint::Percentage(10),
         ])
         .split(cpu[0]);
 
@@ -163,9 +164,31 @@ impl App {
             cpu_top[2],
         );
         frame.render_widget(
-            Paragraph::new(Line::from(format!(" {:08b} ", self.nano_core.cpu.flags)).centered())
-                .block(Block::bordered().title(" Flags ")),
+            Paragraph::new(
+                Line::from(format!(
+                    " Z: {:01} | C: {:01} | N: {:01} | Y: {:01} ",
+                    self.nano_core.cpu.get_flag(CPU::FLAG_Z) as u8,
+                    self.nano_core.cpu.get_flag(CPU::FLAG_C) as u8,
+                    self.nano_core.cpu.get_flag(CPU::FLAG_N) as u8,
+                    self.nano_core.cpu.get_flag(CPU::FLAG_Y) as u8,
+                ))
+                .centered(),
+            )
+            .block(Block::bordered().title(" Flags ")),
             cpu_top[3],
+        );
+
+        let state_line = if self.nano_core.cpu.is_halted {
+            Line::from(" HLT ".white().on_red())
+        } else {
+            Line::from(" RUN ".green().on_black())
+        };
+
+        frame.render_widget(
+            Paragraph::new(state_line)
+                .centered()
+                .block(Block::bordered().title("State")),
+            cpu_top[4],
         );
 
         let register_block = Block::bordered().title(" Registers ");
