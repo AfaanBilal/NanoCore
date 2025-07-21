@@ -164,21 +164,41 @@ impl App {
             cpu_top[2],
         );
 
-        let mut flag_line = Line::from(format!(
-            "{:01}{:01}{:01}{:01}",
-            self.nano_core.cpu.get_flag(CPU::FLAG_Z) as u8,
-            self.nano_core.cpu.get_flag(CPU::FLAG_C) as u8,
-            self.nano_core.cpu.get_flag(CPU::FLAG_N) as u8,
-            self.nano_core.cpu.get_flag(CPU::FLAG_Y) as u8,
-        ))
-        .centered();
+        let flag_z = self.nano_core.cpu.get_flag(CPU::FLAG_Z);
+        let flag_c = self.nano_core.cpu.get_flag(CPU::FLAG_C);
+        let flag_n = self.nano_core.cpu.get_flag(CPU::FLAG_N);
+        let flag_y = self.nano_core.cpu.get_flag(CPU::FLAG_Y);
+
+        let mut flag_line_z = Span::raw(format!("Z({:01}) ", flag_z as u8));
+        let mut flag_line_c = Span::raw(format!("C({:01}) ", flag_c as u8));
+        let mut flag_line_n = Span::raw(format!("N({:01}) ", flag_n as u8));
+        let mut flag_line_y = Span::raw(format!("Y({:01})", flag_y as u8));
+
+        if !flag_z {
+            flag_line_z = flag_line_z.dark_gray();
+        }
+
+        if !flag_c {
+            flag_line_c = flag_line_c.dark_gray();
+        }
+
+        if !flag_n {
+            flag_line_n = flag_line_n.dark_gray();
+        }
+
+        if !flag_y {
+            flag_line_y = flag_line_y.dark_gray();
+        }
+
+        let mut flag_line =
+            Line::from(vec![flag_line_z, flag_line_c, flag_line_n, flag_line_y]).centered();
 
         if self.nano_core.cpu.flags == 0 {
             flag_line = flag_line.dark_gray();
         }
 
         frame.render_widget(
-            Paragraph::new(flag_line).block(Block::bordered().title(" Flags (ZCNY) ")),
+            Paragraph::new(flag_line).block(Block::bordered().title(" Flags ")),
             cpu_top[3],
         );
 
