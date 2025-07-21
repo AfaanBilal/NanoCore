@@ -229,7 +229,7 @@ impl NanoCore {
                 }
 
                 self.current_instruction = format!(
-                    "{op}   R{rd} R{rs}| {v1} ({v1:#04X}) {} {v2} ({v2:#04X}) = {result} ({result:#04X})",
+                    "{op}   R{rd} R{rs}| {v1:03} ({v1:#04X}) {} {v2:03} ({v2:#04X}) = {result:03} ({result:#04X})",
                     if op == Op::ADD { "+" } else { "-" }
                 );
             }
@@ -273,7 +273,7 @@ impl NanoCore {
 
                 let value = self.cpu.registers[reg as usize];
 
-                self.current_instruction = format!("{op} R{reg}| '{}' ({value})", value as char);
+                self.current_instruction = format!("{op} R{reg}| '{}' ({value:03}) ({value:#04X})", value as char);
                 self.output.push(value as char);
 
                 if self.print {
@@ -303,7 +303,7 @@ impl NanoCore {
                 }
 
                 self.current_instruction = format!(
-                    "{op}   R{reg}| {value} ({value:08b}) {} 1 = {result} ({result:08b})",
+                    "{op}   R{reg}| {value:03} ({value:08b}) {} 1 = {result:03} ({result:08b})",
                     if op == Op::SHL { "<<" } else { ">>" }
                 );
             }
