@@ -283,10 +283,6 @@ impl App {
                 addr_vec.push(Line::from(format!("   {i:#04X}  {i:03}")));
                 mem_vec.push(mem_line);
             }
-
-            if self.nano_core.cpu.memory[i] == 0 {
-                break;
-            }
         }
 
         frame.render_widget(
