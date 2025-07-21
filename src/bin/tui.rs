@@ -373,9 +373,14 @@ impl App {
                     Line::from(vec![
                         Span::styled(format!("{i:03}"), Style::default().fg(Color::DarkGray)),
                         Span::raw(" "),
-                        Span::styled(op.clone(), Style::default().fg(Color::Cyan)),
-                        Span::raw(format!("{rest:10}")),
-                        Span::raw(Self::get_instruction_rest(&l, &format!("{op}{rest}"))),
+                        Span::styled(
+                            format!("{:5}", op.clone()),
+                            Style::default().fg(Color::Cyan),
+                        ),
+                        Span::raw(format!(" {:<12} │", rest.trim())),
+                        Span::raw(
+                            Self::get_instruction_rest(&l, &format!("{op}{rest}")).replace('|', ""),
+                        ),
                     ])
                 })
                 .rev()
