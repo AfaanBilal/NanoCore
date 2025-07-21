@@ -57,15 +57,15 @@ impl App {
         let title = Line::from(" NanoCore ".green().on_black().bold());
         let instructions = Line::from(vec![
             " Next Instruction ".into(),
-            "<Space>".blue().bold(),
+            "<Space>".light_blue().bold(),
             " | Run Full ".into(),
-            "<Enter>".blue().bold(),
+            "<Enter>".light_blue().bold(),
             " | Faster (-100ms) ".into(),
-            "<⬆>".blue().bold(),
+            "<⬆>".light_blue().bold(),
             " | Slower (+100ms) ".into(),
-            "<⬇>".blue().bold(),
+            "<⬇>".light_blue().bold(),
             " | Quit ".into(),
-            "<Q> ".blue().bold(),
+            "<Q> ".light_blue().bold(),
         ]);
         let block = Block::bordered()
             .title(title.centered())
@@ -264,8 +264,8 @@ impl App {
         let memory = Layout::horizontal([Constraint::Percentage(40), Constraint::Fill(1)])
             .split(memory_block_inner);
 
-        let mut addr_vec = vec![Line::from("   Hex   Dec".blue())];
-        let mut mem_vec = vec![Line::from(" Binary    Hex   Dec".blue())];
+        let mut addr_vec = vec![Line::from("   Hex   Dec".light_blue())];
+        let mut mem_vec = vec![Line::from(" Binary    Hex   Dec".light_blue())];
         for i in 0..self.nano_core.cpu.memory.len() {
             let mem_line = Line::from(format!(
                 " {:08b}  {:#04X}  {:03} ",
@@ -331,6 +331,10 @@ impl App {
         if self.last_tick.elapsed() >= self.tick_rate {
             self.nano_core.cycle();
             self.last_tick = Instant::now();
+
+            if self.nano_core.cpu.is_halted {
+                self.running = false;
+            }
         }
     }
 }
