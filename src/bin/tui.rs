@@ -163,18 +163,22 @@ impl App {
             .block(Block::bordered().title(" SP ")),
             cpu_top[2],
         );
+
+        let mut flag_line = Line::from(format!(
+            "{:01}{:01}{:01}{:01}",
+            self.nano_core.cpu.get_flag(CPU::FLAG_Z) as u8,
+            self.nano_core.cpu.get_flag(CPU::FLAG_C) as u8,
+            self.nano_core.cpu.get_flag(CPU::FLAG_N) as u8,
+            self.nano_core.cpu.get_flag(CPU::FLAG_Y) as u8,
+        ))
+        .centered();
+
+        if self.nano_core.cpu.flags == 0 {
+            flag_line = flag_line.dark_gray();
+        }
+
         frame.render_widget(
-            Paragraph::new(
-                Line::from(format!(
-                    "{:01}{:01}{:01}{:01}",
-                    self.nano_core.cpu.get_flag(CPU::FLAG_Z) as u8,
-                    self.nano_core.cpu.get_flag(CPU::FLAG_C) as u8,
-                    self.nano_core.cpu.get_flag(CPU::FLAG_N) as u8,
-                    self.nano_core.cpu.get_flag(CPU::FLAG_Y) as u8,
-                ))
-                .centered(),
-            )
-            .block(Block::bordered().title(" Flags (ZCNY) ")),
+            Paragraph::new(flag_line).block(Block::bordered().title(" Flags (ZCNY) ")),
             cpu_top[3],
         );
 
@@ -207,23 +211,37 @@ impl App {
         frame.render_widget(register_block, cpu[1]);
 
         for i in 0..8 {
+            let mut dec_line =
+                Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered();
+            let mut hex_line =
+                Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered();
+
+            if self.nano_core.cpu.registers[i] == 0 {
+                dec_line = dec_line.dark_gray();
+                hex_line = hex_line.dark_gray();
+            }
+
             frame.render_widget(
-                Paragraph::new(Text::from(vec![
-                    Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered(),
-                    Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered(),
-                ]))
-                .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
+                Paragraph::new(Text::from(vec![dec_line, hex_line]))
+                    .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
                 registers_top[i],
             );
         }
 
         for i in 8..16 {
+            let mut dec_line =
+                Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered();
+            let mut hex_line =
+                Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered();
+
+            if self.nano_core.cpu.registers[i] == 0 {
+                dec_line = dec_line.dark_gray();
+                hex_line = hex_line.dark_gray();
+            }
+
             frame.render_widget(
-                Paragraph::new(Text::from(vec![
-                    Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered(),
-                    Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered(),
-                ]))
-                .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
+                Paragraph::new(Text::from(vec![dec_line, hex_line]))
+                    .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
                 registers_bottom[i - 8],
             );
         }
@@ -281,22 +299,27 @@ impl App {
         let mut addr_vec = vec![Line::from("   Hex   Dec".light_blue())];
         let mut mem_vec = vec![Line::from(" Bin       Hex   Dec".light_blue())];
         for i in 0..self.nano_core.cpu.memory.len() {
-            let mem_line = Line::from(format!(
+            let mut mem_line = Line::from(format!(
                 " {:08b}  {:#04X}  {:03} ",
                 self.nano_core.cpu.memory[i],
                 self.nano_core.cpu.memory[i],
                 self.nano_core.cpu.memory[i]
             ));
 
+            if self.nano_core.cpu.memory[i] == 0 {
+                mem_line = mem_line.dark_gray();
+            }
+
             if i as u8 == self.nano_core.cpu.pc {
                 addr_vec.push(Line::from(
                     format!("-> {i:#04X}  {i:03} ").white().on_magenta(),
                 ));
-                mem_vec.push(mem_line.white().on_magenta());
+                mem_line = mem_line.white().on_magenta();
             } else {
-                addr_vec.push(Line::from(format!("   {i:#04X}  {i:03}")));
-                mem_vec.push(mem_line);
+                addr_vec.push(Line::from(format!("   {i:#04X}  {i:03}")).dark_gray());
             }
+
+            mem_vec.push(mem_line);
         }
 
         frame.render_widget(
