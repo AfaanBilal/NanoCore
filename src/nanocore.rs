@@ -168,11 +168,13 @@ impl NanoCore {
     pub fn execute(&mut self, op: Op, operands: Operands) -> bool {
         let mut pc_override = false;
 
-        self.instruction_log.push(format!(
-            "{} {}",
-            self.current_instruction,
-            if self.current_skipped { " (SKIP)" } else { "" }
-        ));
+        if !self.current_instruction.is_empty() {
+            self.instruction_log.push(format!(
+                "{} {}",
+                self.current_instruction,
+                if self.current_skipped { " (SKIP)" } else { "" }
+            ));
+        }
 
         self.current_skipped = false;
 

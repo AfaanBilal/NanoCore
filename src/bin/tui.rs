@@ -27,7 +27,7 @@ use ratatui::{
     layout::{Constraint, Layout},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, List, Paragraph},
+    widgets::{Block, Borders, List, Paragraph},
 };
 
 #[derive(Debug)]
@@ -228,9 +228,18 @@ impl App {
             );
         }
 
+        let op = Self::get_instruction_op(&self.nano_core.current_instruction);
+
         frame.render_widget(
             Paragraph::new(Line::from(vec![
-                self.nano_core.current_instruction.clone().green(),
+                format!("{:03}", self.nano_core.instruction_log.len()).dark_gray(),
+                Span::raw(" "),
+                Span::raw(op.clone()).cyan(),
+                Span::raw(Self::get_instruction_rest(
+                    &self.nano_core.current_instruction,
+                    &op,
+                ))
+                .green(),
                 if self.nano_core.current_skipped {
                     " (SKIP)".red()
                 } else {
@@ -241,18 +250,21 @@ impl App {
             cpu[2],
         );
 
-        let log = List::new(
-            self.nano_core
-                .instruction_log
-                .clone()
-                .into_iter()
-                .rev()
-                .take(15)
-                .collect::<Vec<String>>(),
-        )
-        .block(Block::bordered().title(" Instruction Log "));
+        let log_block = Block::bordered().title(" Instruction Log ");
+        let log_block_inner = log_block.inner(cpu[3]);
 
-        frame.render_widget(log, cpu[3]);
+        let log_columns = Layout::horizontal([Constraint::Percentage(50), Constraint::Fill(1)])
+            .split(log_block_inner);
+
+        let log_left = self.get_instruction_list(0, 14);
+        let log_right = self
+            .get_instruction_list(14, 14)
+            .block(Block::default().borders(Borders::LEFT));
+
+        frame.render_widget(log_block, cpu[3]);
+        frame.render_widget(log_left, log_columns[0]);
+        frame.render_widget(log_right, log_columns[1]);
+
         frame.render_widget(
             Paragraph::new(self.nano_core.output.clone())
                 .block(Block::bordered().title(" Output ")),
@@ -296,6 +308,38 @@ impl App {
             Paragraph::new(Text::from(mem_vec)).block(Block::bordered().title(" Data ")),
             memory[1],
         );
+    }
+
+    fn get_instruction_list(&self, skip: usize, take: usize) -> List {
+        List::new(
+            self.nano_core
+                .instruction_log
+                .clone()
+                .into_iter()
+                .enumerate()
+                .map(|(i, l)| {
+                    let op = Self::get_instruction_op(&l);
+
+                    Line::from(vec![
+                        Span::styled(format!("{i:03}"), Style::default().fg(Color::DarkGray)),
+                        Span::raw(" "),
+                        Span::styled(op.clone(), Style::default().fg(Color::Cyan)),
+                        Span::raw(Self::get_instruction_rest(&l, &op)),
+                    ])
+                })
+                .rev()
+                .skip(skip)
+                .take(take)
+                .collect::<Vec<Line>>(),
+        )
+    }
+
+    fn get_instruction_op(l: &str) -> String {
+        l.split_whitespace().next().unwrap_or("").to_owned()
+    }
+
+    fn get_instruction_rest(l: &str, op: &str) -> String {
+        l.strip_prefix(op).unwrap().to_owned()
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
