@@ -362,12 +362,20 @@ impl App {
                 .enumerate()
                 .map(|(i, l)| {
                     let op = Self::get_instruction_op(&l);
+                    let rest = l
+                        .strip_prefix(&op)
+                        .unwrap()
+                        .split('|')
+                        .next()
+                        .unwrap_or("")
+                        .to_owned();
 
                     Line::from(vec![
                         Span::styled(format!("{i:03}"), Style::default().fg(Color::DarkGray)),
                         Span::raw(" "),
                         Span::styled(op.clone(), Style::default().fg(Color::Cyan)),
-                        Span::raw(Self::get_instruction_rest(&l, &op)),
+                        Span::raw(format!("{rest:10}")),
+                        Span::raw(Self::get_instruction_rest(&l, &format!("{op}{rest}"))),
                     ])
                 })
                 .rev()
