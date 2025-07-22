@@ -52,7 +52,7 @@ fn main() -> std::io::Result<()> {
 
     print!("Assembled. Writing to bin.");
 
-    fs::write(&args.output, c.program)?;
+    fs::write(&args.output, &c.program)?;
 
     println!("\nDone.");
 
