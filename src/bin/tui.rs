@@ -268,14 +268,29 @@ impl App {
 
         let (op, args, rest) = Self::get_instruction_parts(&self.nano_core.current_instruction);
 
+        let mut op_span = Span::raw(format!("{op:5}")).cyan();
+        let mut op_bin_span = Span::raw(&self.nano_core.current_instruction_bin).light_cyan();
+
+        if !op.is_empty() {
+            if matches!(Op::from(op.as_str()), Op::JMP | Op::JZ | Op::JNZ) {
+                op_span = op_span.magenta();
+                op_bin_span = op_bin_span.magenta();
+            }
+
+            if Op::from(op.as_str()) == Op::HLT {
+                op_span = op_span.red();
+                op_bin_span = op_bin_span.red();
+            }
+        }
+
         frame.render_widget(
             Paragraph::new(Line::from(vec![
                 format!("{:03}", self.nano_core.instruction_log.len()).dim(),
                 Span::raw(" "),
-                Span::raw(format!("{op:5}")).cyan(),
+                op_span,
                 Span::raw(format!(" {:<8}", args.trim())).green(),
                 Span::raw(format!(" │{rest:37} │ ")).dim(),
-                Span::raw(&self.nano_core.current_instruction_bin).light_cyan(),
+                op_bin_span,
                 if self.nano_core.current_skipped {
                     " │ (SKIP)".red()
                 } else {
@@ -393,7 +408,10 @@ impl App {
 
         if matches!(Op::from(op.as_str()), Op::JMP | Op::JZ | Op::JNZ) {
             op_span = op_span.magenta();
-            args_span = args_span.magenta();
+        }
+
+        if Op::from(op.as_str()) == Op::HLT {
+            op_span = op_span.red();
         }
 
         if rest.contains("(SKIP)") {
