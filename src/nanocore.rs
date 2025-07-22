@@ -250,9 +250,10 @@ impl NanoCore {
                 };
 
                 self.current_instruction = format!(
-                    "{op}{}   {a:#04X}| Z({})",
+                    "{op}{}   {a:#04X}| Z({}) Mem({:#04X})",
                     if op == Op::JZ { " " } else { "" },
-                    self.cpu.get_flag(CPU::FLAG_Z) as u8
+                    self.cpu.get_flag(CPU::FLAG_Z) as u8,
+                    self.cpu.memory[a as usize],
                 );
 
                 if self.cpu.get_flag(CPU::FLAG_Z) == (op == Op::JZ) {
