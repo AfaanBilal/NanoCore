@@ -20,6 +20,8 @@ This project serves as an educational exercise in understanding the fundamental 
 
 ## 🧮 Instruction Set Architecture (ISA)
 
+> See `programs/` for example programs and compiled binaries.
+
 NanoCore features a small but functional instruction set designed for its 8-bit constraints.
 
 ### Instruction Format
