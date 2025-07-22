@@ -21,7 +21,7 @@ use std::{
 };
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
-use nanocore::{assembler::Assembler, cpu::CPU, nanocore::NanoCore};
+use nanocore::{Op, assembler::Assembler, cpu::CPU, nanocore::NanoCore};
 use ratatui::{
     DefaultTerminal, Frame,
     layout::{Constraint, Layout},
@@ -311,17 +311,35 @@ impl App {
         let memory_block_inner = memory_block.inner(inner[1]);
         frame.render_widget(memory_block, inner[1]);
 
-        let memory = Layout::horizontal([Constraint::Percentage(40), Constraint::Fill(1)])
+        let memory = Layout::horizontal([Constraint::Percentage(35), Constraint::Fill(1)])
             .split(memory_block_inner);
 
         let mut addr_vec = vec![Line::from("   Hex   Dec".light_blue())];
-        let mut mem_vec = vec![Line::from(" Bin       Hex   Dec".light_blue())];
+        let mut mem_vec = vec![Line::from(" Bin       Hex   Dec  Op".light_blue())];
+
+        let mut prev_op: Option<Op> = None;
+
         for i in 0..self.nano_core.cpu.memory.len() {
+            let mut op: Op = self.nano_core.cpu.memory[i].into();
+            if let Some(p_op) = prev_op {
+                if p_op.instruction_len() > 1 {
+                    op = Op::NOP;
+                    prev_op = None;
+                }
+            } else if op != Op::NOP {
+                prev_op = Some(op);
+            }
+
             let mut mem_line = Line::from(format!(
-                " {:08b}  {:#04X}  {:03} ",
+                " {:08b}  {:#04X}  {:03}  {} ",
                 self.nano_core.cpu.memory[i],
                 self.nano_core.cpu.memory[i],
-                self.nano_core.cpu.memory[i]
+                self.nano_core.cpu.memory[i],
+                if op == Op::NOP {
+                    "".to_string()
+                } else {
+                    op.to_string()
+                },
             ));
 
             if self.nano_core.cpu.memory[i] == 0 {
