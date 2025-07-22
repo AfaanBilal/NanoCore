@@ -45,29 +45,25 @@ impl Assembler {
 
             let parts = line.split(" ").collect::<Vec<&str>>();
             let op: Op = parts[0].into();
+            let opcode: u8 = op.into();
 
             match op {
-                Op::HLT => self.program.push(0x00),
+                Op::HLT => self.program.push(opcode),
                 Op::LDI => {
                     let register = Self::register(parts[1]);
-                    self.program.push(0x10 | register);
+                    self.program.push(opcode | register);
                     self.program
                         .push(parts[2].parse::<u8>().expect("Invalid value"));
                 }
                 Op::INC => {
                     let register = Self::register(parts[1]);
-                    self.program.push(0x20 | register);
+                    self.program.push(opcode | register);
                 }
                 Op::ADD | Op::SUB => {
                     let rd = Self::register(parts[1]);
                     let rs = Self::register(parts[2]);
 
-                    match op {
-                        Op::ADD => self.program.push(0x30),
-                        Op::SUB => self.program.push(0x31),
-                        _ => unreachable!(),
-                    }
-
+                    self.program.push(opcode);
                     self.program.push((rd << 4) | rs);
                 }
                 Op::JMP | Op::JZ | Op::JNZ => {
@@ -78,28 +74,15 @@ impl Assembler {
                             .expect("Expected address")[0]
                     };
 
-                    match op {
-                        Op::JMP => self.program.push(0x40),
-                        Op::JZ => self.program.push(0x41),
-                        Op::JNZ => self.program.push(0x42),
-                        _ => unreachable!(),
-                    }
-
+                    self.program.push(opcode);
                     self.program.push(addr);
                 }
                 Op::PRINT => {
                     let register = Self::register(parts[1]);
-                    self.program.push(0x50 | register);
+                    self.program.push(opcode | register);
                 }
                 Op::SHL | Op::SHR => {
                     let register = Self::register(parts[1]);
-
-                    let opcode = match op {
-                        Op::SHL => 0x60,
-                        Op::SHR => 0x70,
-                        _ => unreachable!(),
-                    };
-
                     self.program.push(opcode | register);
                 }
                 Op::NOP => {}

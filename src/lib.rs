@@ -87,6 +87,25 @@ impl From<u8> for Op {
     }
 }
 
+impl From<Op> for u8 {
+    fn from(val: Op) -> Self {
+        match val {
+            Op::HLT => 0x00,
+            Op::LDI => 0x10,
+            Op::INC => 0x20,
+            Op::ADD => 0x30,
+            Op::SUB => 0x31,
+            Op::JMP => 0x40,
+            Op::JZ => 0x41,
+            Op::JNZ => 0x42,
+            Op::PRINT => 0x50,
+            Op::SHL => 0x60,
+            Op::SHR => 0x70,
+            Op::NOP => 0x00,
+        }
+    }
+}
+
 impl From<&str> for Op {
     fn from(value: &str) -> Self {
         match value {
