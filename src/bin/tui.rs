@@ -274,8 +274,8 @@ impl App {
                 Span::raw(" "),
                 Span::raw(format!("{op:5}")).cyan(),
                 Span::raw(format!(" {:<8}", args.trim())).green(),
-                Span::raw(format!(" │{rest:39}")).dim(),
-                Span::raw(format!(" │ {}", self.nano_core.current_instruction_bin)),
+                Span::raw(format!(" │{rest:39} │ ")).dim(),
+                Span::raw(&self.nano_core.current_instruction_bin).light_cyan(),
                 if self.nano_core.current_skipped {
                     " │ (SKIP)".red()
                 } else {
