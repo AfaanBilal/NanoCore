@@ -14,11 +14,14 @@
 //! language programming.
 //!
 
+use std::collections::HashMap;
+
 use crate::Op;
 
 #[derive(Default)]
 pub struct Assembler {
     pub asm: String,
+    pub labels: HashMap<String, u8>,
     pub program: Vec<u8>,
 }
 
@@ -26,11 +29,17 @@ impl Assembler {
     pub fn assemble(&mut self, asm: &str) {
         self.asm = asm.to_owned();
 
+        self.map_labels();
+
         let lines = self.asm.lines();
 
         for line in lines {
             let line = line.trim();
             if line.is_empty() || line.starts_with(";") {
+                continue;
+            }
+
+            if Self::is_label(line) {
                 continue;
             }
 
@@ -62,9 +71,12 @@ impl Assembler {
                     self.program.push((rd << 4) | rs);
                 }
                 Op::JMP | Op::JZ | Op::JNZ => {
-                    let addr =
+                    let addr = if self.labels.contains_key(parts[1]) {
+                        *self.labels.get(parts[1]).unwrap()
+                    } else {
                         hex::decode(parts[1].strip_prefix("0x").expect("Invalid hex address"))
-                            .expect("Expected address")[0];
+                            .expect("Expected address")[0]
+                    };
 
                     match op {
                         Op::JMP => self.program.push(0x40),
@@ -95,6 +107,30 @@ impl Assembler {
         }
     }
 
+    pub fn map_labels(&mut self) {
+        let lines = self.asm.lines();
+
+        let mut addr: u8 = 0;
+
+        for line in lines {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with(";") {
+                continue;
+            }
+
+            if Self::is_label(line) {
+                self.labels
+                    .insert(line.strip_suffix(':').unwrap().to_owned(), addr);
+                continue;
+            }
+
+            let parts = line.split(" ").collect::<Vec<&str>>();
+
+            let op: Op = parts[0].into();
+            addr += op.instruction_len();
+        }
+    }
+
     pub fn register(r: &str) -> u8 {
         let register = r
             .strip_prefix("R")
@@ -107,6 +143,10 @@ impl Assembler {
         }
 
         register
+    }
+
+    pub fn is_label(l: &str) -> bool {
+        l.ends_with(':')
     }
 
     pub fn print_program(p: &[u8]) {
