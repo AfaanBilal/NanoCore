@@ -339,23 +339,34 @@ impl App {
             if let Some(p_op) = prev_op {
                 if p_op.instruction_len() > 1 {
                     op = Op::NOP;
-                    prev_op = None;
                 }
-            } else if op != Op::NOP {
-                prev_op = Some(op);
             }
 
-            let mut mem_line = Line::from(format!(
-                " {:08b}  {:#04X}  {:03}  {} ",
-                self.nano_core.cpu.memory[i],
-                self.nano_core.cpu.memory[i],
-                self.nano_core.cpu.memory[i],
-                if op == Op::NOP {
-                    "".to_string()
-                } else {
-                    op.to_string()
-                },
-            ));
+            prev_op = Some(op);
+
+            let op_str = if op == Op::NOP {
+                "·".to_string()
+            } else {
+                op.to_string()
+            };
+
+            let mut op_span = Span::raw(op_str);
+            op_span = match op {
+                Op::NOP => op_span.dim(),
+                Op::HLT => op_span.red().dim(),
+                Op::JMP | Op::JZ | Op::JNZ => op_span.magenta(),
+                _ => op_span.cyan(),
+            };
+
+            let mut mem_line = Line::from(vec![
+                Span::raw(format!(
+                    " {:08b}  {:#04X}  {:03}  ",
+                    self.nano_core.cpu.memory[i],
+                    self.nano_core.cpu.memory[i],
+                    self.nano_core.cpu.memory[i],
+                )),
+                op_span,
+            ]);
 
             if self.nano_core.cpu.memory[i] == 0 {
                 mem_line = mem_line.dark_gray();
