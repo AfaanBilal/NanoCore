@@ -266,18 +266,15 @@ impl App {
             );
         }
 
-        let op = Self::get_instruction_op(&self.nano_core.current_instruction);
+        let (op, args, rest) = Self::get_instruction_parts(&self.nano_core.current_instruction);
 
         frame.render_widget(
             Paragraph::new(Line::from(vec![
-                format!("{:03}", self.nano_core.instruction_log.len()).dark_gray(),
+                format!("{:03}", self.nano_core.instruction_log.len()).dim(),
                 Span::raw(" "),
-                Span::raw(op.clone()).cyan(),
-                Span::raw(Self::get_instruction_rest(
-                    &self.nano_core.current_instruction,
-                    &op,
-                ))
-                .green(),
+                Span::raw(format!("{op:5}")).cyan(),
+                Span::raw(format!(" {:<8}", args.trim())).green(),
+                Span::raw(format!(" │{rest}")).dim(),
                 if self.nano_core.current_skipped {
                     " (SKIP)".red()
                 } else {
@@ -360,36 +357,7 @@ impl App {
                 .clone()
                 .into_iter()
                 .enumerate()
-                .map(|(i, l)| {
-                    let op = Self::get_instruction_op(&l);
-                    let rest = l
-                        .strip_prefix(&op)
-                        .unwrap()
-                        .split('|')
-                        .next()
-                        .unwrap_or("")
-                        .to_owned();
-
-                    let ext =
-                        Self::get_instruction_rest(&l, &format!("{op}{rest}")).replace('|', "");
-                    let mut op_span = Span::raw(format!("{:5}", op.clone())).cyan();
-                    let mut rest_span = Span::raw(format!(" {:<8} │", rest.trim()));
-                    let mut ext_span = Span::raw(ext.clone()).dark_gray();
-
-                    if ext.contains("(SKIP)") {
-                        op_span = op_span.dim();
-                        rest_span = rest_span.dim();
-                        ext_span = ext_span.yellow();
-                    }
-
-                    Line::from(vec![
-                        Span::raw(format!("{i:03}")).dark_gray(),
-                        Span::raw(" "),
-                        op_span,
-                        rest_span,
-                        ext_span,
-                    ])
-                })
+                .map(|(i, l)| Self::get_instruction_line(i, l))
                 .rev()
                 .skip(skip)
                 .take(take)
@@ -397,12 +365,43 @@ impl App {
         )
     }
 
-    fn get_instruction_op(l: &str) -> String {
-        l.split_whitespace().next().unwrap_or("").to_owned()
+    fn get_instruction_line(i: usize, l: String) -> Line<'static> {
+        let (op, args, rest) = Self::get_instruction_parts(&l);
+
+        let mut op_span = Span::raw(format!("{op:5}")).cyan();
+        let mut args_span = Span::raw(format!(" {:<8} │", args.trim()));
+        let mut rest_span = Span::raw(rest.clone()).dim();
+
+        if rest.contains("(SKIP)") {
+            op_span = op_span.dim();
+            args_span = args_span.dim();
+            rest_span = rest_span.yellow();
+        }
+
+        Line::from(vec![
+            Span::raw(format!("{i:03}")).dim(),
+            Span::raw(" "),
+            op_span,
+            args_span,
+            rest_span,
+        ])
     }
 
-    fn get_instruction_rest(l: &str, op: &str) -> String {
-        l.strip_prefix(op).unwrap().to_owned()
+    fn get_instruction_parts(l: &str) -> (String, String, String) {
+        let op = l.split_whitespace().next().unwrap_or("").to_owned();
+        let args = l
+            .strip_prefix(&op)
+            .unwrap()
+            .split('|')
+            .next()
+            .unwrap_or("")
+            .to_owned();
+        let rest = l
+            .strip_prefix(&format!("{op}{args}"))
+            .unwrap()
+            .replace('|', "");
+
+        (op, args, rest)
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
