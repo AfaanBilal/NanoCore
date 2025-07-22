@@ -21,6 +21,7 @@ pub struct NanoCore {
     pub cpu: CPU,
     pub cycle: u8,
     pub current_instruction: String,
+    pub current_instruction_bin: String,
     pub current_skipped: bool,
     pub instruction_log: Vec<String>,
     pub output: String,
@@ -36,6 +37,7 @@ impl NanoCore {
             cpu: CPU::new(),
             cycle: 0,
             current_instruction: String::new(),
+            current_instruction_bin: String::new(),
             current_skipped: false,
             instruction_log: vec![],
             output: String::new(),
@@ -99,12 +101,6 @@ impl NanoCore {
     }
 
     pub fn cycle(&mut self) {
-        if self.cpu.is_halted {
-            return;
-        }
-
-        self.cycle += 1;
-
         let (op, operands) = self.fetch_decode();
 
         let pc_override = self.execute(op, operands);
@@ -116,11 +112,15 @@ impl NanoCore {
         if !pc_override {
             self.cpu.pc = self.cpu.pc.wrapping_add(op.instruction_len());
         }
+
+        self.cycle += 1;
     }
 
-    pub fn fetch_decode(&self) -> (Op, Operands) {
+    pub fn fetch_decode(&mut self) -> (Op, Operands) {
         // FETCH
         let opcode = self.cpu.memory[self.cpu.pc as usize];
+
+        self.current_instruction_bin = format!("{opcode:08b} │ {opcode:#04X} │ {opcode:03}");
 
         // DECODE
         let op: Op = opcode.into();
@@ -273,7 +273,10 @@ impl NanoCore {
 
                 let value = self.cpu.registers[reg as usize];
 
-                self.current_instruction = format!("{op} R{reg}| '{}' ({value:03}) ({value:#04X})", value as char);
+                self.current_instruction = format!(
+                    "{op} R{reg}| '{}' ({value:03}) ({value:#04X})",
+                    value as char
+                );
                 self.output.push(value as char);
 
                 if self.print {
