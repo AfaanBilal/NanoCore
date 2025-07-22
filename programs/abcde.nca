@@ -1,0 +1,11 @@
+; Prints ABCDE
+start:
+    LDI R0 65
+loop:
+    PRINT R0
+    INC R0
+    LDI R1 70
+    SUB R1 R0
+    JNZ loop
+
+    HLT
