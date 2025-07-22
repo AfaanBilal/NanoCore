@@ -1,12 +1,13 @@
 ; Count down from 5
-LDI R0 5
-LDI R1 1
+start:
+    LDI R0 5
+    LDI R1 1
 loop:
-LDI R2 48
-ADD R2 R0
-PRINT R2
-SUB R0 R1
-JZ halt
-JMP loop
+    LDI R2 48
+    ADD R2 R0
+    PRINT R2
+    SUB R0 R1
+    JZ halt
+    JMP loop
 halt:
-HLT
+    HLT
