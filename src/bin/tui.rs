@@ -391,6 +391,11 @@ impl App {
         let mut args_span = Span::raw(format!(" {:<8}", args.trim()));
         let mut rest_span = Span::raw(format!(" │{}", rest.clone())).dim();
 
+        if matches!(Op::from(op.as_str()), Op::JMP | Op::JZ | Op::JNZ) {
+            op_span = op_span.magenta();
+            args_span = args_span.magenta();
+        }
+
         if rest.contains("(SKIP)") {
             op_span = op_span.dim();
             args_span = args_span.dim();
