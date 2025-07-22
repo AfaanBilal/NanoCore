@@ -369,8 +369,8 @@ impl App {
         let (op, args, rest) = Self::get_instruction_parts(&l);
 
         let mut op_span = Span::raw(format!("{op:5}")).cyan();
-        let mut args_span = Span::raw(format!(" {:<8} │", args.trim()));
-        let mut rest_span = Span::raw(rest.clone()).dim();
+        let mut args_span = Span::raw(format!(" {:<8}", args.trim()));
+        let mut rest_span = Span::raw(format!(" │{}", rest.clone())).dim();
 
         if rest.contains("(SKIP)") {
             op_span = op_span.dim();
