@@ -352,6 +352,7 @@ impl App {
 
             let mut op_span = Span::raw(op_str);
             op_span = match op {
+                _ if i as u8 == self.nano_core.cpu.pc => op_span.white(),
                 Op::NOP => op_span.dim(),
                 Op::HLT => op_span.red().dim(),
                 Op::JMP | Op::JZ | Op::JNZ => op_span.magenta(),
