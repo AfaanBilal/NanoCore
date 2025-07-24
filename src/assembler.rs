@@ -50,7 +50,7 @@ impl Assembler {
             match op {
                 Op::HLT => self.program.push(opcode),
                 Op::NOP => {}
-                Op::LDI => {
+                Op::LDI | Op::ADDI | Op::SUBI => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
                     self.program.push(Self::from_str(parts[2]));
@@ -65,14 +65,16 @@ impl Assembler {
                     self.program
                         .push(Self::register(parts[1]) << 4 | Self::register(parts[2]));
                 }
-                Op::PUSH | Op::POP | Op::INC | Op::DEC | Op::NOT | Op::SHL | Op::SHR => {
+                Op::PUSH
+                | Op::POP
+                | Op::INC
+                | Op::DEC
+                | Op::NOT
+                | Op::SHL
+                | Op::SHR
+                | Op::PRINT => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
-                }
-                Op::ADDI | Op::SUBI => {
-                    self.program.push(opcode);
-                    self.program.push(Self::register(parts[1]));
-                    self.program.push(Self::from_str(parts[2]));
                 }
                 Op::JMP | Op::JZ | Op::JNZ => {
                     let addr = if self.labels.contains_key(parts[1]) {
@@ -83,10 +85,6 @@ impl Assembler {
 
                     self.program.push(opcode);
                     self.program.push(addr);
-                }
-                Op::PRINT => {
-                    let register = Self::register(parts[1]);
-                    self.program.push(opcode | register);
                 }
             }
         }
