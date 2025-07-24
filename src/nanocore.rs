@@ -29,7 +29,7 @@ pub struct NanoCore {
 }
 
 impl NanoCore {
-    pub const MAX_CYCLES: u16 = 512;
+    pub const MAX_CYCLES: u16 = 1024;
 
     #[must_use]
     pub fn new() -> Self {
