@@ -332,17 +332,19 @@ impl App {
         let mut addr_vec = vec![Line::from("  Hex   Dec".light_blue())];
         let mut mem_vec = vec![Line::from(" Bin       Hex   Dec  Op".light_blue())];
 
-        let mut prev_op: Option<Op> = None;
-
+        let mut skip_bytes = 0;
         for i in 0..self.nano_core.cpu.memory.len() {
-            let mut op: Op = self.nano_core.cpu.memory[i].into();
-            if let Some(p_op) = prev_op {
-                if p_op.instruction_len() > 1 {
-                    op = Op::NOP;
-                }
-            }
+            let op: Op = if skip_bytes == 0 {
+                let op: Op = self.nano_core.cpu.memory[i].into();
 
-            prev_op = Some(op);
+                skip_bytes = op.instruction_len() - 1;
+
+                op
+            } else {
+                skip_bytes -= 1;
+
+                Op::NOP
+            };
 
             let op_str = if op == Op::NOP {
                 "·".to_string()
