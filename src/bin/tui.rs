@@ -350,7 +350,7 @@ impl App {
                 op.to_string()
             };
 
-            let mut op_span = Span::raw(op_str);
+            let mut op_span = Span::raw(format!("{op_str:5}"));
             op_span = match op {
                 _ if i as u8 == self.nano_core.cpu.pc => op_span.white(),
                 Op::NOP => op_span.dim(),
