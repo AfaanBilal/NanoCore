@@ -19,7 +19,7 @@ use crate::{Op, cpu::CPU, end_color, start_color};
 #[derive(Debug, Default)]
 pub struct NanoCore {
     pub cpu: CPU,
-    pub cycle: u8,
+    pub cycle: u16,
     pub current_instruction: String,
     pub current_instruction_bin: String,
     pub current_skipped: bool,
@@ -29,7 +29,7 @@ pub struct NanoCore {
 }
 
 impl NanoCore {
-    pub const MAX_CYCLES: u8 = 100;
+    pub const MAX_CYCLES: u16 = 512;
 
     #[must_use]
     pub fn new() -> Self {

@@ -127,11 +127,11 @@ impl Assembler {
     pub fn register(r: &str) -> u8 {
         let register = r
             .strip_prefix("R")
-            .expect("Expected register R0..R7")
+            .expect("Expected register R0..R15")
             .parse::<u8>()
-            .expect("Expected register R0..R7");
+            .expect("Expected register R0..R15");
 
-        if register > 7 {
+        if register > 15 {
             panic!("Invalid register {r}");
         }
 
