@@ -3,6 +3,6 @@ start:
     LDI R1 111
     PUSH R0
     ADD R0 R1
-    STO R0 0x0A
+    STO R0 0x1F
     POP R0
     HLT
