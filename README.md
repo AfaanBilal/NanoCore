@@ -68,7 +68,7 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 > - `Rd` = `Destination register`
 > - `Z` flag = Zero Flag
 > - `R0` = `0x00`, `R1` = `0x01` ..., `R15` = `0x0F`
-> - All addition, subtraction, increment and decrements are wrapping.
+> - All addition, subtraction, increment and decrement is wrapping.
 
 ## 🚀 Getting Started
 
