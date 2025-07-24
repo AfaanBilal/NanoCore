@@ -61,14 +61,14 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 | `0x18` |     2 | `JNZ addr`     | Jump to `addr` if `Z` flag is not set   | `0x05 0xAA`      |
 | `0x19` |     2 | `PRINT Reg`    | Print `Reg` as an ASCII character       | `0x19 0x01`      |
 
-> `val` = `Immediate value`
-> `addr` = `Memory address`
-> `Reg` = `Register`
-> `Rs` = `Source register`
-> `Rd` = `Destination register`
-> `Z` flag = Zero Flag
-> `R0` = `0x00`, `R1` = `0x01` ..., `R15` = `0x0F`
-> All addition, subtraction, increment and decrements are wrapping.
+> - `val` = `Immediate value`
+> - `addr` = `Memory address`
+> - `Reg` = `Register`
+> - `Rs` = `Source register`
+> - `Rd` = `Destination register`
+> - `Z` flag = Zero Flag
+> - `R0` = `0x00`, `R1` = `0x01` ..., `R15` = `0x0F`
+> - All addition, subtraction, increment and decrements are wrapping.
 
 ## 🚀 Getting Started
 
