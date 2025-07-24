@@ -163,31 +163,19 @@ mod tests {
                  ADD R2 R1
                  SUB R2 R0
                  INC R0
-                 JZ 0x0F
+                 JZ 0x18
                  INC R1
-                 JMP 0x04
+                 SHL R1
+                 SHR R1
+                 JMP 0x06
                  HLT",
         );
 
         assert_eq!(
             &c.program,
             &[
-                0x10 | 0x00,
-                0b1111_1101, // LDI R0 253
-                0x10 | 0x01,
-                0x41,        // LDI R1 65 ('A')
-                0x50 | 0x01, // PRINT R1
-                0x30,
-                (0x02 << 4) | 0x01, // ADD R2 R1
-                0x31,
-                (0x02 << 4) | 0x00, // SUB R2 R0
-                0x20 | 0x00,        // INC R0
-                0x41,
-                0x0F,        // JZ 0x0F (HLT)
-                0x20 | 0x01, // INC R1
-                0x40,
-                0x04, // JMP 0x04 (-> PRINT R1)
-                0x00, // HLT
+                0x02, 0x00, 0xFD, 0x02, 0x01, 0x41, 0x19, 0x01, 0x09, 0x21, 0x0B, 0x20, 0x0D, 0x00,
+                0x17, 0x18, 0x0D, 0x01, 0x14, 0x01, 0x15, 0x01, 0x16, 0x06, 0x00,
             ]
         )
     }
