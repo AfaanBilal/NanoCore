@@ -57,15 +57,23 @@ pub enum Op {
     SHR, // Shift right: SHR Rx (Rx = Rx >> 1)
 
     PRINT, // Print to output: PRINT Rx
+
+    MUL,  // Multiply: MUL Rx Ry (Rx = Rx * Ry)
+    MULI, // Multiply using immediate: MUL Rx 123 (Rx = Rx * 123)
+    DIV,  // Divide: DIV Rx Ry (Rx = Rx / Ry)
+    DIVI, // Divide using immediate: DIV Rx 123 (Rx = Rx / 123)
+    MOD,  // Modulus: MOD Rx Ry (Rx = Rx % Ry)
+    MODI, // Modulus using immediate: MOD Rx 123 (Rx = Rx % 123)
 }
 
 impl Op {
     pub fn instruction_len(&self) -> u8 {
         match self {
-            Op::LDI | Op::LDA | Op::STO | Op::ADDI | Op::SUBI => 3,
+            Op::LDI | Op::LDA | Op::STO | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => 3,
             Op::LDR | Op::MOV | Op::PUSH | Op::POP | Op::ADD | Op::SUB | Op::INC | Op::DEC => 2,
             Op::AND | Op::OR | Op::XOR | Op::NOT | Op::CMP | Op::SHL | Op::SHR => 2,
             Op::JMP | Op::JZ | Op::JNZ | Op::PRINT => 2,
+            Op::MUL | Op::DIV | Op::MOD => 2,
             _ => 1,
         }
     }
@@ -124,6 +132,13 @@ impl From<Op> for &str {
             Op::SHR => "SHR",
 
             Op::PRINT => "PRINT",
+
+            Op::MUL => "MUL",
+            Op::MULI => "MULI",
+            Op::DIV => "DIV",
+            Op::DIVI => "DIVI",
+            Op::MOD => "MOD",
+            Op::MODI => "MODI",
         }
     }
 }
@@ -166,6 +181,13 @@ impl From<&str> for Op {
             "SHR" => Op::SHR,
 
             "PRINT" => Op::PRINT,
+
+            "MUL" => Op::MUL,
+            "MULI" => Op::MULI,
+            "DIV" => Op::DIV,
+            "DIVI" => Op::DIVI,
+            "MOD" => Op::MOD,
+            "MODI" => Op::MODI,
 
             _ => panic!("Invalid operation: {value}"),
         }
@@ -211,6 +233,13 @@ impl From<u8> for Op {
 
             0x19 => Op::PRINT,
 
+            0x1A => Op::MUL,
+            0x1B => Op::MULI,
+            0x1C => Op::DIV,
+            0x1D => Op::DIVI,
+            0x1E => Op::MOD,
+            0x1F => Op::MODI,
+
             _ => Op::NOP,
         }
     }
@@ -254,6 +283,13 @@ impl From<Op> for u8 {
             Op::JNZ => 0x18,
 
             Op::PRINT => 0x19,
+
+            Op::MUL => 0x1A,
+            Op::MULI => 0x1B,
+            Op::DIV => 0x1C,
+            Op::DIVI => 0x1D,
+            Op::MOD => 0x1E,
+            Op::MODI => 0x1F,
         }
     }
 }

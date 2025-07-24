@@ -60,6 +60,12 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 | `0x17` |     2 | `JZ addr`      | Jump to `addr` if `Z` flag is set       | `0x05 0xAA`      |
 | `0x18` |     2 | `JNZ addr`     | Jump to `addr` if `Z` flag is not set   | `0x05 0xAA`      |
 | `0x19` |     2 | `PRINT Reg`    | Print `Reg` as an ASCII character       | `0x19 0x01`      |
+| `0x1A` |     2 | `MUL Rd Rs`    | Multiply value of `Rs` to `Rd`          | `0x1A 0x01 0x02` |
+| `0x1B` |     3 | `MULI Reg val` | Multiply immediate `val` to `Reg`       | `0x1B 0x01 0xAB` |
+| `0x1C` |     2 | `DIV Rd Rs`    | Divide value of `Rs` by `Rd`            | `0x1C 0x01 0x02` |
+| `0x1D` |     3 | `DIVI Reg val` | Divide `Reg` by immediate `val`         | `0x1D 0x01 0xAB` |
+| `0x1E` |     2 | `MOD Rd Rs`    | Modulus value of `Rs` by `Rd`           | `0x1E 0x01 0x02` |
+| `0x1F` |     3 | `MODI Reg val` | Modulus `Reg` by immediate `val`        | `0x1F 0x01 0xAB` |
 
 > - `val` = `Immediate value`
 > - `addr` = `Memory address`

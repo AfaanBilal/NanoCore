@@ -50,7 +50,7 @@ impl Assembler {
             match op {
                 Op::HLT => self.program.push(opcode),
                 Op::NOP => {}
-                Op::LDI | Op::ADDI | Op::SUBI => {
+                Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
                     self.program.push(Self::from_value_str(parts[2]));
@@ -60,7 +60,17 @@ impl Assembler {
                     self.program.push(Self::register(parts[1]));
                     self.program.push(Self::from_hex_str(parts[2]));
                 }
-                Op::LDR | Op::MOV | Op::ADD | Op::SUB | Op::AND | Op::OR | Op::XOR | Op::CMP => {
+                Op::LDR
+                | Op::MOV
+                | Op::ADD
+                | Op::SUB
+                | Op::AND
+                | Op::OR
+                | Op::XOR
+                | Op::CMP
+                | Op::MUL
+                | Op::DIV
+                | Op::MOD => {
                     self.program.push(opcode);
                     self.program
                         .push(Self::register(parts[1]) << 4 | Self::register(parts[2]));

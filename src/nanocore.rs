@@ -129,14 +129,24 @@ impl NanoCore {
 
         let operands = match op {
             Op::HLT | Op::NOP => Operands::None,
-            Op::LDI | Op::ADDI | Op::SUBI => Operands::RegImm(byte_2, byte_3),
+            Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
+                Operands::RegImm(byte_2, byte_3)
+            }
             Op::LDA | Op::STO => Operands::RegAddr(byte_2, byte_3),
             Op::PUSH | Op::POP | Op::INC | Op::DEC | Op::NOT | Op::SHL | Op::SHR | Op::PRINT => {
                 Operands::Reg(byte_2)
             }
-            Op::LDR | Op::MOV | Op::ADD | Op::SUB | Op::AND | Op::OR | Op::XOR | Op::CMP => {
-                Operands::RegReg((byte_2 >> 4) & 0x0F, byte_2 & 0x0F)
-            }
+            Op::LDR
+            | Op::MOV
+            | Op::ADD
+            | Op::SUB
+            | Op::AND
+            | Op::OR
+            | Op::XOR
+            | Op::CMP
+            | Op::MUL
+            | Op::DIV
+            | Op::MOD => Operands::RegReg((byte_2 >> 4) & 0x0F, byte_2 & 0x0F),
             Op::JMP | Op::JZ | Op::JNZ => Operands::Addr(byte_2),
         };
 
@@ -265,7 +275,7 @@ impl NanoCore {
                 self.current_instruction =
                     format!("{op}   R{reg}| {:#04X}", self.cpu.registers[reg as usize]);
             }
-            Op::ADD | Op::SUB => {
+            Op::ADD | Op::SUB | Op::MUL | Op::DIV | Op::MOD => {
                 let Operands::RegReg(rd, rs) = operands else {
                     panic!("Invalid!");
                 };
@@ -276,6 +286,9 @@ impl NanoCore {
                 let (result, carry) = match op {
                     Op::ADD => v1.overflowing_add(v2),
                     Op::SUB => v1.overflowing_sub(v2),
+                    Op::MUL => v1.overflowing_mul(v2),
+                    Op::DIV => v1.overflowing_div(v2),
+                    Op::MOD => v1.overflowing_rem(v2),
                     _ => unreachable!(),
                 };
 
@@ -293,7 +306,7 @@ impl NanoCore {
                     if op == Op::ADD { "+" } else { "-" }
                 );
             }
-            Op::ADDI | Op::SUBI => {
+            Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                 let Operands::RegImm(reg, v2) = operands else {
                     panic!("Invalid!");
                 };
@@ -301,8 +314,11 @@ impl NanoCore {
                 let v1 = self.cpu.registers[reg as usize];
 
                 let (result, carry) = match op {
-                    Op::ADD => v1.overflowing_add(v2),
-                    Op::SUB => v1.overflowing_sub(v2),
+                    Op::ADDI => v1.overflowing_add(v2),
+                    Op::SUBI => v1.overflowing_sub(v2),
+                    Op::MULI => v1.overflowing_mul(v2),
+                    Op::DIVI => v1.overflowing_div(v2),
+                    Op::MODI => v1.overflowing_rem(v2),
                     _ => unreachable!(),
                 };
 
