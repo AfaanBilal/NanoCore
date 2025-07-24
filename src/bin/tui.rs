@@ -60,9 +60,9 @@ impl App {
             "<Space>".light_blue().bold(),
             " | Run Full ".into(),
             "<Enter>".light_blue().bold(),
-            " | Faster (-100ms) ".into(),
+            " | Faster (-50ms) ".into(),
             "<⬆>".light_blue().bold(),
-            " | Slower (+100ms) ".into(),
+            " | Slower (+50ms) ".into(),
             "<⬇>".light_blue().bold(),
             " | Quit ".into(),
             "<Q> ".light_blue().bold(),
@@ -539,9 +539,9 @@ impl App {
                         KeyCode::Enter => self.running = !self.running,
                         KeyCode::Up => {
                             self.tick_rate =
-                                self.tick_rate.saturating_sub(Duration::from_millis(100))
+                                self.tick_rate.saturating_sub(Duration::from_millis(50))
                         }
-                        KeyCode::Down => self.tick_rate.add_assign(Duration::from_millis(100)),
+                        KeyCode::Down => self.tick_rate.add_assign(Duration::from_millis(50)),
                         _ => {}
                     }
                 }
