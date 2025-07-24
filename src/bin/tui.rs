@@ -530,5 +530,6 @@ fn main() -> io::Result<()> {
     let app = app.run(&mut terminal);
 
     ratatui::restore();
+
     app
 }

@@ -159,7 +159,10 @@ impl NanoCore {
         match op {
             Op::HLT => {
                 self.cpu.is_halted = true;
-                self.current_instruction = "HLT".into();
+                self.current_instruction = op.into();
+            }
+            Op::NOP => {
+                self.current_instruction = op.into();
             }
             Op::LDI => {
                 let Operands::RegImm(reg, value) = operands else {
@@ -169,19 +172,70 @@ impl NanoCore {
                 self.cpu.registers[reg as usize] = value;
                 self.cpu.update_zn_flags(value);
 
-                self.current_instruction = format!("LDI   R{reg} {value:#04X}| ({value:03})");
+                self.current_instruction = format!("{op}   R{reg} {value:#04X}| ({value:03})");
             }
-            Op::INC => {
+            Op::LDA => {
+                let Operands::RegAddr(reg, addr) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let value = self.cpu.memory[addr as usize];
+                self.cpu.registers[reg as usize] = value;
+                self.cpu.update_zn_flags(value);
+
+                self.current_instruction = format!("{op}   R{reg} {addr:#04X}| ({value:03})");
+            }
+            Op::STO => {
+                let Operands::RegAddr(reg, addr) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let value = self.cpu.registers[reg as usize];
+                self.cpu.memory[addr as usize] = value;
+                self.cpu.update_zn_flags(value);
+
+                self.current_instruction = format!("{op}   R{reg} {addr:#04X}| ({value:03})");
+            }
+            Op::LDR => {
+                let Operands::RegReg(rd, rs) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let addr = self.cpu.registers[rs as usize];
+                let value = self.cpu.memory[addr as usize];
+                self.cpu.registers[rd as usize] = value;
+                self.cpu.update_zn_flags(value);
+
+                self.current_instruction = format!("{op}   R{rd} R{rs}| {addr:#04X} ({value:03})");
+            }
+            Op::MOV => {
+                let Operands::RegReg(rd, rs) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let value = self.cpu.registers[rs as usize];
+                self.cpu.registers[rd as usize] = value;
+                self.cpu.update_zn_flags(value);
+
+                self.current_instruction = format!("{op}   R{rd} R{rs}| ({value:03})");
+            }
+            Op::PUSH | Op::POP => {}
+            Op::INC | Op::DEC => {
                 let Operands::Reg(reg) = operands else {
                     panic!("Invalid!");
                 };
 
-                let value = self.cpu.registers[reg as usize].wrapping_add(1);
+                let value = if op == Op::INC {
+                    self.cpu.registers[reg as usize].wrapping_add(1)
+                } else {
+                    self.cpu.registers[reg as usize].wrapping_sub(1)
+                };
+
                 self.cpu.registers[reg as usize] = value;
                 self.cpu.update_zn_flags(value);
 
                 self.current_instruction =
-                    format!("INC   R{reg}| {:#04X}", self.cpu.registers[reg as usize]);
+                    format!("{op}   R{reg}| {:#04X}", self.cpu.registers[reg as usize]);
             }
             Op::ADD | Op::SUB => {
                 let Operands::RegReg(rd, rs) = operands else {
@@ -209,6 +263,86 @@ impl NanoCore {
                 self.current_instruction = format!(
                     "{op}   R{rd} R{rs}| {v1:03} ({v1:#04X}) {} {v2:03} ({v2:#04X}) = {result:03} ({result:#04X})",
                     if op == Op::ADD { "+" } else { "-" }
+                );
+            }
+            Op::ADDI | Op::SUBI => {
+                let Operands::RegImm(reg, v2) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let v1 = self.cpu.registers[reg as usize];
+
+                let (result, carry) = match op {
+                    Op::ADD => v1.overflowing_add(v2),
+                    Op::SUB => v1.overflowing_sub(v2),
+                    _ => unreachable!(),
+                };
+
+                self.cpu.registers[reg as usize] = result;
+                self.cpu.update_zn_flags(result);
+
+                if carry {
+                    self.cpu.set_flag(CPU::FLAG_C);
+                } else {
+                    self.cpu.clear_flag(CPU::FLAG_C);
+                }
+
+                self.current_instruction = format!(
+                    "{op}   R{reg} {v2:03}| {v1:03} ({v1:#04X}) {} {v2:03} ({v2:#04X}) = {result:03} ({result:#04X})",
+                    if op == Op::ADD { "+" } else { "-" }
+                );
+            }
+            Op::AND | Op::OR | Op::XOR | Op::CMP => {
+                let Operands::RegReg(rd, rs) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let v1 = self.cpu.registers[rs as usize];
+                let v2 = self.cpu.registers[rd as usize];
+
+                let result = match op {
+                    Op::AND => v1 & v2,
+                    Op::OR => v1 | v2,
+                    Op::XOR => v1 ^ v2,
+                    Op::CMP => {
+                        if v1 == v2 {
+                            0
+                        } else if v1 > v2 {
+                            1
+                        } else {
+                            2
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+
+                self.cpu.registers[rd as usize] = result;
+                self.cpu.update_zn_flags(result);
+
+                self.current_instruction = format!(
+                    "{op}   R{rd} R{rs}| {v1:03} ({v1:#04X}) {} {v2:03} ({v2:#04X}) = {result:03} ({result:#04X})",
+                    match op {
+                        Op::AND => "&",
+                        Op::OR => "|",
+                        Op::XOR => "^",
+                        Op::CMP => "==",
+                        _ => unreachable!(),
+                    }
+                );
+            }
+            Op::NOT => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let value = self.cpu.registers[reg as usize];
+                let result = !value;
+
+                self.cpu.registers[reg as usize] = result;
+                self.cpu.update_zn_flags(result);
+
+                self.current_instruction = format!(
+                    "{op}   R{reg}| ! {value:03} ({value:#04X}) ({value:08b}) = {result:03} ({result:#04X}) ({result:08b})",
                 );
             }
             Op::JMP => {
@@ -288,9 +422,6 @@ impl NanoCore {
                     "{op}   R{reg}| {value:03} ({value:08b}) {} 1 = {result:03} ({result:08b})",
                     if op == Op::SHL { "<<" } else { ">>" }
                 );
-            }
-            Op::NOP => {
-                self.current_instruction = "NOP".into();
             }
         }
 

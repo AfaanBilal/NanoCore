@@ -53,7 +53,7 @@ impl Assembler {
                 Op::LDI | Op::ADDI | Op::SUBI => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
-                    self.program.push(Self::from_str(parts[2]));
+                    self.program.push(Self::from_value_str(parts[2]));
                 }
                 Op::LDA | Op::STO => {
                     self.program.push(opcode);
@@ -128,7 +128,7 @@ impl Assembler {
         register
     }
 
-    pub fn from_str(v: &str) -> u8 {
+    pub fn from_value_str(v: &str) -> u8 {
         v.parse::<u8>().expect("Invalid value")
     }
 
