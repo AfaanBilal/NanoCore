@@ -1,0 +1,17 @@
+; Print the fibonacci sequence (first 7)
+start:
+    LDI R0 0
+    LDI R1 1
+    LDI R2 7
+loop:
+    LDI R4 48
+    ADD R4 R0
+    PRINT R4
+
+    MOV R3 R1
+    ADD R1 R0
+    MOV R0 R3
+    DEC R2
+    JNZ loop
+end:
+    HLT
