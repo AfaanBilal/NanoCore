@@ -528,6 +528,7 @@ fn main() -> io::Result<()> {
     app.nano_core.load_program(&bytes, 0x00);
 
     let app = app.run(&mut terminal);
+
     ratatui::restore();
     app
 }
