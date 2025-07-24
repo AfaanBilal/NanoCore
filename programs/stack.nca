@@ -1,0 +1,8 @@
+start:
+    LDI R0 123
+    LDI R1 111
+    PUSH R0
+    ADD R0 R1
+    STO R0 0x0A
+    POP R0
+    HLT
