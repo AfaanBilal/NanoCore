@@ -75,7 +75,7 @@ impl CPU {
         }
     }
 
-    pub fn print_state(&self, cycle: u8) {
+    pub fn print_state(&self, cycle: u16) {
         println!();
 
         start_color();
