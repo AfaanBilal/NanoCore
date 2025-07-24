@@ -119,6 +119,8 @@ impl NanoCore {
     pub fn fetch_decode(&mut self) -> (Op, Operands) {
         // FETCH
         let opcode = self.cpu.memory[self.cpu.pc as usize];
+        let byte_2 = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
+        let byte_3 = self.cpu.memory[self.cpu.pc.wrapping_add(2) as usize];
 
         self.current_instruction_bin = format!("{opcode:08b} │ {opcode:#04X} │ {opcode:03}");
 
@@ -127,39 +129,15 @@ impl NanoCore {
 
         let operands = match op {
             Op::HLT | Op::NOP => Operands::None,
-            Op::LDI => {
-                let reg = opcode & 0x0F;
-                let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
-
-                Operands::RegImm(reg, value)
+            Op::LDI | Op::ADDI | Op::SUBI => Operands::RegImm(byte_2, byte_3),
+            Op::LDA | Op::STO => Operands::RegAddr(byte_2, byte_3),
+            Op::PUSH | Op::POP | Op::INC | Op::DEC | Op::NOT | Op::SHL | Op::SHR | Op::PRINT => {
+                Operands::Reg(byte_2)
             }
-            Op::INC => {
-                let reg = opcode & 0x0F;
-
-                Operands::Reg(reg)
+            Op::LDR | Op::MOV | Op::ADD | Op::SUB | Op::AND | Op::OR | Op::XOR | Op::CMP => {
+                Operands::RegReg((byte_2 >> 4) & 0x0F, byte_2 & 0x0F)
             }
-            Op::ADD | Op::SUB => {
-                let value = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
-                let rd = (value >> 4) & 0x0F;
-                let rs = value & 0x0F;
-
-                Operands::RegReg(rd, rs)
-            }
-            Op::JMP | Op::JZ | Op::JNZ => {
-                let addr = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
-
-                Operands::Addr(addr)
-            }
-            Op::SHL | Op::SHR => {
-                let reg = opcode & 0x0F;
-
-                Operands::Reg(reg)
-            }
-            Op::PRINT => {
-                let reg = opcode & 0x0F;
-
-                Operands::Reg(reg)
-            }
+            Op::JMP | Op::JZ | Op::JNZ => Operands::Addr(byte_2),
         };
 
         (op, operands)
@@ -330,5 +308,6 @@ pub enum Operands {
     Reg(u8),
     RegImm(u8, u8),
     RegReg(u8, u8),
+    RegAddr(u8, u8),
     Addr(u8),
 }
