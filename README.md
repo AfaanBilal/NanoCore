@@ -138,6 +138,54 @@ cargo r --bin tui -- programs/counter.nca
 
 ---
 
+## Example Program `Fibonacci Sequence`
+
+```assembly
+; Print the fibonacci sequence (two-digit)
+start:
+    LDI R0 0
+    LDI R1 1
+    LDI R2 12
+    LDI R12 32
+loop:
+    JMP print_digits
+
+post_print:
+    MOV R3 R1
+    ADD R1 R0
+    MOV R0 R3
+    DEC R2
+
+    JNZ loop
+end:
+    HLT
+
+print_digits:
+    PUSH R10
+    PUSH R11
+
+    MOV R10 R0
+    DIVI R10 10
+
+    JZ unit_digit
+
+    ADDI R10 48
+    PRINT R10
+
+unit_digit:
+    MOV R11 R0
+    MODI R11 10
+    ADDI R11 48
+    PRINT R11
+
+print_space:
+    PRINT R12
+
+    POP R11
+    POP R10
+    JMP post_print
+```
+
 ## 🤝 Contributing
 
 All contributions are welcome. Please create an issue first for any feature request
