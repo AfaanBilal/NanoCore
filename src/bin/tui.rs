@@ -326,10 +326,10 @@ impl App {
         let memory_block_inner = memory_block.inner(inner[1]);
         frame.render_widget(memory_block, inner[1]);
 
-        let memory = Layout::horizontal([Constraint::Percentage(35), Constraint::Fill(1)])
+        let memory = Layout::horizontal([Constraint::Percentage(30), Constraint::Fill(1)])
             .split(memory_block_inner);
 
-        let mut addr_vec = vec![Line::from("   Hex   Dec".light_blue())];
+        let mut addr_vec = vec![Line::from("  Hex   Dec".light_blue())];
         let mut mem_vec = vec![Line::from(" Bin       Hex   Dec  Op".light_blue())];
 
         let mut prev_op: Option<Op> = None;
@@ -375,11 +375,11 @@ impl App {
 
             if i as u8 == self.nano_core.cpu.pc {
                 addr_vec.push(Line::from(
-                    format!("-> {i:#04X}  {i:03} ").white().on_magenta(),
+                    format!("► {i:#04X}  {i:03} ").white().on_magenta(),
                 ));
                 mem_line = mem_line.white().on_magenta();
             } else {
-                addr_vec.push(Line::from(format!("   {i:#04X}  {i:03}")).dark_gray());
+                addr_vec.push(Line::from(format!("  {i:#04X}  {i:03}")).dark_gray());
             }
 
             mem_vec.push(mem_line);
