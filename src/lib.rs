@@ -46,7 +46,7 @@ pub enum Op {
     AND, // Logical AND: AND Rx Ry (Rx = Rx & Ry)
     OR,  // Logical OR: OR Rx Ry (Rx = Rx | Ry)
     XOR, // Logical XOR: XOR Rx Ry (Rx = Rx ^ Ry)
-    NOT, // Logical NOT: NOT Rx (Rx = ~Rx)
+    NOT, // Logical NOT: NOT Rx (Rx = !Rx)
     CMP, // Comparison: CMP Rx Ry (Set zero flag if Rx = Ry, otherwise reset)
 
     JMP, // Unconditional Jump to address: JMP 0xAB
@@ -73,47 +73,58 @@ impl Op {
 
 impl std::fmt::Display for Op {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Op::HLT => "HLT",
-                Op::NOP => "NOP",
+        let s: &str = (*self).into();
+        write!(f, "{s}")
+    }
+}
 
-                Op::LDI => "LDI",
-                Op::LDA => "LDA",
-                Op::LDR => "LDR",
+impl From<Op> for String {
+    fn from(value: Op) -> Self {
+        let op_str: &str = value.into();
 
-                Op::MOV => "MOV",
-                Op::STO => "STO",
+        op_str.to_owned()
+    }
+}
 
-                Op::PUSH => "PUSH",
-                Op::POP => "POP",
+impl From<Op> for &str {
+    fn from(value: Op) -> Self {
+        match value {
+            Op::HLT => "HLT",
+            Op::NOP => "NOP",
 
-                Op::ADD => "ADD",
-                Op::ADDI => "ADDI",
-                Op::SUB => "SUB",
-                Op::SUBI => "SUBI",
+            Op::LDI => "LDI",
+            Op::LDA => "LDA",
+            Op::LDR => "LDR",
 
-                Op::INC => "INC",
-                Op::DEC => "DEC",
+            Op::MOV => "MOV",
+            Op::STO => "STO",
 
-                Op::AND => "AND",
-                Op::OR => "OR",
-                Op::XOR => "XOR",
-                Op::NOT => "NOT",
-                Op::CMP => "CMP",
+            Op::PUSH => "PUSH",
+            Op::POP => "POP",
 
-                Op::JMP => "JMP",
-                Op::JZ => "JZ",
-                Op::JNZ => "JNZ",
+            Op::ADD => "ADD",
+            Op::ADDI => "ADDI",
+            Op::SUB => "SUB",
+            Op::SUBI => "SUBI",
 
-                Op::SHL => "SHL",
-                Op::SHR => "SHR",
+            Op::INC => "INC",
+            Op::DEC => "DEC",
 
-                Op::PRINT => "PRINT",
-            }
-        )
+            Op::AND => "AND",
+            Op::OR => "OR",
+            Op::XOR => "XOR",
+            Op::NOT => "NOT",
+            Op::CMP => "CMP",
+
+            Op::JMP => "JMP",
+            Op::JZ => "JZ",
+            Op::JNZ => "JNZ",
+
+            Op::SHL => "SHL",
+            Op::SHR => "SHR",
+
+            Op::PRINT => "PRINT",
+        }
     }
 }
 
@@ -200,7 +211,7 @@ impl From<u8> for Op {
 
             0x19 => Op::PRINT,
 
-            _ => panic!("Invalid opcode {value}"),
+            _ => Op::NOP,
         }
     }
 }
