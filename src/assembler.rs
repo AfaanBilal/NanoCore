@@ -49,43 +49,43 @@ impl Assembler {
 
             match op {
                 Op::HLT => self.program.push(opcode),
-                Op::LDI => {
-                    let register = Self::register(parts[1]);
-                    self.program.push(opcode | register);
-                    self.program
-                        .push(parts[2].parse::<u8>().expect("Invalid value"));
-                }
-                Op::INC => {
-                    let register = Self::register(parts[1]);
-                    self.program.push(opcode | register);
-                }
-                Op::ADD | Op::SUB => {
-                    let rd = Self::register(parts[1]);
-                    let rs = Self::register(parts[2]);
-
+                Op::NOP => {}
+                Op::LDI | Op::ADDI | Op::SUBI => {
                     self.program.push(opcode);
-                    self.program.push((rd << 4) | rs);
+                    self.program.push(Self::register(parts[1]));
+                    self.program.push(Self::from_value_str(parts[2]));
+                }
+                Op::LDA | Op::STO => {
+                    self.program.push(opcode);
+                    self.program.push(Self::register(parts[1]));
+                    self.program.push(Self::from_hex_str(parts[2]));
+                }
+                Op::LDR | Op::MOV | Op::ADD | Op::SUB | Op::AND | Op::OR | Op::XOR | Op::CMP => {
+                    self.program.push(opcode);
+                    self.program
+                        .push(Self::register(parts[1]) << 4 | Self::register(parts[2]));
+                }
+                Op::PUSH
+                | Op::POP
+                | Op::INC
+                | Op::DEC
+                | Op::NOT
+                | Op::SHL
+                | Op::SHR
+                | Op::PRINT => {
+                    self.program.push(opcode);
+                    self.program.push(Self::register(parts[1]));
                 }
                 Op::JMP | Op::JZ | Op::JNZ => {
                     let addr = if self.labels.contains_key(parts[1]) {
                         *self.labels.get(parts[1]).unwrap()
                     } else {
-                        hex::decode(parts[1].strip_prefix("0x").expect("Invalid hex address"))
-                            .expect("Expected address")[0]
+                        Self::from_hex_str(parts[1])
                     };
 
                     self.program.push(opcode);
                     self.program.push(addr);
                 }
-                Op::PRINT => {
-                    let register = Self::register(parts[1]);
-                    self.program.push(opcode | register);
-                }
-                Op::SHL | Op::SHR => {
-                    let register = Self::register(parts[1]);
-                    self.program.push(opcode | register);
-                }
-                Op::NOP => {}
             }
         }
     }
@@ -126,6 +126,15 @@ impl Assembler {
         }
 
         register
+    }
+
+    pub fn from_value_str(v: &str) -> u8 {
+        v.parse::<u8>().expect("Invalid value")
+    }
+
+    pub fn from_hex_str(v: &str) -> u8 {
+        hex::decode(v.strip_prefix("0x").expect("Invalid hex address")).expect("Expected address")
+            [0]
     }
 
     pub fn is_label(l: &str) -> bool {

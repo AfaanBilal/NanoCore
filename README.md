@@ -14,7 +14,7 @@ This project serves as an educational exercise in understanding the fundamental 
 
   * **True 8-bit Architecture:** All general-purpose registers (R0-R15), Program Counter (PC), and Stack Pointer (SP) are 8-bit.
   * **256-byte Memory:** The entire addressable memory space is limited to 256 bytes (`0x00` to `0xFF`), making it a challenge to write highly optimized and compact code.
-  * **Variable-Length Instruction Set:** Supports both 1-byte and 2-byte instructions to maximize opcode efficiency and flexibility within the limited address space.
+  * **Variable-Length Instruction Set:** Supports both 1-byte, 2-byte and 3-byte instructions to maximize opcode efficiency and flexibility within the limited address space.
   * **Modular Design:** CPU cycle is broken down into distinct Fetch, Decode, and Execute phases for clarity.
   * **Inbuilt Two-Pass Assembler:** The NanoCore Assembler makes it easier to program it by writing NanoCore Assembly instead of direct machine code.
 
@@ -26,24 +26,49 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 
 ### Instruction Format
 
-  * **1-byte instructions:** One 8-bit opcode. Some opcodes have register operands in their lower bits.
+  * **1-byte instructions:** One 8-bit opcode.
   * **2-byte instructions:** An 8-bit opcode followed by an 8-bit operand (e.g., an immediate value or an address).
+  * **3-byte instructions:** An 8-bit opcode followed by two 8-bit operands (e.g., an immediate value or an address).
 
 ### Implemented Instructions
 
-| Opcode | Mnemonic        | Description                                                             | Encoding (Example)                                     |
-| :----- | :-------------- | :---------------------------------------------------------------------- | :----------------------------------------------------- |
-| `0x00` | `HLT`           | Halts CPU execution.                                                    | `0x00`                                                 |
-| `0x1X` | `LDI REG, #val` | Loads an 8-bit immediate value `val` into register `REG`.               | `0x10 \| REG`, `Imm8` (2 bytes)                        |
-| `0x2X` | `INC REG`       | Increment `REG` by `1` (wrapping addition).                             | `0x20 \| REG`                                          |
-| `0x30` | `ADD Rd Rs`     | Adds the value of register `Rs` to register `Rd`. Flags updated.        | `0x30, (Rd << 4) \| Rs` (2 bytes)                      |
-| `0x31` | `SUB Rd Rs`     | Subtracts the value of register `Rs` from register `Rd`. Flags updated. | `0x31, (Rd << 4) \| Rs` (2 bytes)                      |
-| `0x40` | `JMP Addr`      | Unconditionally jumps to the 8-bit address `Addr`.                      | `0x40`, `Addr8` (2 bytes)                              |
-| `0x41` | `JZ Addr`       | Jumps to the 8-bit address `Addr` if the Zero Flag (Z) is set.          | `0x41`, `Addr8` (2 bytes)                              |
-| `0x42` | `JNZ Addr`      | Jumps to the 8-bit address `Addr` if the Zero Flag (Z) is not set.      | `0x42`, `Addr8` (2 bytes)                              |
-| `0x5X` | `PRINT REG`     | Outputs the ASCII character stored in `REG` to console.                 | `0x50 \| REG` (e.g., `0x10` for `R0`, `0x11` for `R1`) |
-| `0x6X` | `SHL REG`       | Shifts the bits in `REG` left by 1 (`<< 1`).                            | `0x60 \| REG` (e.g., `0x10` for `R0`, `0x11` for `R1`) |
-| `0x7X` | `SHR REG`       | Shifts the bits in `REG` right by 1 (`>> 1`).                           | `0x70 \| REG` (e.g., `0x10` for `R0`, `0x11` for `R1`) |
+| Opcode | Bytes | Mnemonic       | Description                                       | Encoding (Example) |
+| :----- | ----: | :------------- | :------------------------------------------------ | :----------------- |
+| `0x00` |     1 | `HLT`          | Halts CPU execution                               | `0x00`             |
+| `0x01` |     1 | `NOP`          | No op                                             | `0x01`             |
+| `0x02` |     3 | `LDI Reg val`  | Load immediate `val` into `Reg`                   | `0x02 0x00 0xAB`   |
+| `0x03` |     3 | `LDA Reg addr` | Load from memory address `addr` into `Reg`        | `0x03 0x00 0xCC`   |
+| `0x04` |     2 | `LDR Rd Rs`    | Load from memory address stored in `Rs` into `Rd` | `0x04 0x00 0x01`   |
+| `0x05` |     2 | `MOV Rd Rs`    | Copy value from `Rs` into `Rd`                    | `0x05 0x01 0x02`   |
+| `0x06` |     3 | `STO Reg addr` | Store from `Reg` into memory address `addr`       | `0x05 0x01 0xAA`   |
+| `0x07` |     2 | `PUSH Reg`     | Push `Reg` value into stack.                      | `0x05 0x01`        |
+| `0x08` |     2 | `POP Reg`      | Pop from stack into `Reg`                         | `0x05 0x01`        |
+| `0x09` |     2 | `ADD Rd Rs`    | Add value of `Rs` to `Rd`                         | `0x05 0x01 0x02`   |
+| `0x0A` |     3 | `ADDI Reg val` | Add immediate `val` to `Reg`                      | `0x05 0x01 0xAB`   |
+| `0x0B` |     2 | `SUB Rd Rs`    | Subtract value of `Rd` from `Rs`                  | `0x05 0x01 0x02`   |
+| `0x0C` |     3 | `SUBI Reg val` | Subtract immediate `val` from `Reg`               | `0x05 0x01 0xAB`   |
+| `0x0D` |     2 | `INC Reg`      | Increment `Reg`                                   | `0x05 0x01`        |
+| `0x0E` |     2 | `DEC Reg`      | Decrement `Reg`                                   | `0x05 0x01`        |
+| `0x0F` |     2 | `AND Rd Rs`    | Set `Rd` to `Rd & Rs`                             | `0x05 0x01 0x02`   |
+| `0x10` |     2 | `OR Rd Rs`     | Set `Rd` to `Rd \| Rs`                            | `0x05 0x01 0x02`   |
+| `0x11` |     2 | `XOR Rd Rs`    | Set `Rd` to `Rd ^ Rs`                             | `0x05 0x01 0x02`   |
+| `0x12` |     2 | `NOT Reg`      | Set `Reg` to `!Reg`                               | `0x05 0x01`        |
+| `0x13` |     2 | `CMP Rd Rs`    | Set `Z` flag if `Rd == Rs`                        | `0x05 0x01 0x02`   |
+| `0x14` |     2 | `SHL Reg`      | Shift bits left in `Reg` by 1 (`<< 1`)            | `0x05 0x01`        |
+| `0x15` |     2 | `SHR Reg`      | Shift bits right in `Reg` by 1 (`>> 1`)           | `0x05 0x01`        |
+| `0x16` |     2 | `JMP addr`     | Unconditional jump to `addr`                      | `0x05 0xAA`        |
+| `0x17` |     2 | `JZ addr`      | Jump to `addr` if `Z` flag is set                 | `0x05 0xAA`        |
+| `0x18` |     2 | `JNZ addr`     | Jump to `addr` if `Z` flag is not set             | `0x05 0xAA`        |
+| `0x19` |     2 | `PRINT Reg`    | Print value of `Reg` as an ASCII character        | `0x19 0x01`        |
+
+> `val` = `Immediate value`
+> `addr` = `Memory address`
+> `Reg` = `Register`
+> `Rs` = `Source register`
+> `Rd` = `Destination register`
+> `Z` flag = Zero Flag
+> `R0` = `0x00`, `R1` = `0x01` ..., `R15` = `0x0F`
+> All addition, subtraction, increment and decrements are wrapping.
 
 ## 🚀 Getting Started
 
