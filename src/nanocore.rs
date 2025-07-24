@@ -219,7 +219,34 @@ impl NanoCore {
 
                 self.current_instruction = format!("{op}   R{rd} R{rs}| ({value:03})");
             }
-            Op::PUSH | Op::POP => {}
+            Op::PUSH => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid");
+                };
+
+                let value = self.cpu.registers[reg as usize];
+
+                self.cpu.memory[self.cpu.sp as usize] = value;
+                self.cpu.sp = self.cpu.sp.wrapping_sub(1);
+                self.cpu.update_zn_flags(value);
+
+                self.current_instruction =
+                    format!("PUSH  R{reg}| ({value:03}) (SP: {:#04X})", self.cpu.sp);
+            }
+            Op::POP => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid");
+                };
+
+                let value = self.cpu.memory[self.cpu.sp as usize];
+
+                self.cpu.registers[reg as usize] = value;
+                self.cpu.sp = self.cpu.sp.wrapping_add(1);
+                self.cpu.update_zn_flags(value);
+
+                self.current_instruction =
+                    format!("PUSH  R{reg}| ({value:03}) (SP: {:#04X})", self.cpu.sp);
+            }
             Op::INC | Op::DEC => {
                 let Operands::Reg(reg) = operands else {
                     panic!("Invalid!");
