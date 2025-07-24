@@ -99,7 +99,7 @@ impl App {
 
         let cpu_block = Block::default()
             .borders(Borders::TOP)
-            .title(Line::from(" CPU ").centered())
+            .title(Line::from(" CPU ").centered().bold())
             .title(Span::styled(
                 (if self.nano_core.cpu.is_halted {
                     " HLT "
@@ -218,16 +218,18 @@ impl App {
 
         // -- Registers
 
-        let register_block = Block::bordered().title(" Registers ");
+        let register_block = Block::default()
+            .borders(Borders::TOP)
+            .title(Line::from(" Registers ").centered());
         let register_block_inner = register_block.inner(cpu[1]);
 
-        let registers = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)])
+        let registers = Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)])
             .split(register_block_inner);
 
-        let registers_top = Layout::horizontal([Constraint::Percentage(100 / 8); 8])
+        let registers_top = Layout::horizontal([Constraint::Fill(1); 8])
             .spacing(1)
             .split(registers[0]);
-        let registers_bottom = Layout::horizontal([Constraint::Percentage(100 / 8); 8])
+        let registers_bottom = Layout::horizontal([Constraint::Fill(1); 8])
             .spacing(1)
             .split(registers[1]);
 
@@ -389,7 +391,7 @@ impl App {
 
         let memory_block = Block::default()
             .borders(Borders::TOP)
-            .title(Line::from(" Memory ").centered());
+            .title(Line::from(" Memory ").centered().bold());
         let memory_block_inner = memory_block.inner(inner[1]);
         frame.render_widget(memory_block, inner[1]);
 
