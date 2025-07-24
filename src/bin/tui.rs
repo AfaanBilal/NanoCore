@@ -97,7 +97,8 @@ impl App {
         let inner =
             Layout::horizontal([Constraint::Percentage(70), Constraint::Fill(1)]).split(main[1]);
 
-        let cpu_block = Block::bordered()
+        let cpu_block = Block::default()
+            .borders(Borders::TOP)
             .title(Line::from(" CPU ").centered())
             .title(Span::styled(
                 (if self.nano_core.cpu.is_halted {
@@ -215,6 +216,8 @@ impl App {
             cpu_top[4],
         );
 
+        // -- Registers
+
         let register_block = Block::bordered().title(" Registers ");
         let register_block_inner = register_block.inner(cpu[1]);
 
@@ -266,6 +269,8 @@ impl App {
             );
         }
 
+        // -- Current instruction
+
         let (op, args, rest) = Self::get_instruction_parts(&self.nano_core.current_instruction);
 
         let mut op_span = Span::raw(format!("{op:5}")).cyan();
@@ -301,6 +306,8 @@ impl App {
             cpu[2],
         );
 
+        // -- Instruction log
+
         let log_block = Block::bordered().title(" Instruction Log ");
         let log_block_inner = log_block.inner(cpu[3]);
 
@@ -316,13 +323,75 @@ impl App {
         frame.render_widget(log_left, log_columns[0]);
         frame.render_widget(log_right, log_columns[1]);
 
+        // -- Output
+
+        let bottom_block = Block::default();
+        let bottom_block_inner = bottom_block.inner(cpu[4]);
+
+        let bottom_columns = Layout::horizontal([Constraint::Percentage(60), Constraint::Fill(1)])
+            .split(bottom_block_inner);
+
+        let output = Paragraph::new(self.nano_core.output.clone())
+            .block(Block::bordered().title(" Output "));
+        frame.render_widget(output, bottom_columns[0]);
+
+        // -- Stack
+
+        let stack_block = Block::default()
+            .borders(Borders::TOP)
+            .title(Line::from(" Stack ").centered());
+        let stack_block_inner = stack_block.inner(bottom_columns[1]);
+        frame.render_widget(stack_block, bottom_columns[1]);
+
+        let stack = Layout::horizontal([Constraint::Percentage(40), Constraint::Fill(1)])
+            .split(stack_block_inner);
+
+        let mut stack_addr_vec = vec![Line::from("  Hex   Dec".light_blue())];
+        let mut stack_mem_vec = vec![Line::from(" Bin       Hex   Dec".light_blue())];
+
+        let memory_len = self.nano_core.cpu.memory.len();
+
+        for i in ((memory_len - 16)..memory_len).rev() {
+            let mut mem_line = Line::from(format!(
+                " {:08b}  {:#04X}  {:03}  ",
+                self.nano_core.cpu.memory[i],
+                self.nano_core.cpu.memory[i],
+                self.nano_core.cpu.memory[i],
+            ));
+
+            if self.nano_core.cpu.memory[i] == 0 {
+                mem_line = mem_line.dark_gray();
+            }
+
+            if i as u8 == self.nano_core.cpu.sp {
+                stack_addr_vec.push(Line::from(
+                    format!("► {i:#04X}  {i:03} ").white().on_magenta(),
+                ));
+                mem_line = mem_line.white().on_magenta();
+            } else {
+                stack_addr_vec.push(Line::from(format!("  {i:#04X}  {i:03}")).dark_gray());
+            }
+
+            stack_mem_vec.push(mem_line);
+        }
+
         frame.render_widget(
-            Paragraph::new(self.nano_core.output.clone())
-                .block(Block::bordered().title(" Output ")),
-            cpu[4],
+            Paragraph::new(Text::from(stack_addr_vec)).block(Block::bordered().title(" Address ")),
+            stack[0],
         );
 
-        let memory_block = Block::bordered().title(Line::from(" Memory ").centered());
+        frame.render_widget(
+            Paragraph::new(Text::from(stack_mem_vec)).block(Block::bordered().title(" Data ")),
+            stack[1],
+        );
+
+        frame.render_widget(bottom_block, cpu[4]);
+
+        // -- Memory
+
+        let memory_block = Block::default()
+            .borders(Borders::TOP)
+            .title(Line::from(" Memory ").centered());
         let memory_block_inner = memory_block.inner(inner[1]);
         frame.render_widget(memory_block, inner[1]);
 
@@ -333,7 +402,7 @@ impl App {
         let mut mem_vec = vec![Line::from(" Bin       Hex   Dec  Op".light_blue())];
 
         let mut skip_bytes = 0;
-        for i in 0..self.nano_core.cpu.memory.len() {
+        for i in 0..memory_len {
             let op: Op = if skip_bytes == 0 {
                 let op: Op = self.nano_core.cpu.memory[i].into();
 
