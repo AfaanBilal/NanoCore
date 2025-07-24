@@ -360,14 +360,12 @@ impl App {
             ));
 
             if self.nano_core.cpu.memory[i] == 0 {
-                mem_line = mem_line.dark_gray();
+                mem_line = mem_line.dim();
             }
 
             if i as u8 == self.nano_core.cpu.sp {
-                stack_addr_vec.push(Line::from(
-                    format!("► {i:#04X}  {i:03} ").white().on_magenta(),
-                ));
-                mem_line = mem_line.white().on_magenta();
+                stack_addr_vec.push(Line::from(format!("► {i:#04X}  {i:03} ").white()));
+                mem_line = mem_line.white().on_cyan();
             } else {
                 stack_addr_vec.push(Line::from(format!("  {i:#04X}  {i:03}")).dark_gray());
             }
@@ -445,9 +443,7 @@ impl App {
             }
 
             if i as u8 == self.nano_core.cpu.pc {
-                addr_vec.push(Line::from(
-                    format!("► {i:#04X}  {i:03} ").white().on_magenta(),
-                ));
+                addr_vec.push(Line::from(format!("► {i:#04X}  {i:03} ").white()));
                 mem_line = mem_line.white().on_magenta();
             } else {
                 addr_vec.push(Line::from(format!("  {i:#04X}  {i:03}")).dark_gray());
