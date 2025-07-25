@@ -33,6 +33,7 @@ use ratatui::{
 #[derive(Debug)]
 pub struct App {
     nano_core: NanoCore,
+    program: Vec<u8>,
     running: bool,
     tick_rate: Duration,
     last_tick: Instant,
@@ -40,7 +41,10 @@ pub struct App {
 }
 
 impl App {
-    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
+    pub fn run(&mut self, terminal: &mut DefaultTerminal, bytes: &[u8]) -> io::Result<()> {
+        self.program = bytes.to_vec();
+        self.nano_core.load_program(&self.program, 0x00);
+
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;
@@ -64,6 +68,8 @@ impl App {
             "<⬆>".light_blue().bold(),
             " | Slower (+50ms) ".into(),
             "<⬇>".light_blue().bold(),
+            " | Reset ".into(),
+            "<R> ".light_blue().bold(),
             " | Quit ".into(),
             "<Q> ".light_blue().bold(),
         ]);
@@ -510,6 +516,7 @@ impl App {
                                 self.tick_rate.saturating_sub(Duration::from_millis(50))
                         }
                         KeyCode::Down => self.tick_rate.add_assign(Duration::from_millis(50)),
+                        KeyCode::Char('r') => self.reset(),
                         _ => {}
                     }
                 }
@@ -538,6 +545,12 @@ impl App {
             }
         }
     }
+
+    fn reset(&mut self) {
+        self.running = false;
+        self.nano_core = NanoCore::new();
+        self.nano_core.load_program(&self.program, 0x00);
+    }
 }
 
 fn main() -> io::Result<()> {
@@ -558,15 +571,14 @@ fn main() -> io::Result<()> {
 
     let mut app = App {
         nano_core: NanoCore::new(),
+        program: vec![],
         running: false,
         tick_rate: Duration::from_millis(100),
         last_tick: Instant::now(),
         exit: false,
     };
 
-    app.nano_core.load_program(&bytes, 0x00);
-
-    let app = app.run(&mut terminal);
+    let app = app.run(&mut terminal, &bytes);
 
     ratatui::restore();
 
