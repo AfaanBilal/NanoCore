@@ -15,28 +15,55 @@
 //! language programming.
 //!
 
+use clap::Parser;
 use std::fs;
 
 use nanocore::{assembler::Assembler, nanocore::NanoCore};
 
+#[derive(Parser, Debug)]
+#[command(name = "nanocore")]
+#[command(about = "Run NanoCore", long_about = None)]
+struct Args {
+    /// Path to the source assembly file / compiled bin file
+    #[arg(index = 1)]
+    input: String,
+
+    /// Print output
+    #[arg(short, long, default_value_t = true)]
+    print: bool,
+
+    /// Print state
+    #[arg(short = 's', long, default_value_t = false)]
+    print_state: bool,
+
+    /// Print instructions
+    #[arg(short = 'i', long, default_value_t = false)]
+    print_instructions: bool,
+}
+
 fn main() {
-    let bin = std::env::args().nth(1).expect("Missing filename.");
+    let args = Args::parse();
 
-    let bytes = if bin.ends_with(".nca") {
-        let asm = fs::read_to_string(&bin).unwrap();
+    let bytes = if args.input.ends_with(".nca") {
+        let asm = fs::read_to_string(&args.input).unwrap();
 
-        println!("Assembling {}", &bin);
+        if args.print_state {
+            println!("Assembling {}", &args.input);
+        }
 
         let mut c = Assembler::default();
         c.assemble(&asm);
 
         c.program
     } else {
-        fs::read(bin).unwrap()
+        fs::read(args.input).unwrap()
     };
 
     let mut nano = NanoCore::new();
-    nano.print = true;
+    nano.print = args.print;
+    nano.print_state = args.print_state;
+    nano.print_instructions = args.print_instructions;
+
     nano.load_program(&bytes, 0x00);
     nano.run();
 }
