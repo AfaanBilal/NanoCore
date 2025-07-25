@@ -45,6 +45,9 @@ pub struct App {
 
     breakpoints: Vec<u8>,
     editing_breakpoint: Option<String>,
+
+    mem_view_start: u8,
+    mem_view_start_editing: Option<String>,
 }
 
 impl App {
@@ -79,6 +82,8 @@ impl App {
             "●".red(),
             " Breakpoint ".into(),
             "<B>".light_blue().bold(),
+            " | Memory View ".into(),
+            "<M>".light_blue().bold(),
             " | Tick Rate (".into(),
             "<⬆>".light_blue().bold(),
             " +50ms) (".into(),
@@ -429,8 +434,13 @@ impl App {
         let mut addr_vec = vec![Line::from("  Hex  Dec".light_blue())];
         let mut mem_vec = vec![Line::from(" Bin      Hex  Dec Op".light_blue())];
 
+        if self.mem_view_start > 0 {
+            addr_vec.push(Line::from("  ...  ...".dim()));
+            mem_vec.push(Line::from(" ...      ...  ... ..".dim()));
+        }
+
         let mut skip_bytes = 0;
-        for i in 0..memory_len {
+        for i in (self.mem_view_start as usize)..memory_len {
             let op: Op = if skip_bytes == 0 {
                 let op: Op = self.nano_core.cpu.memory[i].into();
 
@@ -533,6 +543,39 @@ impl App {
                 Self::centered_rect(20, bp_y, frame.area()),
             );
         }
+
+        if let Some(mem_view_start) = &self.mem_view_start_editing {
+            let mut mv_modal_lines = vec![
+                Line::from(vec![
+                    "Address: ".into(),
+                    format!(" {:20} ", mem_view_start.as_str())
+                        .black()
+                        .on_white()
+                        .bold(),
+                    " ↵".bold(),
+                ]),
+                "".into(),
+                Line::from(vec!["<Esc> ".bold(), "Close".into()]),
+            ];
+
+            let mut mv_y = 8;
+
+            if self.mem_view_start > 0 {
+                mv_modal_lines.push(Line::from(vec!["<K>   ".bold(), "Reset".into()]));
+
+                mv_y = 9;
+            }
+
+            frame.render_widget(
+                Paragraph::new(Text::from(mv_modal_lines)).block(
+                    Block::bordered()
+                        .title(Line::from(" Set Memory View Start "))
+                        .white()
+                        .on_red(),
+                ),
+                Self::centered_rect(20, mv_y, frame.area()),
+            );
+        }
     }
 
     fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -624,6 +667,7 @@ impl App {
                         KeyCode::Char(c) if self.editing_breakpoint.is_some() => {
                             if c == 'k' {
                                 self.breakpoints.clear();
+                                self.editing_breakpoint = None;
                             } else {
                                 self.editing_breakpoint.as_mut().unwrap().push(c);
                             }
@@ -632,24 +676,35 @@ impl App {
                             self.editing_breakpoint.as_mut().unwrap().pop();
                         }
                         KeyCode::Enter if self.editing_breakpoint.is_some() => {
-                            let addr = self
-                                .editing_breakpoint
-                                .as_ref()
-                                .unwrap()
-                                .strip_prefix("0x")
-                                .unwrap_or("0");
+                            let addr = Self::parse_addr(self.editing_breakpoint.as_ref().unwrap());
 
-                            if let Ok(addr) = hex::decode(addr) {
-                                if let Some(&addr) = addr.first() {
-                                    if self.breakpoints.contains(&addr) {
-                                        self.breakpoints.retain(|x| *x != addr);
-                                    } else {
-                                        self.breakpoints.push(addr);
-                                    }
-                                }
+                            if self.breakpoints.contains(&addr) {
+                                self.breakpoints.retain(|x| *x != addr);
+                            } else {
+                                self.breakpoints.push(addr);
                             }
 
                             self.editing_breakpoint = None;
+                        }
+                        KeyCode::Esc if self.mem_view_start_editing.is_some() => {
+                            self.mem_view_start_editing = None;
+                        }
+                        KeyCode::Char(c) if self.mem_view_start_editing.is_some() => {
+                            if c == 'k' {
+                                self.mem_view_start = 0;
+                                self.mem_view_start_editing = None;
+                            } else {
+                                self.mem_view_start_editing.as_mut().unwrap().push(c);
+                            }
+                        }
+                        KeyCode::Backspace if self.mem_view_start_editing.is_some() => {
+                            self.mem_view_start_editing.as_mut().unwrap().pop();
+                        }
+                        KeyCode::Enter if self.mem_view_start_editing.is_some() => {
+                            self.mem_view_start =
+                                Self::parse_addr(self.mem_view_start_editing.as_ref().unwrap());
+
+                            self.mem_view_start_editing = None;
                         }
                         KeyCode::Char('q') => self.exit(),
                         KeyCode::Char(' ') => self.next(),
@@ -661,6 +716,7 @@ impl App {
                         }
                         KeyCode::Char('r') => self.reset(),
                         KeyCode::Char('b') => self.editing_breakpoint = Some("0x".into()),
+                        KeyCode::Char('m') => self.mem_view_start_editing = Some("0x".into()),
                         _ => {}
                     }
                 }
@@ -695,6 +751,18 @@ impl App {
         self.nano_core = NanoCore::new();
         self.nano_core.load_program(&self.program, 0x00);
     }
+
+    fn parse_addr(s: &str) -> u8 {
+        let addr = s.strip_prefix("0x").unwrap_or("0");
+
+        if let Ok(addr) = hex::decode(addr) {
+            if let Some(&addr) = addr.first() {
+                return addr;
+            }
+        }
+
+        0
+    }
 }
 
 fn main() -> io::Result<()> {
@@ -726,6 +794,9 @@ fn main() -> io::Result<()> {
 
         breakpoints: vec![],
         editing_breakpoint: None,
+
+        mem_view_start: 0,
+        mem_view_start_editing: None,
     };
 
     let app = app.run(&mut terminal, &bytes);
