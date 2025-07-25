@@ -1,0 +1,36 @@
+; Draw a rectangle
+start:
+    LDI R10 10 ; newline
+    LDI R11 32 ; space
+    LDI R12 35 ; #
+
+    LDI R2 20 ; width
+    LDI R3 6  ; height
+    LDI R4 2
+
+print_border_line:
+    PRINT R12
+    DEC R2
+    JNZ print_border_line
+    DEC R4
+    JZ end
+    PRINT R10
+
+print_line:
+    PRINT R12
+
+    LDI R2 18
+print_line_space:
+    PRINT R11
+    DEC R2
+    JNZ print_line_space
+    PRINT R12
+    PRINT R10
+    DEC R3
+    JNZ print_line
+
+    LDI R2 20
+    JMP print_border_line
+
+end:
+    HLT
