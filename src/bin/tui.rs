@@ -573,6 +573,9 @@ impl App {
             match event::read()? {
                 Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                     match key_event.code {
+                        KeyCode::Esc if self.editing_breakpoint.is_some() => {
+                            self.editing_breakpoint = None;
+                        }
                         KeyCode::Char(c) if self.editing_breakpoint.is_some() => {
                             self.editing_breakpoint.as_mut().unwrap().push(c);
                         }
@@ -580,19 +583,18 @@ impl App {
                             self.editing_breakpoint.as_mut().unwrap().pop();
                         }
                         KeyCode::Enter if self.editing_breakpoint.is_some() => {
-                            let value = hex::decode(
-                                self.editing_breakpoint
-                                    .clone()
-                                    .unwrap()
-                                    .strip_prefix("0x")
-                                    .unwrap_or("0"),
-                            )
-                            .unwrap_or(vec![0])[0];
+                            let addr = self.editing_breakpoint.clone().unwrap();
+                            let addr = addr.strip_prefix("0x").unwrap_or("0");
 
-                            if self.breakpoints.contains(&value) {
-                                self.breakpoints.retain(|x| *x != value);
-                            } else {
-                                self.breakpoints.push(value);
+                            if let Ok(addr) = hex::decode(addr) {
+                                if !addr.is_empty() {
+                                    let addr = addr[0];
+                                    if self.breakpoints.contains(&addr) {
+                                        self.breakpoints.retain(|x| *x != addr);
+                                    } else {
+                                        self.breakpoints.push(addr);
+                                    }
+                                }
                             }
 
                             self.editing_breakpoint = None;
