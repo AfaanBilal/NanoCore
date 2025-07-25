@@ -51,6 +51,9 @@ impl CPU {
     pub const FLAG_N: u8 = 0b0000_0100;
     pub const FLAG_Y: u8 = 0b0000_1000;
 
+    pub const STACK_MAX: u8 = 0xFF;
+    pub const STACK_MIN: u8 = 0xEA;
+
     pub fn set_flag(&mut self, bit: u8) {
         self.flags |= bit;
     }

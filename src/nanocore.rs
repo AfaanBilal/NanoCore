@@ -240,6 +240,10 @@ impl NanoCore {
                     panic!("Invalid");
                 };
 
+                if self.cpu.sp == CPU::STACK_MIN {
+                    panic!("Error: Stack Overflow PC: {}", self.cpu.sp);
+                }
+
                 let value = self.cpu.registers[reg as usize];
 
                 self.cpu.memory[self.cpu.sp as usize] = value;
@@ -253,6 +257,10 @@ impl NanoCore {
                 let Operands::Reg(reg) = operands else {
                     panic!("Invalid");
                 };
+
+                if self.cpu.sp == CPU::STACK_MAX {
+                    panic!("Error: Stack Underflow PC: {}", self.cpu.sp);
+                }
 
                 self.cpu.sp = self.cpu.sp.wrapping_add(1);
 
