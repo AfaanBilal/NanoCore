@@ -583,12 +583,15 @@ impl App {
                             self.editing_breakpoint.as_mut().unwrap().pop();
                         }
                         KeyCode::Enter if self.editing_breakpoint.is_some() => {
-                            let addr = self.editing_breakpoint.clone().unwrap();
-                            let addr = addr.strip_prefix("0x").unwrap_or("0");
+                            let addr = self
+                                .editing_breakpoint
+                                .as_ref()
+                                .unwrap()
+                                .strip_prefix("0x")
+                                .unwrap_or("0");
 
                             if let Ok(addr) = hex::decode(addr) {
-                                if !addr.is_empty() {
-                                    let addr = addr[0];
+                                if let Some(&addr) = addr.first() {
                                     if self.breakpoints.contains(&addr) {
                                         self.breakpoints.retain(|x| *x != addr);
                                     } else {
