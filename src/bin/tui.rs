@@ -323,7 +323,7 @@ impl App {
 
         let memory_len = self.nano_core.cpu.memory.len();
 
-        for i in ((memory_len - 20)..memory_len).rev() {
+        for i in ((memory_len - 32)..memory_len).rev() {
             let mut mem_line = Line::from(format!(
                 " {:08b}  {:#04X}  {:03}  ",
                 self.nano_core.cpu.memory[i],
