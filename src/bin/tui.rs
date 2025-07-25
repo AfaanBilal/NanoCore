@@ -435,8 +435,8 @@ impl App {
         let mut mem_vec = vec![Line::from(" Bin      Hex  Dec Op".light_blue())];
 
         if self.mem_view_start > 0 {
-            addr_vec.push(Line::from("  ...  ...".dim()));
-            mem_vec.push(Line::from(" ...      ...  ... ..".dim()));
+            addr_vec.push(Line::from("  ···  ···".dim()));
+            mem_vec.push(Line::from(" ···      ···  ··· ··".dim()));
         }
 
         let mut skip_bytes = 0;
