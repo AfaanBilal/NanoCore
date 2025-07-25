@@ -25,7 +25,10 @@ pub struct NanoCore {
     pub current_skipped: bool,
     pub instruction_log: Vec<String>,
     pub output: String,
+
     pub print: bool,
+    pub print_state: bool,
+    pub print_instructions: bool,
 }
 
 impl NanoCore {
@@ -41,7 +44,10 @@ impl NanoCore {
             current_skipped: false,
             instruction_log: vec![],
             output: String::new(),
+
             print: false,
+            print_state: false,
+            print_instructions: false,
         }
     }
 
@@ -69,7 +75,7 @@ impl NanoCore {
         ));
 
         while !self.cpu.is_halted {
-            if self.print {
+            if self.print_state {
                 self.cpu.print_state(self.cycle);
             }
 
@@ -89,7 +95,7 @@ impl NanoCore {
     }
 
     pub fn print_colored(&self, s: &str) {
-        if !self.print {
+        if !self.print_state {
             return;
         }
 
@@ -418,7 +424,7 @@ impl NanoCore {
                 } else {
                     self.current_skipped = true;
 
-                    if self.print {
+                    if self.print_instructions {
                         print!("(SKIP) ");
                     }
                 }
@@ -437,7 +443,7 @@ impl NanoCore {
                 self.output.push(value as char);
 
                 if self.print {
-                    println!("{}", value as char);
+                    print!("{}", value as char);
                 }
             }
             Op::SHL | Op::SHR => {
@@ -469,7 +475,7 @@ impl NanoCore {
             }
         }
 
-        if self.print {
+        if self.print_instructions {
             println!("-> {}", self.current_instruction);
         }
 
