@@ -300,13 +300,26 @@ impl App {
             }
         }
 
+        let ci_block = Block::bordered().title(" Current Instruction ");
+        let ci_block_inner = ci_block.inner(cpu[2]);
+
+        let ci_columns =
+            Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)]).split(ci_block_inner);
+
+        frame.render_widget(ci_block, cpu[2]);
         frame.render_widget(
             Paragraph::new(Line::from(vec![
                 format!("{:03}", self.nano_core.instruction_log.len()).dim(),
                 Span::raw(" "),
                 op_span,
                 Span::raw(format!(" {:<8}", args.trim())).green(),
-                Span::raw(format!(" │{rest:37} │ ")).dim(),
+                Span::raw(format!(" │{rest}")).dim(),
+            ])),
+            ci_columns[0],
+        );
+        frame.render_widget(
+            Paragraph::new(Line::from(vec![
+                " ".white(),
                 op_bin_span,
                 if self.nano_core.current_skipped {
                     " │ (SKIP)".red()
@@ -314,8 +327,8 @@ impl App {
                     "".red()
                 },
             ]))
-            .block(Block::bordered().title(" Current Instruction ")),
-            cpu[2],
+            .block(Block::default().borders(Borders::LEFT)),
+            ci_columns[1],
         );
 
         // -- Instruction log
@@ -323,8 +336,8 @@ impl App {
         let log_block = Block::bordered().title(" Instruction Log ");
         let log_block_inner = log_block.inner(cpu[3]);
 
-        let log_columns = Layout::horizontal([Constraint::Percentage(50), Constraint::Fill(1)])
-            .split(log_block_inner);
+        let log_columns =
+            Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)]).split(log_block_inner);
 
         let log_left = self.get_instruction_list(0, 14);
         let log_right = self
