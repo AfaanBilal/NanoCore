@@ -105,7 +105,7 @@ impl App {
         frame.render_widget(cpu_block, inner[0]);
 
         let cpu = Layout::vertical([
-            Constraint::Percentage(7),
+            Constraint::Percentage(5),
             Constraint::Percentage(10),
             Constraint::Percentage(7),
             Constraint::Percentage(30),
