@@ -33,6 +33,7 @@ use ratatui::{
 #[derive(Debug)]
 pub struct App {
     nano_core: NanoCore,
+    filename: String,
     program: Vec<u8>,
     running: bool,
     tick_rate: Duration,
@@ -125,9 +126,10 @@ impl App {
 
         let cpu_top = Layout::horizontal([
             Constraint::Percentage(10),
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
-            Constraint::Percentage(15),
+            Constraint::Percentage(12),
+            Constraint::Percentage(12),
+            Constraint::Percentage(12),
+            Constraint::Percentage(18),
             Constraint::Fill(1),
         ])
         .split(cpu[0]);
@@ -214,6 +216,24 @@ impl App {
         frame.render_widget(
             Paragraph::new(flag_line).block(Block::bordered().title(" Flags ")),
             cpu_top[4],
+        );
+
+        frame.render_widget(
+            Paragraph::new(
+                Line::from(format!(
+                    "{} │ {} bytes ({:#04X})",
+                    std::path::Path::new(&self.filename)
+                        .file_name()
+                        .unwrap()
+                        .to_str()
+                        .unwrap(),
+                    self.program.len(),
+                    self.program.len()
+                ))
+                .centered(),
+            )
+            .block(Block::bordered().title(" Current Program ")),
+            cpu_top[5],
         );
 
         // -- Registers
@@ -570,11 +590,12 @@ fn main() -> io::Result<()> {
 
         c.program
     } else {
-        fs::read(bin).unwrap()
+        fs::read(&bin).unwrap()
     };
 
     let mut app = App {
         nano_core: NanoCore::new(),
+        filename: bin,
         program: vec![],
         running: false,
         tick_rate: Duration::from_millis(100),
