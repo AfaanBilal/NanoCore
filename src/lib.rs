@@ -30,7 +30,7 @@ pub enum Op {
 
     MOV, // Move data between registers: MOV Rx Ry
 
-    STO, // Store to address: ST Rx 0xF1
+    STORE, // Store to address: ST Rx 0xF1
 
     PUSH, // Push register to stack: PUSH Rx
     POP,  // Pop register from stack: POP Rx
@@ -69,7 +69,7 @@ pub enum Op {
 impl Op {
     pub fn instruction_len(&self) -> u8 {
         match self {
-            Op::LDI | Op::LDA | Op::STO | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => 3,
+            Op::LDI | Op::LDA | Op::STORE | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => 3,
             Op::LDR | Op::MOV | Op::PUSH | Op::POP | Op::ADD | Op::SUB | Op::INC | Op::DEC => 2,
             Op::AND | Op::OR | Op::XOR | Op::NOT | Op::CMP | Op::SHL | Op::SHR => 2,
             Op::JMP | Op::JZ | Op::JNZ | Op::PRINT => 2,
@@ -105,7 +105,7 @@ impl From<Op> for &str {
             Op::LDR => "LDR",
 
             Op::MOV => "MOV",
-            Op::STO => "STO",
+            Op::STORE => "STORE",
 
             Op::PUSH => "PUSH",
             Op::POP => "POP",
@@ -154,7 +154,7 @@ impl From<&str> for Op {
             "LDR" => Op::LDR,
 
             "MOV" => Op::MOV,
-            "STO" => Op::STO,
+            "STORE" => Op::STORE,
 
             "PUSH" => Op::PUSH,
             "POP" => Op::POP,
@@ -205,7 +205,7 @@ impl From<u8> for Op {
             0x04 => Op::LDR,
 
             0x05 => Op::MOV,
-            0x06 => Op::STO,
+            0x06 => Op::STORE,
 
             0x07 => Op::PUSH,
             0x08 => Op::POP,
@@ -256,7 +256,7 @@ impl From<Op> for u8 {
             Op::LDR => 0x04,
 
             Op::MOV => 0x05,
-            Op::STO => 0x06,
+            Op::STORE => 0x06,
 
             Op::PUSH => 0x07,
             Op::POP => 0x08,

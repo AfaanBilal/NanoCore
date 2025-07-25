@@ -138,7 +138,7 @@ impl NanoCore {
             Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                 Operands::RegImm(byte_2, byte_3)
             }
-            Op::LDA | Op::STO => Operands::RegAddr(byte_2, byte_3),
+            Op::LDA | Op::STORE => Operands::RegAddr(byte_2, byte_3),
             Op::PUSH | Op::POP | Op::INC | Op::DEC | Op::NOT | Op::SHL | Op::SHR | Op::PRINT => {
                 Operands::Reg(byte_2)
             }
@@ -201,7 +201,7 @@ impl NanoCore {
 
                 self.current_instruction = format!("{op}   R{reg} {addr:#04X}| ({value:03})");
             }
-            Op::STO => {
+            Op::STORE => {
                 let Operands::RegAddr(reg, addr) = operands else {
                     panic!("Invalid!");
                 };
