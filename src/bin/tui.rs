@@ -95,7 +95,7 @@ impl App {
         frame.render_widget(Paragraph::new(description).block(block), main[0]);
 
         let inner =
-            Layout::horizontal([Constraint::Percentage(70), Constraint::Fill(1)]).split(main[1]);
+            Layout::horizontal([Constraint::Percentage(75), Constraint::Fill(1)]).split(main[1]);
 
         let cpu_block = Block::default()
             .borders(Borders::TOP)
@@ -300,7 +300,7 @@ impl App {
         let bottom_block = Block::default();
         let bottom_block_inner = bottom_block.inner(cpu[4]);
 
-        let bottom_columns = Layout::horizontal([Constraint::Percentage(60), Constraint::Fill(1)])
+        let bottom_columns = Layout::horizontal([Constraint::Percentage(70), Constraint::Fill(1)])
             .split(bottom_block_inner);
 
         let output = Paragraph::new(self.nano_core.output.clone())
@@ -315,10 +315,10 @@ impl App {
         let stack_block_inner = stack_block.inner(bottom_columns[1]);
         frame.render_widget(stack_block, bottom_columns[1]);
 
-        let stack = Layout::horizontal([Constraint::Percentage(40), Constraint::Fill(1)])
+        let stack = Layout::horizontal([Constraint::Percentage(35), Constraint::Fill(1)])
             .split(stack_block_inner);
 
-        let mut stack_addr_vec = vec![Line::from("  Hex   Dec".light_blue())];
+        let mut stack_addr_vec = vec![Line::from("  Hex  Dec".light_blue())];
         let mut stack_mem_vec = vec![Line::from(" Bin       Hex   Dec".light_blue())];
 
         let memory_len = self.nano_core.cpu.memory.len();
@@ -336,10 +336,10 @@ impl App {
             }
 
             if i as u8 == self.nano_core.cpu.sp {
-                stack_addr_vec.push(Line::from(format!("► {i:#04X}  {i:03} ").white()));
+                stack_addr_vec.push(Line::from(format!("► {i:#04X} {i:03} ").white()));
                 mem_line = mem_line.white().on_cyan();
             } else {
-                stack_addr_vec.push(Line::from(format!("  {i:#04X}  {i:03}")).dark_gray());
+                stack_addr_vec.push(Line::from(format!("  {i:#04X} {i:03} ")).dark_gray());
             }
 
             stack_mem_vec.push(mem_line);
@@ -368,8 +368,8 @@ impl App {
         let memory = Layout::horizontal([Constraint::Percentage(30), Constraint::Fill(1)])
             .split(memory_block_inner);
 
-        let mut addr_vec = vec![Line::from("  Hex   Dec".light_blue())];
-        let mut mem_vec = vec![Line::from(" Bin       Hex   Dec  Op".light_blue())];
+        let mut addr_vec = vec![Line::from("  Hex  Dec".light_blue())];
+        let mut mem_vec = vec![Line::from(" Bin      Hex  Dec Op".light_blue())];
 
         let mut skip_bytes = 0;
         for i in 0..memory_len {
@@ -402,7 +402,7 @@ impl App {
 
             let mut mem_line = Line::from(vec![
                 Span::raw(format!(
-                    " {:08b}  {:#04X}  {:03}  ",
+                    " {:08b} {:#04X} {:03} ",
                     self.nano_core.cpu.memory[i],
                     self.nano_core.cpu.memory[i],
                     self.nano_core.cpu.memory[i],
@@ -415,10 +415,10 @@ impl App {
             }
 
             if i as u8 == self.nano_core.cpu.pc {
-                addr_vec.push(Line::from(format!("► {i:#04X}  {i:03} ").white()));
+                addr_vec.push(Line::from(format!("► {i:#04X} {i:03} ").white()));
                 mem_line = mem_line.white().on_magenta();
             } else {
-                addr_vec.push(Line::from(format!("  {i:#04X}  {i:03}")).dark_gray());
+                addr_vec.push(Line::from(format!("  {i:#04X} {i:03}")).dark_gray());
             }
 
             mem_vec.push(mem_line);
