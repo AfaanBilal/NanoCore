@@ -81,9 +81,19 @@ impl App {
             " | ".into(),
             "●".red(),
             " Breakpoint ".into(),
-            "<B>".light_blue().bold(),
+            (if self.breakpoints.is_empty() {
+                "<B>".light_blue()
+            } else {
+                "<B>".light_green()
+            })
+            .bold(),
             " | Memory View ".into(),
-            "<M>".light_blue().bold(),
+            (if self.mem_view_start == 0 {
+                "<M>".light_blue()
+            } else {
+                "<M>".light_green()
+            })
+            .bold(),
             " | Tick Rate (".into(),
             "<⬆>".light_blue().bold(),
             " +50ms) (".into(),
