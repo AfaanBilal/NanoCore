@@ -69,7 +69,7 @@ impl App {
             " | Slower (+50ms) ".into(),
             "<⬇>".light_blue().bold(),
             " | Reset ".into(),
-            "<R> ".light_blue().bold(),
+            "<R>".light_blue().bold(),
             " | Quit ".into(),
             "<Q> ".light_blue().bold(),
         ]);
