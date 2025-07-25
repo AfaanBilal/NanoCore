@@ -499,22 +499,35 @@ impl App {
         );
 
         if let Some(breakpoint) = &self.editing_breakpoint {
+            let mut bp_modal_lines = vec![Line::from(vec![
+                "Address: ".into(),
+                format!(" {:12} ", breakpoint.as_str())
+                    .black()
+                    .on_white()
+                    .bold(),
+                " ↵".bold(),
+            ])];
+
+            let mut bp_y = 5;
+
+            if !self.breakpoints.is_empty() {
+                bp_modal_lines.push(Line::from(""));
+                bp_modal_lines.push(Line::from(vec![
+                    "<K>".bold(),
+                    " Clear all breakpoints".into(),
+                ]));
+
+                bp_y = 8;
+            }
+
             frame.render_widget(
-                Paragraph::new(Line::from(vec![
-                    "Address: ".into(),
-                    format!(" {:12} ", breakpoint.as_str())
-                        .black()
-                        .on_white()
-                        .bold(),
-                    " ↵".bold(),
-                ]))
-                .block(
+                Paragraph::new(Text::from(bp_modal_lines)).block(
                     Block::bordered()
                         .title(Line::from(" Create Breakpoint "))
                         .white()
                         .on_red(),
                 ),
-                Self::centered_rect(16, 5, frame.area()),
+                Self::centered_rect(16, bp_y, frame.area()),
             );
         }
     }
@@ -606,7 +619,11 @@ impl App {
                             self.editing_breakpoint = None;
                         }
                         KeyCode::Char(c) if self.editing_breakpoint.is_some() => {
-                            self.editing_breakpoint.as_mut().unwrap().push(c);
+                            if c == 'k' {
+                                self.breakpoints.clear();
+                            } else {
+                                self.editing_breakpoint.as_mut().unwrap().push(c);
+                            }
                         }
                         KeyCode::Backspace if self.editing_breakpoint.is_some() => {
                             self.editing_breakpoint.as_mut().unwrap().pop();
