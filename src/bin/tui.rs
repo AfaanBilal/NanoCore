@@ -501,7 +501,7 @@ impl App {
         if let Some(breakpoint) = &self.editing_breakpoint {
             let mut bp_modal_lines = vec![Line::from(vec![
                 "Address: ".into(),
-                format!(" {:12} ", breakpoint.as_str())
+                format!(" {:20} ", breakpoint.as_str())
                     .black()
                     .on_white()
                     .bold(),
@@ -523,11 +523,11 @@ impl App {
             frame.render_widget(
                 Paragraph::new(Text::from(bp_modal_lines)).block(
                     Block::bordered()
-                        .title(Line::from(" Create Breakpoint "))
+                        .title(Line::from(" Add / Remove Breakpoint "))
                         .white()
                         .on_red(),
                 ),
-                Self::centered_rect(16, bp_y, frame.area()),
+                Self::centered_rect(20, bp_y, frame.area()),
             );
         }
     }
