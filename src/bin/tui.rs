@@ -62,7 +62,11 @@ impl App {
         let instructions = Line::from(vec![
             " Next Instruction ".into(),
             "<Space>".light_blue().bold(),
-            " | Run Full ".into(),
+            if self.running {
+                " | Stop ".into()
+            } else {
+                " | Run ".into()
+            },
             "<Enter>".light_blue().bold(),
             " | Faster (-50ms) ".into(),
             "<⬆>".light_blue().bold(),
