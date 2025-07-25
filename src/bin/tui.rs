@@ -25,7 +25,7 @@ use nanocore::{Op, assembler::Assembler, cpu::CPU, nanocore::NanoCore};
 use ratatui::{
     DefaultTerminal, Frame,
     layout::{Constraint, Layout},
-    style::{Color, Style, Stylize},
+    style::Stylize,
     text::{Line, Span, Text},
     widgets::{Block, Borders, List, Padding, Paragraph},
 };
@@ -99,16 +99,7 @@ impl App {
 
         let cpu_block = Block::default()
             .borders(Borders::TOP)
-            .title(Line::from(" CPU ").centered().bold())
-            .title(Span::styled(
-                (if self.nano_core.cpu.is_halted {
-                    " HLT "
-                } else {
-                    ""
-                })
-                .to_string(),
-                Style::default().bg(Color::Red).fg(Color::White),
-            ));
+            .title(Line::from(" CPU ").centered().bold());
 
         let cpu_block_inner = cpu_block.inner(inner[0]);
         frame.render_widget(cpu_block, inner[0]);
@@ -123,13 +114,26 @@ impl App {
         .split(cpu_block_inner);
 
         let cpu_top = Layout::horizontal([
-            Constraint::Percentage(20),
-            Constraint::Percentage(20),
-            Constraint::Percentage(20),
-            Constraint::Fill(1),
+            Constraint::Percentage(10),
             Constraint::Percentage(15),
+            Constraint::Percentage(15),
+            Constraint::Percentage(15),
+            Constraint::Fill(1),
         ])
         .split(cpu[0]);
+
+        let state_line = if self.nano_core.cpu.is_halted {
+            Line::from(" HLT ".white().on_red())
+        } else {
+            Line::from(" RUN ".green().on_black())
+        };
+
+        frame.render_widget(
+            Paragraph::new(state_line)
+                .centered()
+                .block(Block::bordered().title("State")),
+            cpu_top[0],
+        );
 
         frame.render_widget(
             Paragraph::new(
@@ -140,7 +144,7 @@ impl App {
                 .centered(),
             )
             .block(Block::bordered().title(" Cycle ")),
-            cpu_top[0],
+            cpu_top[1],
         );
         frame.render_widget(
             Paragraph::new(
@@ -151,7 +155,7 @@ impl App {
                 .centered(),
             )
             .block(Block::bordered().title(" PC ")),
-            cpu_top[1],
+            cpu_top[2],
         );
         frame.render_widget(
             Paragraph::new(
@@ -162,7 +166,7 @@ impl App {
                 .centered(),
             )
             .block(Block::bordered().title(" SP ")),
-            cpu_top[2],
+            cpu_top[3],
         );
 
         let flag_z = self.nano_core.cpu.get_flag(CPU::FLAG_Z);
@@ -200,19 +204,6 @@ impl App {
 
         frame.render_widget(
             Paragraph::new(flag_line).block(Block::bordered().title(" Flags ")),
-            cpu_top[3],
-        );
-
-        let state_line = if self.nano_core.cpu.is_halted {
-            Line::from(" HLT ".white().on_red())
-        } else {
-            Line::from(" RUN ".green().on_black())
-        };
-
-        frame.render_widget(
-            Paragraph::new(state_line)
-                .centered()
-                .block(Block::bordered().title("State")),
             cpu_top[4],
         );
 
