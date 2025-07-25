@@ -27,7 +27,7 @@ use ratatui::{
     layout::{Constraint, Layout},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, List, Paragraph},
+    widgets::{Block, Borders, List, Padding, Paragraph},
 };
 
 #[derive(Debug)]
@@ -115,7 +115,7 @@ impl App {
 
         let cpu = Layout::vertical([
             Constraint::Percentage(7),
-            Constraint::Percentage(20),
+            Constraint::Percentage(10),
             Constraint::Percentage(7),
             Constraint::Percentage(30),
             Constraint::Fill(1),
@@ -218,56 +218,36 @@ impl App {
 
         // -- Registers
 
-        let register_block = Block::default()
-            .borders(Borders::TOP)
+        let register_block = Block::bordered()
+            .padding(Padding::left(1))
             .title(Line::from(" Registers ").centered());
         let register_block_inner = register_block.inner(cpu[1]);
 
-        let registers = Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)])
+        let registers = Layout::horizontal([Constraint::Fill(1); 16])
+            .spacing(1)
             .split(register_block_inner);
-
-        let registers_top = Layout::horizontal([Constraint::Fill(1); 8])
-            .spacing(1)
-            .split(registers[0]);
-        let registers_bottom = Layout::horizontal([Constraint::Fill(1); 8])
-            .spacing(1)
-            .split(registers[1]);
 
         frame.render_widget(register_block, cpu[1]);
 
-        for i in 0..8 {
-            let mut dec_line =
-                Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered();
-            let mut hex_line =
-                Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered();
+        for i in 0..16 {
+            let mut dec_line = Line::from(format!("{:04}", self.nano_core.cpu.registers[i]));
+            let mut hex_line = Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i]));
 
             if self.nano_core.cpu.registers[i] == 0 {
                 dec_line = dec_line.dark_gray();
                 hex_line = hex_line.dark_gray();
             }
 
-            frame.render_widget(
-                Paragraph::new(Text::from(vec![dec_line, hex_line]))
-                    .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
-                registers_top[i],
-            );
-        }
+            let mut reg_block = Block::default();
 
-        for i in 8..16 {
-            let mut dec_line =
-                Line::from(format!("{:04}", self.nano_core.cpu.registers[i])).centered();
-            let mut hex_line =
-                Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i])).centered();
-
-            if self.nano_core.cpu.registers[i] == 0 {
-                dec_line = dec_line.dark_gray();
-                hex_line = hex_line.dark_gray();
+            if i < 15 {
+                reg_block = reg_block.borders(Borders::RIGHT)
             }
 
             frame.render_widget(
                 Paragraph::new(Text::from(vec![dec_line, hex_line]))
-                    .block(Block::bordered().title(Line::from(format!(" R{i} ")).centered())),
-                registers_bottom[i - 8],
+                    .block(reg_block.title(Line::from(format!("R{i}")))),
+                registers[i],
             );
         }
 
@@ -353,7 +333,7 @@ impl App {
 
         let memory_len = self.nano_core.cpu.memory.len();
 
-        for i in ((memory_len - 16)..memory_len).rev() {
+        for i in ((memory_len - 20)..memory_len).rev() {
             let mut mem_line = Line::from(format!(
                 " {:08b}  {:#04X}  {:03}  ",
                 self.nano_core.cpu.memory[i],
