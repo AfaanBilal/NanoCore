@@ -25,7 +25,7 @@ use nanocore::{Op, assembler::Assembler, cpu::CPU, nanocore::NanoCore};
 use ratatui::{
     DefaultTerminal, Frame,
     layout::{Constraint, Layout, Rect},
-    style::{Color, Stylize},
+    style::Stylize,
     text::{Line, Span, Text},
     widgets::{Block, Borders, List, Padding, Paragraph},
 };
@@ -75,7 +75,9 @@ impl App {
                 " | Run ".into()
             },
             "<Enter>".light_blue().bold(),
-            " | Breakpoint ".into(),
+            " | ".into(),
+            "●".red(),
+            " Breakpoint ".into(),
             "<B>".light_blue().bold(),
             " | Tick Rate (".into(),
             "<⬆>".light_blue().bold(),
@@ -498,13 +500,21 @@ impl App {
 
         if let Some(breakpoint) = &self.editing_breakpoint {
             frame.render_widget(
-                Paragraph::new(Line::from(format!("Address: {}", breakpoint.as_str())).white())
-                    .block(
-                        Block::bordered()
-                            .title(" Create Breakpoint ".white())
-                            .bg(Color::Magenta),
-                    ),
-                Self::centered_rect(20, 5, frame.area()),
+                Paragraph::new(Line::from(vec![
+                    "Address: ".into(),
+                    format!(" {:12} ", breakpoint.as_str())
+                        .black()
+                        .on_white()
+                        .bold(),
+                    " ↵".bold(),
+                ]))
+                .block(
+                    Block::bordered()
+                        .title(Line::from(" Create Breakpoint "))
+                        .white()
+                        .on_red(),
+                ),
+                Self::centered_rect(16, 5, frame.area()),
             );
         }
     }
