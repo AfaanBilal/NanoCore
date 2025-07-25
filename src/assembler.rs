@@ -55,7 +55,7 @@ impl Assembler {
                     self.program.push(Self::register(parts[1]));
                     self.program.push(Self::from_value_str(parts[2]));
                 }
-                Op::LDA | Op::STO => {
+                Op::LDA | Op::STORE => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
                     self.program.push(Self::from_hex_str(parts[2]));

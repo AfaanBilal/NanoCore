@@ -33,40 +33,40 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 
 ### Implemented Instructions
 
-| Opcode | Bytes | Mnemonic       | Description                             | Encoding Example |
-| :----- | ----: | :------------- | :-------------------------------------- | :--------------- |
-| `0x00` |     1 | `HLT`          | Halts CPU execution                     | `0x00`           |
-| `0x01` |     1 | `NOP`          | No operation                            | `0x01`           |
-| `0x02` |     3 | `LDI Reg val`  | Load immediate `val` into `Reg`         | `0x02 0x00 0xAB` |
-| `0x03` |     3 | `LDA Reg addr` | Load from mem address `addr` into `Reg` | `0x03 0x00 0xCC` |
-| `0x04` |     2 | `LDR Rd Rs`    | Load from mem address in `Rs` into `Rd` | `0x04 0x00 0x01` |
-| `0x05` |     2 | `MOV Rd Rs`    | Copy value from `Rs` into `Rd`          | `0x05 0x01 0x02` |
-| `0x06` |     3 | `STO Reg addr` | Store `Reg` into mem address `addr`     | `0x05 0x01 0xAA` |
-| `0x07` |     2 | `PUSH Reg`     | Push `Reg` value into stack.            | `0x05 0x01`      |
-| `0x08` |     2 | `POP Reg`      | Pop from stack into `Reg`               | `0x05 0x01`      |
-| `0x09` |     2 | `ADD Rd Rs`    | Add value of `Rs` to `Rd`               | `0x05 0x01 0x02` |
-| `0x0A` |     3 | `ADDI Reg val` | Add immediate `val` to `Reg`            | `0x05 0x01 0xAB` |
-| `0x0B` |     2 | `SUB Rd Rs`    | Subtract value of `Rd` from `Rs`        | `0x05 0x01 0x02` |
-| `0x0C` |     3 | `SUBI Reg val` | Subtract immediate `val` from `Reg`     | `0x05 0x01 0xAB` |
-| `0x0D` |     2 | `INC Reg`      | Increment `Reg`                         | `0x05 0x01`      |
-| `0x0E` |     2 | `DEC Reg`      | Decrement `Reg`                         | `0x05 0x01`      |
-| `0x0F` |     2 | `AND Rd Rs`    | Set `Rd` to `Rd & Rs`                   | `0x05 0x01 0x02` |
-| `0x10` |     2 | `OR Rd Rs`     | Set `Rd` to `Rd \| Rs`                  | `0x05 0x01 0x02` |
-| `0x11` |     2 | `XOR Rd Rs`    | Set `Rd` to `Rd ^ Rs`                   | `0x05 0x01 0x02` |
-| `0x12` |     2 | `NOT Reg`      | Set `Reg` to `!Reg`                     | `0x05 0x01`      |
-| `0x13` |     2 | `CMP Rd Rs`    | Set `Z` flag if `Rd == Rs`              | `0x05 0x01 0x02` |
-| `0x14` |     2 | `SHL Reg`      | Shift left in `Reg` by 1 (`<< 1`)       | `0x05 0x01`      |
-| `0x15` |     2 | `SHR Reg`      | Shift right in `Reg` by 1 (`>> 1`)      | `0x05 0x01`      |
-| `0x16` |     2 | `JMP addr`     | Unconditional jump to `addr`            | `0x05 0xAA`      |
-| `0x17` |     2 | `JZ addr`      | Jump to `addr` if `Z` flag is set       | `0x05 0xAA`      |
-| `0x18` |     2 | `JNZ addr`     | Jump to `addr` if `Z` flag is not set   | `0x05 0xAA`      |
-| `0x19` |     2 | `PRINT Reg`    | Print `Reg` as an ASCII character       | `0x19 0x01`      |
-| `0x1A` |     2 | `MUL Rd Rs`    | Multiply value of `Rs` to `Rd`          | `0x1A 0x01 0x02` |
-| `0x1B` |     3 | `MULI Reg val` | Multiply immediate `val` to `Reg`       | `0x1B 0x01 0xAB` |
-| `0x1C` |     2 | `DIV Rd Rs`    | Divide value of `Rs` by `Rd`            | `0x1C 0x01 0x02` |
-| `0x1D` |     3 | `DIVI Reg val` | Divide `Reg` by immediate `val`         | `0x1D 0x01 0xAB` |
-| `0x1E` |     2 | `MOD Rd Rs`    | Modulus value of `Rs` by `Rd`           | `0x1E 0x01 0x02` |
-| `0x1F` |     3 | `MODI Reg val` | Modulus `Reg` by immediate `val`        | `0x1F 0x01 0xAB` |
+| Opcode | Bytes | Mnemonic         | Description                             | Encoding Example |
+| :----- | ----: | :--------------- | :-------------------------------------- | :--------------- |
+| `0x00` |     1 | `HLT`            | Halts CPU execution                     | `0x00`           |
+| `0x01` |     1 | `NOP`            | No operation                            | `0x01`           |
+| `0x02` |     3 | `LDI Reg val`    | Load immediate `val` into `Reg`         | `0x02 0x00 0xAB` |
+| `0x03` |     3 | `LDA Reg addr`   | Load from mem address `addr` into `Reg` | `0x03 0x00 0xCC` |
+| `0x04` |     2 | `LDR Rd Rs`      | Load from mem address in `Rs` into `Rd` | `0x04 0x00 0x01` |
+| `0x05` |     2 | `MOV Rd Rs`      | Copy value from `Rs` into `Rd`          | `0x05 0x01 0x02` |
+| `0x06` |     3 | `STORE Reg addr` | Store `Reg` into mem address `addr`     | `0x05 0x01 0xAA` |
+| `0x07` |     2 | `PUSH Reg`       | Push `Reg` value into stack.            | `0x05 0x01`      |
+| `0x08` |     2 | `POP Reg`        | Pop from stack into `Reg`               | `0x05 0x01`      |
+| `0x09` |     2 | `ADD Rd Rs`      | Add value of `Rs` to `Rd`               | `0x05 0x01 0x02` |
+| `0x0A` |     3 | `ADDI Reg val`   | Add immediate `val` to `Reg`            | `0x05 0x01 0xAB` |
+| `0x0B` |     2 | `SUB Rd Rs`      | Subtract value of `Rd` from `Rs`        | `0x05 0x01 0x02` |
+| `0x0C` |     3 | `SUBI Reg val`   | Subtract immediate `val` from `Reg`     | `0x05 0x01 0xAB` |
+| `0x0D` |     2 | `INC Reg`        | Increment `Reg`                         | `0x05 0x01`      |
+| `0x0E` |     2 | `DEC Reg`        | Decrement `Reg`                         | `0x05 0x01`      |
+| `0x0F` |     2 | `AND Rd Rs`      | Set `Rd` to `Rd & Rs`                   | `0x05 0x01 0x02` |
+| `0x10` |     2 | `OR Rd Rs`       | Set `Rd` to `Rd \| Rs`                  | `0x05 0x01 0x02` |
+| `0x11` |     2 | `XOR Rd Rs`      | Set `Rd` to `Rd ^ Rs`                   | `0x05 0x01 0x02` |
+| `0x12` |     2 | `NOT Reg`        | Set `Reg` to `!Reg`                     | `0x05 0x01`      |
+| `0x13` |     2 | `CMP Rd Rs`      | Set `Z` flag if `Rd == Rs`              | `0x05 0x01 0x02` |
+| `0x14` |     2 | `SHL Reg`        | Shift left in `Reg` by 1 (`<< 1`)       | `0x05 0x01`      |
+| `0x15` |     2 | `SHR Reg`        | Shift right in `Reg` by 1 (`>> 1`)      | `0x05 0x01`      |
+| `0x16` |     2 | `JMP addr`       | Unconditional jump to `addr`            | `0x05 0xAA`      |
+| `0x17` |     2 | `JZ addr`        | Jump to `addr` if `Z` flag is set       | `0x05 0xAA`      |
+| `0x18` |     2 | `JNZ addr`       | Jump to `addr` if `Z` flag is not set   | `0x05 0xAA`      |
+| `0x19` |     2 | `PRINT Reg`      | Print `Reg` as an ASCII character       | `0x19 0x01`      |
+| `0x1A` |     2 | `MUL Rd Rs`      | Multiply value of `Rs` to `Rd`          | `0x1A 0x01 0x02` |
+| `0x1B` |     3 | `MULI Reg val`   | Multiply immediate `val` to `Reg`       | `0x1B 0x01 0xAB` |
+| `0x1C` |     2 | `DIV Rd Rs`      | Divide value of `Rs` by `Rd`            | `0x1C 0x01 0x02` |
+| `0x1D` |     3 | `DIVI Reg val`   | Divide `Reg` by immediate `val`         | `0x1D 0x01 0xAB` |
+| `0x1E` |     2 | `MOD Rd Rs`      | Modulus value of `Rs` by `Rd`           | `0x1E 0x01 0x02` |
+| `0x1F` |     3 | `MODI Reg val`   | Modulus `Reg` by immediate `val`        | `0x1F 0x01 0xAB` |
 
 > - `val` = `Immediate value`
 > - `addr` = `Memory address`
