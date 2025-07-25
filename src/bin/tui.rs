@@ -175,7 +175,7 @@ impl App {
                 ))
                 .centered(),
             )
-            .block(Block::bordered().title(" PC ")),
+            .block(Block::bordered().title(Line::from(vec![" ►".magenta(), " PC ".white()]))),
             cpu_top[2],
         );
         frame.render_widget(
@@ -186,7 +186,7 @@ impl App {
                 ))
                 .centered(),
             )
-            .block(Block::bordered().title(" SP ")),
+            .block(Block::bordered().title(Line::from(vec![" ►".cyan(), " SP ".white()]))),
             cpu_top[3],
         );
 
@@ -376,7 +376,10 @@ impl App {
             }
 
             if i as u8 == self.nano_core.cpu.sp {
-                stack_addr_vec.push(Line::from(format!("► {i:#04X} {i:03} ").white()));
+                stack_addr_vec.push(Line::from(vec![
+                    "► ".cyan(),
+                    format!("{i:#04X} {i:03} ").white(),
+                ]));
                 mem_line = mem_line.white().on_cyan();
             } else {
                 stack_addr_vec.push(Line::from(format!("  {i:#04X} {i:03} ")).dark_gray());
@@ -455,7 +458,10 @@ impl App {
             }
 
             if i as u8 == self.nano_core.cpu.pc {
-                addr_vec.push(Line::from(format!("► {i:#04X} {i:03} ").white()));
+                addr_vec.push(Line::from(vec![
+                    "► ".magenta(),
+                    format!("{i:#04X} {i:03} ").white(),
+                ]));
                 mem_line = mem_line.white().on_magenta();
             } else if self.breakpoints.contains(&(i as u8)) {
                 addr_vec.push(Line::from(format!("● {i:#04X} {i:03} ").red()));
