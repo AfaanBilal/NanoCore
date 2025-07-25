@@ -134,7 +134,6 @@ impl App {
                 .block(Block::bordered().title("State")),
             cpu_top[0],
         );
-
         frame.render_widget(
             Paragraph::new(
                 Line::from(format!(
@@ -220,7 +219,7 @@ impl App {
 
         frame.render_widget(register_block, cpu[1]);
 
-        for i in 0..16 {
+        for i in 0..self.nano_core.cpu.registers.len() {
             let mut dec_line = Line::from(format!("{:04}", self.nano_core.cpu.registers[i]));
             let mut hex_line = Line::from(format!("{:#04X}", self.nano_core.cpu.registers[i]));
 
