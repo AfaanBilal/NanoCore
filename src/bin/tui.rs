@@ -75,11 +75,13 @@ impl App {
                 " | Run ".into()
             },
             "<Enter>".light_blue().bold(),
-            " | Faster (-50ms) ".into(),
+            " | Breakpoint ".into(),
+            "<B>".light_blue().bold(),
+            " | Tick Rate (".into(),
             "<⬆>".light_blue().bold(),
-            " | Slower (+50ms) ".into(),
+            " +50ms) (".into(),
             "<⬇>".light_blue().bold(),
-            " | Reset ".into(),
+            " -50ms) | Reset ".into(),
             "<R>".light_blue().bold(),
             " | Quit ".into(),
             "<Q> ".light_blue().bold(),
@@ -598,11 +600,11 @@ impl App {
                         KeyCode::Char('q') => self.exit(),
                         KeyCode::Char(' ') => self.next(),
                         KeyCode::Enter => self.running = !self.running,
-                        KeyCode::Up => {
+                        KeyCode::Up => self.tick_rate.add_assign(Duration::from_millis(50)),
+                        KeyCode::Down => {
                             self.tick_rate =
                                 self.tick_rate.saturating_sub(Duration::from_millis(50))
                         }
-                        KeyCode::Down => self.tick_rate.add_assign(Duration::from_millis(50)),
                         KeyCode::Char('r') => self.reset(),
                         KeyCode::Char('b') => self.editing_breakpoint = Some("0x".into()),
                         _ => {}
