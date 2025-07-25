@@ -24,21 +24,27 @@ use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use nanocore::{Op, assembler::Assembler, cpu::CPU, nanocore::NanoCore};
 use ratatui::{
     DefaultTerminal, Frame,
-    layout::{Constraint, Layout},
-    style::Stylize,
+    layout::{Constraint, Layout, Rect},
+    style::{Color, Stylize},
     text::{Line, Span, Text},
     widgets::{Block, Borders, List, Padding, Paragraph},
 };
 
 #[derive(Debug)]
 pub struct App {
+    exit: bool,
+
     nano_core: NanoCore,
+
     filename: String,
     program: Vec<u8>,
+
     running: bool,
     tick_rate: Duration,
     last_tick: Instant,
-    exit: bool,
+
+    breakpoints: Vec<u8>,
+    editing_breakpoint: Option<String>,
 }
 
 impl App {
@@ -136,6 +142,8 @@ impl App {
 
         let state_line = if self.nano_core.cpu.is_halted {
             Line::from(" HLT ".white().on_red())
+        } else if self.breakpoints.contains(&self.nano_core.cpu.pc) {
+            Line::from(" BRK ".white().on_red())
         } else {
             Line::from(" RUN ".green().on_black())
         };
@@ -447,6 +455,9 @@ impl App {
             if i as u8 == self.nano_core.cpu.pc {
                 addr_vec.push(Line::from(format!("► {i:#04X} {i:03} ").white()));
                 mem_line = mem_line.white().on_magenta();
+            } else if self.breakpoints.contains(&(i as u8)) {
+                addr_vec.push(Line::from(format!("● {i:#04X} {i:03} ").red()));
+                mem_line = mem_line.white().on_red();
             } else {
                 addr_vec.push(Line::from(format!("  {i:#04X} {i:03}")).dark_gray());
             }
@@ -463,6 +474,34 @@ impl App {
             Paragraph::new(Text::from(mem_vec)).block(Block::bordered().title(" Data ")),
             memory[1],
         );
+
+        if let Some(breakpoint) = &self.editing_breakpoint {
+            frame.render_widget(
+                Paragraph::new(Line::from(format!("Address: {}", breakpoint.as_str())).white())
+                    .block(
+                        Block::bordered()
+                            .title(" Create Breakpoint ".white())
+                            .bg(Color::Magenta),
+                    ),
+                Self::centered_rect(20, 5, frame.area()),
+            );
+        }
+    }
+
+    fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+        let popup_layout = Layout::vertical([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+        Layout::horizontal([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
     }
 
     fn get_instruction_list(&self, skip: usize, take: usize) -> List {
@@ -532,6 +571,30 @@ impl App {
             match event::read()? {
                 Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                     match key_event.code {
+                        KeyCode::Char(c) if self.editing_breakpoint.is_some() => {
+                            self.editing_breakpoint.as_mut().unwrap().push(c);
+                        }
+                        KeyCode::Backspace if self.editing_breakpoint.is_some() => {
+                            self.editing_breakpoint.as_mut().unwrap().pop();
+                        }
+                        KeyCode::Enter if self.editing_breakpoint.is_some() => {
+                            let value = hex::decode(
+                                self.editing_breakpoint
+                                    .clone()
+                                    .unwrap()
+                                    .strip_prefix("0x")
+                                    .unwrap_or("0"),
+                            )
+                            .unwrap_or(vec![0])[0];
+
+                            if self.breakpoints.contains(&value) {
+                                self.breakpoints.retain(|x| *x != value);
+                            } else {
+                                self.breakpoints.push(value);
+                            }
+
+                            self.editing_breakpoint = None;
+                        }
                         KeyCode::Char('q') => self.exit(),
                         KeyCode::Char(' ') => self.next(),
                         KeyCode::Enter => self.running = !self.running,
@@ -541,6 +604,7 @@ impl App {
                         }
                         KeyCode::Down => self.tick_rate.add_assign(Duration::from_millis(50)),
                         KeyCode::Char('r') => self.reset(),
+                        KeyCode::Char('b') => self.editing_breakpoint = Some("0x".into()),
                         _ => {}
                     }
                 }
@@ -564,7 +628,7 @@ impl App {
             self.nano_core.cycle();
             self.last_tick = Instant::now();
 
-            if self.nano_core.cpu.is_halted {
+            if self.nano_core.cpu.is_halted || self.breakpoints.contains(&self.nano_core.cpu.pc) {
                 self.running = false;
             }
         }
@@ -594,13 +658,18 @@ fn main() -> io::Result<()> {
     };
 
     let mut app = App {
+        exit: false,
+
         nano_core: NanoCore::new(),
         filename: bin,
         program: vec![],
+
         running: false,
         tick_rate: Duration::from_millis(100),
         last_tick: Instant::now(),
-        exit: false,
+
+        breakpoints: vec![],
+        editing_breakpoint: None,
     };
 
     let app = app.run(&mut terminal, &bytes);
