@@ -499,25 +499,28 @@ impl App {
         );
 
         if let Some(breakpoint) = &self.editing_breakpoint {
-            let mut bp_modal_lines = vec![Line::from(vec![
-                "Address: ".into(),
-                format!(" {:20} ", breakpoint.as_str())
-                    .black()
-                    .on_white()
-                    .bold(),
-                " ↵".bold(),
-            ])];
+            let mut bp_modal_lines = vec![
+                Line::from(vec![
+                    "Address: ".into(),
+                    format!(" {:20} ", breakpoint.as_str())
+                        .black()
+                        .on_white()
+                        .bold(),
+                    " ↵".bold(),
+                ]),
+                "".into(),
+                Line::from(vec!["<Esc> ".bold(), "Close".into()]),
+            ];
 
-            let mut bp_y = 5;
+            let mut bp_y = 8;
 
             if !self.breakpoints.is_empty() {
-                bp_modal_lines.push(Line::from(""));
                 bp_modal_lines.push(Line::from(vec![
-                    "<K>".bold(),
-                    " Clear all breakpoints".into(),
+                    "<K>   ".bold(),
+                    "Clear all breakpoints".into(),
                 ]));
 
-                bp_y = 8;
+                bp_y = 9;
             }
 
             frame.render_widget(
