@@ -97,6 +97,13 @@ impl App {
                 "<M>".light_green()
             })
             .bold(),
+            " | Stack View ".into(),
+            (if self.stack_view_start == CPU::STACK_MAX {
+                "<S>".light_blue()
+            } else {
+                "<S>".light_green()
+            })
+            .bold(),
             " | Tick Rate (".into(),
             "<⬆>".light_blue().bold(),
             " +50ms) (".into(),
