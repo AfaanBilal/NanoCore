@@ -1,0 +1,48 @@
+start:
+    LDI R0 2
+    LDI R1 4
+    CALL raise_to_power
+    CALL print_digits
+
+end:
+    HLT
+
+raise_to_power:
+    PUSH R10
+    PUSH R11
+
+    MOV R10 R0
+    MOV R11 R1
+    DEC R11
+multiply:
+    MUL R10 R0
+    DEC R11
+    JNZ multiply
+
+    MOV R0 R10
+
+    POP R11
+    POP R10
+    RET
+
+print_digits:
+    PUSH R10
+    PUSH R11
+
+    MOV R10 R0
+    DIVI R10 10
+
+    JZ unit_digit
+
+    ADDI R10 48
+    PRINT R10
+
+unit_digit:
+    MOV R11 R0
+    MODI R11 10
+    ADDI R11 48
+    PRINT R11
+
+    POP R11
+    POP R10
+    RET
