@@ -794,8 +794,14 @@ impl App {
                         }
                         KeyCode::Char('r') => self.reset(),
                         KeyCode::Char('b') => self.editing_breakpoint = Some("0x".into()),
-                        KeyCode::Char('m') => self.mem_view_start_editing = Some("0x".into()),
-                        KeyCode::Char('s') => self.stack_view_start_editing = Some("0x".into()),
+                        KeyCode::Char('m') => {
+                            self.mem_view_start_editing =
+                                Some(format!("{:#04X}", self.mem_view_start))
+                        }
+                        KeyCode::Char('s') => {
+                            self.stack_view_start_editing =
+                                Some(format!("{:#04X}", self.stack_view_start))
+                        }
                         _ => {}
                     }
                 }
