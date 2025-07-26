@@ -48,6 +48,9 @@ pub struct App {
 
     mem_view_start: u8,
     mem_view_start_editing: Option<String>,
+
+    stack_view_start: u8,
+    stack_view_start_editing: Option<String>,
 }
 
 impl App {
@@ -391,9 +394,14 @@ impl App {
         let mut stack_addr_vec = vec![Line::from("  Hex  Dec".light_blue())];
         let mut stack_mem_vec = vec![Line::from(" Bin       Hex   Dec".light_blue())];
 
-        let memory_len = self.nano_core.cpu.memory.len();
+        if self.stack_view_start < CPU::STACK_MAX {
+            stack_addr_vec.push(Line::from("  ···  ···".dim()));
+            stack_mem_vec.push(Line::from(" ···      ···  ···".dim()));
+        }
 
-        for i in ((memory_len - 32)..memory_len).rev() {
+        let sv_start = self.stack_view_start as usize;
+
+        for i in ((sv_start - 32)..=sv_start).rev() {
             let mut mem_line = Line::from(format!(
                 " {:08b}  {:#04X}  {:03}  ",
                 self.nano_core.cpu.memory[i],
@@ -450,7 +458,7 @@ impl App {
         }
 
         let mut skip_bytes = 0;
-        for i in (self.mem_view_start as usize)..memory_len {
+        for i in (self.mem_view_start as usize)..(self.nano_core.cpu.memory.len()) {
             let op: Op = if skip_bytes == 0 {
                 let op: Op = self.nano_core.cpu.memory[i].into();
 
@@ -586,6 +594,39 @@ impl App {
                 Self::centered_rect(20, mv_y, frame.area()),
             );
         }
+
+        if let Some(stack_view_start) = &self.stack_view_start_editing {
+            let mut sv_modal_lines = vec![
+                Line::from(vec![
+                    "Address: ".into(),
+                    format!(" {:20} ", stack_view_start.as_str())
+                        .black()
+                        .on_white()
+                        .bold(),
+                    " ↵".bold(),
+                ]),
+                "".into(),
+                Line::from(vec!["<Esc> ".bold(), "Close".into()]),
+            ];
+
+            let mut sv_y = 8;
+
+            if self.stack_view_start < CPU::STACK_MAX {
+                sv_modal_lines.push(Line::from(vec!["<K>   ".bold(), "Reset".into()]));
+
+                sv_y = 9;
+            }
+
+            frame.render_widget(
+                Paragraph::new(Text::from(sv_modal_lines)).block(
+                    Block::bordered()
+                        .title(Line::from(" Set Stack View Start "))
+                        .white()
+                        .on_red(),
+                ),
+                Self::centered_rect(20, sv_y, frame.area()),
+            );
+        }
     }
 
     fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -716,6 +757,26 @@ impl App {
 
                             self.mem_view_start_editing = None;
                         }
+                        KeyCode::Esc if self.stack_view_start_editing.is_some() => {
+                            self.stack_view_start_editing = None;
+                        }
+                        KeyCode::Char(c) if self.stack_view_start_editing.is_some() => {
+                            if c == 'k' {
+                                self.stack_view_start = CPU::STACK_MAX;
+                                self.stack_view_start_editing = None;
+                            } else {
+                                self.stack_view_start_editing.as_mut().unwrap().push(c);
+                            }
+                        }
+                        KeyCode::Backspace if self.stack_view_start_editing.is_some() => {
+                            self.stack_view_start_editing.as_mut().unwrap().pop();
+                        }
+                        KeyCode::Enter if self.stack_view_start_editing.is_some() => {
+                            self.stack_view_start =
+                                Self::parse_addr(self.stack_view_start_editing.as_ref().unwrap());
+
+                            self.stack_view_start_editing = None;
+                        }
                         KeyCode::Char('q') => self.exit(),
                         KeyCode::Char(' ') => self.next(),
                         KeyCode::Enter => self.running = !self.running,
@@ -727,6 +788,7 @@ impl App {
                         KeyCode::Char('r') => self.reset(),
                         KeyCode::Char('b') => self.editing_breakpoint = Some("0x".into()),
                         KeyCode::Char('m') => self.mem_view_start_editing = Some("0x".into()),
+                        KeyCode::Char('s') => self.stack_view_start_editing = Some("0x".into()),
                         _ => {}
                     }
                 }
@@ -807,6 +869,9 @@ fn main() -> io::Result<()> {
 
         mem_view_start: 0,
         mem_view_start_editing: None,
+
+        stack_view_start: CPU::STACK_MAX,
+        stack_view_start_editing: None,
     };
 
     let app = app.run(&mut terminal, &bytes);
