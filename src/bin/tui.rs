@@ -316,7 +316,10 @@ impl App {
         let mut op_bin_span = Span::raw(&self.nano_core.current_instruction_bin).light_cyan();
 
         if !op.is_empty() {
-            if matches!(Op::from(op.as_str()), Op::JMP | Op::JZ | Op::JNZ) {
+            if matches!(
+                Op::from(op.as_str()),
+                Op::JMP | Op::JZ | Op::JNZ | Op::CALL | Op::RET
+            ) {
                 op_span = op_span.magenta();
                 op_bin_span = op_bin_span.magenta();
             }
@@ -492,7 +495,7 @@ impl App {
                 _ if i as u8 == self.nano_core.cpu.pc => op_span.white(),
                 Op::NOP => op_span.dim(),
                 Op::HLT => op_span.red().dim(),
-                Op::JMP | Op::JZ | Op::JNZ => op_span.magenta(),
+                Op::JMP | Op::JZ | Op::JNZ | Op::CALL | Op::RET => op_span.magenta(),
                 _ => op_span.cyan(),
             };
 
@@ -677,7 +680,10 @@ impl App {
         let mut args_span = Span::raw(format!(" {:<8}", args.trim()));
         let mut rest_span = Span::raw(format!(" │{}", rest.clone())).dim();
 
-        if matches!(Op::from(op.as_str()), Op::JMP | Op::JZ | Op::JNZ) {
+        if matches!(
+            Op::from(op.as_str()),
+            Op::JMP | Op::JZ | Op::JNZ | Op::CALL | Op::RET
+        ) {
             op_span = op_span.magenta();
         }
 
