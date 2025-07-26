@@ -64,16 +64,26 @@ pub enum Op {
     DIVI, // Divide using immediate: DIV Rx 123 (Rx = Rx / 123)
     MOD,  // Modulus: MOD Rx Ry (Rx = Rx % Ry)
     MODI, // Modulus using immediate: MOD Rx 123 (Rx = Rx % 123)
+
+    CALL, // CALL a function: CALL raise_to_power
+    RET,  // Return from a function
 }
 
 impl Op {
     pub fn instruction_len(&self) -> u8 {
         match self {
-            Op::LDI | Op::LDA | Op::STORE | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => 3,
+            Op::LDI
+            | Op::LDA
+            | Op::STORE
+            | Op::ADDI
+            | Op::SUBI
+            | Op::MULI
+            | Op::DIVI
+            | Op::MODI => 3,
             Op::LDR | Op::MOV | Op::PUSH | Op::POP | Op::ADD | Op::SUB | Op::INC | Op::DEC => 2,
             Op::AND | Op::OR | Op::XOR | Op::NOT | Op::CMP | Op::SHL | Op::SHR => 2,
             Op::JMP | Op::JZ | Op::JNZ | Op::PRINT => 2,
-            Op::MUL | Op::DIV | Op::MOD => 2,
+            Op::MUL | Op::DIV | Op::MOD | Op::CALL => 2,
             _ => 1,
         }
     }
@@ -139,6 +149,9 @@ impl From<Op> for &str {
             Op::DIVI => "DIVI",
             Op::MOD => "MOD",
             Op::MODI => "MODI",
+
+            Op::CALL => "CALL",
+            Op::RET => "RET",
         }
     }
 }
@@ -188,6 +201,9 @@ impl From<&str> for Op {
             "DIVI" => Op::DIVI,
             "MOD" => Op::MOD,
             "MODI" => Op::MODI,
+
+            "CALL" => Op::CALL,
+            "RET" => Op::RET,
 
             _ => panic!("Invalid operation: {value}"),
         }
@@ -240,6 +256,9 @@ impl From<u8> for Op {
             0x1E => Op::MOD,
             0x1F => Op::MODI,
 
+            0x20 => Op::CALL,
+            0x21 => Op::RET,
+
             _ => Op::NOP,
         }
     }
@@ -290,6 +309,9 @@ impl From<Op> for u8 {
             Op::DIVI => 0x1D,
             Op::MOD => 0x1E,
             Op::MODI => 0x1F,
+
+            Op::CALL => 0x20,
+            Op::RET => 0x21,
         }
     }
 }

@@ -134,7 +134,7 @@ impl NanoCore {
         let op: Op = opcode.into();
 
         let operands = match op {
-            Op::HLT | Op::NOP => Operands::None,
+            Op::HLT | Op::NOP | Op::RET => Operands::None,
             Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                 Operands::RegImm(byte_2, byte_3)
             }
@@ -153,7 +153,7 @@ impl NanoCore {
             | Op::MUL
             | Op::DIV
             | Op::MOD => Operands::RegReg((byte_2 >> 4) & 0x0F, byte_2 & 0x0F),
-            Op::JMP | Op::JZ | Op::JNZ => Operands::Addr(byte_2),
+            Op::JMP | Op::JZ | Op::JNZ | Op::CALL => Operands::Addr(byte_2),
         };
 
         (op, operands)
@@ -479,6 +479,38 @@ impl NanoCore {
                 self.current_instruction = format!(
                     "{op}   R{reg}| {value:03} ({value:08b}) {} 1 = {result:03} ({result:08b})",
                     if op == Op::SHL { "<<" } else { ">>" }
+                );
+            }
+            Op::CALL => {
+                let Operands::Addr(a) = operands else {
+                    panic!("Invalid!");
+                };
+
+                if self.cpu.sp == CPU::STACK_MIN {
+                    panic!("Error: Stack Overflow SP: {}", self.cpu.sp);
+                }
+
+                self.cpu.memory[self.cpu.sp as usize] = self.cpu.pc.wrapping_add(2);
+                self.cpu.sp = self.cpu.sp.wrapping_sub(1);
+
+                self.cpu.pc = a;
+                pc_override = true;
+
+                self.current_instruction =
+                    format!("CALL  {a:#04X}| Mem({:#04X})", self.cpu.memory[a as usize]);
+            }
+            Op::RET => {
+                if self.cpu.sp == CPU::STACK_MAX {
+                    panic!("Error: Stack Underflow SP: {}", self.cpu.sp);
+                }
+
+                self.cpu.sp = self.cpu.sp.wrapping_add(1);
+                self.cpu.pc = self.cpu.memory[self.cpu.sp as usize];
+                pc_override = true;
+
+                self.current_instruction = format!(
+                    "RET  | {:#04X} Mem({:#04X})",
+                    self.cpu.pc, self.cpu.memory[self.cpu.pc as usize]
                 );
             }
         }

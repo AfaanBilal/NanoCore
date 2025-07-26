@@ -48,7 +48,7 @@ impl Assembler {
             let opcode: u8 = op.into();
 
             match op {
-                Op::HLT => self.program.push(opcode),
+                Op::HLT | Op::RET => self.program.push(opcode),
                 Op::NOP => {}
                 Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                     self.program.push(opcode);
@@ -86,7 +86,7 @@ impl Assembler {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
                 }
-                Op::JMP | Op::JZ | Op::JNZ => {
+                Op::JMP | Op::JZ | Op::JNZ | Op::CALL => {
                     let addr = if self.labels.contains_key(parts[1]) {
                         *self.labels.get(parts[1]).unwrap()
                     } else {
