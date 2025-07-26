@@ -406,7 +406,10 @@ impl App {
             stack_mem_vec.push(Line::from(" ···      ···  ···".dim()));
         }
 
-        let sv_start = self.stack_view_start as usize;
+        let mut sv_start = self.stack_view_start as usize;
+        if sv_start < 32 {
+            sv_start = 32;
+        }
 
         for i in ((sv_start - 32)..=sv_start).rev() {
             let mut mem_line = Line::from(format!(
@@ -719,74 +722,9 @@ impl App {
             match event::read()? {
                 Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                     match key_event.code {
-                        KeyCode::Esc if self.editing_breakpoint.is_some() => {
-                            self.editing_breakpoint = None;
-                        }
-                        KeyCode::Char(c) if self.editing_breakpoint.is_some() => {
-                            if c == 'k' {
-                                self.breakpoints.clear();
-                                self.editing_breakpoint = None;
-                            } else {
-                                self.editing_breakpoint.as_mut().unwrap().push(c);
-                            }
-                        }
-                        KeyCode::Backspace if self.editing_breakpoint.is_some() => {
-                            self.editing_breakpoint.as_mut().unwrap().pop();
-                        }
-                        KeyCode::Enter if self.editing_breakpoint.is_some() => {
-                            let addr = Self::parse_addr(self.editing_breakpoint.as_ref().unwrap());
-
-                            if self.breakpoints.contains(&addr) {
-                                self.breakpoints.retain(|x| *x != addr);
-                            } else {
-                                self.breakpoints.push(addr);
-                            }
-
-                            self.editing_breakpoint = None;
-                        }
-                        KeyCode::Esc if self.mem_view_start_editing.is_some() => {
-                            self.mem_view_start_editing = None;
-                        }
-                        KeyCode::Char(c) if self.mem_view_start_editing.is_some() => {
-                            if c == 'k' {
-                                self.mem_view_start = 0;
-                                self.mem_view_start_editing = None;
-                            } else {
-                                self.mem_view_start_editing.as_mut().unwrap().push(c);
-                            }
-                        }
-                        KeyCode::Backspace if self.mem_view_start_editing.is_some() => {
-                            self.mem_view_start_editing.as_mut().unwrap().pop();
-                        }
-                        KeyCode::Enter if self.mem_view_start_editing.is_some() => {
-                            self.mem_view_start =
-                                Self::parse_addr(self.mem_view_start_editing.as_ref().unwrap());
-
-                            self.mem_view_start_editing = None;
-                        }
-                        KeyCode::Esc if self.stack_view_start_editing.is_some() => {
-                            self.stack_view_start_editing = None;
-                        }
-                        KeyCode::Char(c) if self.stack_view_start_editing.is_some() => {
-                            if c == 'k' {
-                                self.stack_view_start = CPU::STACK_MAX;
-                                self.stack_view_start_editing = None;
-                            } else {
-                                self.stack_view_start_editing.as_mut().unwrap().push(c);
-                            }
-                        }
-                        KeyCode::Backspace if self.stack_view_start_editing.is_some() => {
-                            self.stack_view_start_editing.as_mut().unwrap().pop();
-                        }
-                        KeyCode::Enter if self.stack_view_start_editing.is_some() => {
-                            self.stack_view_start =
-                                Self::parse_addr(self.stack_view_start_editing.as_ref().unwrap());
-
-                            self.stack_view_start_editing = None;
-                        }
                         KeyCode::Char('q') => self.exit(),
                         KeyCode::Char(' ') => self.next(),
-                        KeyCode::Enter => self.running = !self.running,
+                        KeyCode::Enter if self.none_editing() => self.running = !self.running,
                         KeyCode::Up => self.tick_rate.add_assign(Duration::from_millis(50)),
                         KeyCode::Down => {
                             self.tick_rate =
@@ -802,7 +740,32 @@ impl App {
                             self.stack_view_start_editing =
                                 Some(format!("{:#04X}", self.stack_view_start))
                         }
-                        _ => {}
+                        key_code => {
+                            Self::handle_edit_input(
+                                key_code,
+                                &mut self.editing_breakpoint,
+                                |addr| {
+                                    if self.breakpoints.contains(&addr) {
+                                        self.breakpoints.retain(|x| *x != addr);
+                                    } else {
+                                        self.breakpoints.push(addr);
+                                    }
+                                },
+                                0,
+                            );
+                            Self::handle_edit_input(
+                                key_code,
+                                &mut self.mem_view_start_editing,
+                                |addr| self.mem_view_start = addr,
+                                0,
+                            );
+                            Self::handle_edit_input(
+                                key_code,
+                                &mut self.stack_view_start_editing,
+                                |addr| self.stack_view_start = addr,
+                                CPU::STACK_MAX,
+                            );
+                        }
                     }
                 }
                 _ => {}
@@ -810,6 +773,41 @@ impl App {
         }
 
         Ok(())
+    }
+
+    fn handle_edit_input<F>(
+        key_code: KeyCode,
+        editing: &mut Option<String>,
+        mut apply: F,
+        reset_value: u8,
+    ) where
+        F: FnMut(u8),
+    {
+        if let Some(input) = editing {
+            match key_code {
+                KeyCode::Esc => *editing = None,
+                KeyCode::Char('k') => {
+                    *editing = None;
+                    apply(reset_value);
+                }
+                KeyCode::Char(c) => input.push(c),
+                KeyCode::Backspace => {
+                    input.pop();
+                }
+                KeyCode::Enter => {
+                    let addr = Self::parse_addr(input);
+                    apply(addr);
+                    *editing = None;
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn none_editing(&self) -> bool {
+        self.editing_breakpoint.is_none()
+            && self.mem_view_start_editing.is_none()
+            && self.stack_view_start_editing.is_none()
     }
 
     fn exit(&mut self) {
