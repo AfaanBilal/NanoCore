@@ -658,7 +658,7 @@ impl App {
         .split(popup_layout[1])[1]
     }
 
-    fn get_instruction_list(&self, skip: usize, take: usize) -> List {
+    fn get_instruction_list(&self, skip: usize, take: usize) -> List<'_> {
         List::new(
             self.nano_core
                 .instruction_log
