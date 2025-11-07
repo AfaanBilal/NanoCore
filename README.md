@@ -4,7 +4,7 @@
 
 `NanoCore` is a meticulously crafted emulator for a custom 8-bit CPU.
 
-DeepWiki: [https://deepwiki.com/AfaanBilal/NanoCore](AfaanBilal/NanoCore)
+DeepWiki: [AfaanBilal/NanoCore](https://deepwiki.com/AfaanBilal/NanoCore)
 
 Designed with extreme minimalism in mind, this CPU operates within a strict 256-byte memory space, with all registers, the Program Counter (PC), and the Stack Pointer (SP) being 8-bit.
 
