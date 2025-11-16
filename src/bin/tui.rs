@@ -117,7 +117,7 @@ impl App {
             .title(title.centered())
             .title_bottom(instructions.centered());
 
-        let main = Layout::vertical([Constraint::Percentage(10), Constraint::Fill(1)])
+        let main = Layout::vertical([Constraint::Percentage(7), Constraint::Fill(1)])
             .margin(1)
             .split(frame.area());
 
