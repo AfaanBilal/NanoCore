@@ -107,6 +107,17 @@ cargo r --bin nca -- -i example.nca -o example.ncb
 ```
 This should assemble the `example.nca` (NanoCore Assembly) to `example.ncb` (NanoCore Binary).
 
+### Constants
+
+You can define constants using the `.CONST` directive:
+```assembly
+.CONST MAX_VAL 10
+.CONST ADDR 0x10
+
+LDI R0 MAX_VAL
+JMP ADDR
+```
+
 ## ⚙️ Running
 
 To run this assembled binary, run:

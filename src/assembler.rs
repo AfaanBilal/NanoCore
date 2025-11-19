@@ -22,6 +22,7 @@ use crate::Op;
 pub struct Assembler {
     pub asm: String,
     pub labels: HashMap<String, u8>,
+    pub constants: HashMap<String, u8>,
     pub program: Vec<u8>,
 }
 
@@ -29,17 +30,18 @@ impl Assembler {
     pub fn assemble(&mut self, asm: &str) {
         self.asm = asm.to_owned();
 
+        self.map_constants();
         self.map_labels();
 
         let lines = self.asm.lines();
 
         for line in lines {
             let line = line.trim();
-            if line.is_empty() || line.starts_with(";") {
+            if line.is_empty() || Self::is_comment(line) {
                 continue;
             }
 
-            if Self::is_label(line) {
+            if Self::is_label(line) || Self::is_constant(line) {
                 continue;
             }
 
@@ -53,12 +55,12 @@ impl Assembler {
                 Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
-                    self.program.push(Self::from_value_str(parts[2]));
+                    self.program.push(self.resolve_number(parts[2]));
                 }
                 Op::LDA | Op::STORE => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
-                    self.program.push(Self::from_hex_str(parts[2]));
+                    self.program.push(self.resolve_number(parts[2]));
                 }
                 Op::LDR
                 | Op::MOV
@@ -92,7 +94,7 @@ impl Assembler {
                     let addr = if self.labels.contains_key(parts[1]) {
                         *self.labels.get(parts[1]).unwrap()
                     } else {
-                        Self::from_hex_str(parts[1])
+                        self.resolve_number(parts[1])
                     };
 
                     self.program.push(opcode);
@@ -109,7 +111,7 @@ impl Assembler {
 
         for line in lines {
             let line = line.trim();
-            if line.is_empty() || line.starts_with(";") {
+            if line.is_empty() || Self::is_comment(line) || Self::is_constant(line) {
                 continue;
             }
 
@@ -123,6 +125,39 @@ impl Assembler {
 
             let op: Op = parts[0].into();
             addr += op.instruction_len();
+        }
+    }
+
+    pub fn map_constants(&mut self) {
+        let lines = self.asm.lines();
+
+        for line in lines {
+            let line = line.trim();
+            if !Self::is_constant(line) {
+                continue;
+            }
+
+            let parts = line.split(" ").collect::<Vec<&str>>();
+            let name = parts[1];
+            let value = if parts[2].starts_with("0x") {
+                Self::from_hex_str(parts[2])
+            } else {
+                Self::from_value_str(parts[2])
+            };
+
+            self.constants.insert(name.to_owned(), value);
+        }
+    }
+
+    pub fn resolve_number(&self, v: &str) -> u8 {
+        if let Some(value) = self.constants.get(v) {
+            return *value;
+        }
+
+        if v.starts_with("0x") {
+            Self::from_hex_str(v)
+        } else {
+            Self::from_value_str(v)
         }
     }
 
@@ -151,6 +186,14 @@ impl Assembler {
 
     pub fn is_label(l: &str) -> bool {
         l.ends_with(':')
+    }
+
+    pub fn is_constant(l: &str) -> bool {
+        l.starts_with(".CONST")
+    }
+
+    pub fn is_comment(l: &str) -> bool {
+        l.starts_with(";")
     }
 
     pub fn print_program(p: &[u8]) {
@@ -305,6 +348,25 @@ mod tests {
                 Op::XOR.into(), 0x01,
                 Op::NOT.into(), 0,
                 Op::CMP.into(), 0x01,
+            ]
+        )
+    }
+
+    #[test]
+    fn test_assemble_constants() {
+        let mut c = Assembler::default();
+        c.assemble(
+            ".CONST VAL 10
+             .CONST ADDR 0x10
+             LDI R0 VAL
+             JMP ADDR",
+        );
+
+        assert_eq!(
+            &c.program,
+            &[
+                Op::LDI.into(), 0, 10,
+                Op::JMP.into(), 0x10,
             ]
         )
     }
