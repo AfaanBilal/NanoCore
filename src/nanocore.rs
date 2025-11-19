@@ -139,7 +139,7 @@ impl NanoCore {
                 Operands::RegImm(byte_2, byte_3)
             }
             Op::LDA | Op::STORE => Operands::RegAddr(byte_2, byte_3),
-            Op::PUSH | Op::POP | Op::INC | Op::DEC | Op::NOT | Op::SHL | Op::SHR | Op::PRINT => {
+            Op::PUSH | Op::POP | Op::INC | Op::DEC | Op::NOT | Op::SHL | Op::SHR | Op::ROL | Op::ROR | Op::PRINT => {
                 Operands::Reg(byte_2)
             }
             Op::LDR
@@ -454,7 +454,7 @@ impl NanoCore {
                     print!("{}", value as char);
                 }
             }
-            Op::SHL | Op::SHR => {
+            Op::SHL | Op::SHR | Op::ROL | Op::ROR => {
                 let Operands::Reg(reg) = operands else {
                     panic!("Invalid!");
                 };
@@ -464,6 +464,8 @@ impl NanoCore {
                 let (result, carry) = match op {
                     Op::SHL => value.overflowing_shl(1),
                     Op::SHR => value.overflowing_shr(1),
+                    Op::ROL => (value.rotate_left(1), (value & 0x80) != 0),
+                    Op::ROR => (value.rotate_right(1), (value & 0x01) != 0),
                     _ => unreachable!(),
                 };
 
@@ -478,7 +480,13 @@ impl NanoCore {
 
                 self.current_instruction = format!(
                     "{op}   R{reg}| {value:03} ({value:08b}) {} 1 = {result:03} ({result:08b})",
-                    if op == Op::SHL { "<<" } else { ">>" }
+                    match op {
+                        Op::SHL => "<<",
+                        Op::SHR => ">>",
+                        Op::ROL => "ROL",
+                        Op::ROR => "ROR",
+                        _ => unreachable!(),
+                    }
                 );
             }
             Op::CALL => {

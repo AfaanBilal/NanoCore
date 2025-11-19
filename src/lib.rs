@@ -55,6 +55,8 @@ pub enum Op {
 
     SHL, // Shift left: SHL Rx (Rx = Rx << 1)
     SHR, // Shift right: SHR Rx (Rx = Rx >> 1)
+    ROL, // Rotate left: ROL Rx
+    ROR, // Rotate right: ROR Rx
 
     PRINT, // Print to output: PRINT Rx
 
@@ -81,7 +83,7 @@ impl Op {
             | Op::DIVI
             | Op::MODI => 3,
             Op::LDR | Op::MOV | Op::PUSH | Op::POP | Op::ADD | Op::SUB | Op::INC | Op::DEC => 2,
-            Op::AND | Op::OR | Op::XOR | Op::NOT | Op::CMP | Op::SHL | Op::SHR => 2,
+            Op::AND | Op::OR | Op::XOR | Op::NOT | Op::CMP | Op::SHL | Op::SHR | Op::ROL | Op::ROR => 2,
             Op::JMP | Op::JZ | Op::JNZ | Op::PRINT => 2,
             Op::MUL | Op::DIV | Op::MOD | Op::CALL => 2,
             _ => 1,
@@ -140,6 +142,8 @@ impl From<Op> for &str {
 
             Op::SHL => "SHL",
             Op::SHR => "SHR",
+            Op::ROL => "ROL",
+            Op::ROR => "ROR",
 
             Op::PRINT => "PRINT",
 
@@ -192,6 +196,8 @@ impl From<&str> for Op {
 
             "SHL" => Op::SHL,
             "SHR" => Op::SHR,
+            "ROL" => Op::ROL,
+            "ROR" => Op::ROR,
 
             "PRINT" => Op::PRINT,
 
@@ -242,6 +248,8 @@ impl From<u8> for Op {
 
             0x14 => Op::SHL,
             0x15 => Op::SHR,
+            0x22 => Op::ROL,
+            0x23 => Op::ROR,
 
             0x16 => Op::JMP,
             0x17 => Op::JZ,
@@ -296,6 +304,8 @@ impl From<Op> for u8 {
 
             Op::SHL => 0x14,
             Op::SHR => 0x15,
+            Op::ROL => 0x22,
+            Op::ROR => 0x23,
 
             Op::JMP => 0x16,
             Op::JZ => 0x17,
