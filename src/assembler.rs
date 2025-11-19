@@ -82,6 +82,8 @@ impl Assembler {
                 | Op::NOT
                 | Op::SHL
                 | Op::SHR
+                | Op::ROL
+                | Op::ROR
                 | Op::PRINT => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
@@ -186,6 +188,27 @@ mod tests {
             &[
                 0x02, 0x00, 0xFD, 0x02, 0x01, 0x41, 0x19, 0x01, 0x09, 0x21, 0x0B, 0x20, 0x0D, 0x00,
                 0x17, 0x18, 0x0D, 0x01, 0x14, 0x01, 0x15, 0x01, 0x16, 0x06, 0x00,
+            ]
+        )
+    }
+
+    #[test]
+    fn test_assemble_rotate() {
+        let mut c = Assembler::default();
+        c.assemble(
+            "LDI R0 1
+             ROL R0
+             ROR R0
+             HLT",
+        );
+
+        assert_eq!(
+            &c.program,
+            &[
+                Op::LDI.into(), 0, 1,
+                Op::ROL.into(), 0,
+                Op::ROR.into(), 0,
+                Op::HLT.into()
             ]
         )
     }
