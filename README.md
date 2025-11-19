@@ -129,6 +129,13 @@ To run the TUI visualizer:
 cargo r --bin tui -- programs/counter.nca
 ```
 
+## 🧪 Testing
+
+To run the test suite, including assembler verification:
+```bash
+cargo test
+```
+
 ## 📂 Code Structure
 
   * `CPU (cpu.rs)`: Defines the CPU's internal state, including registers, program counter, stack pointer, memory, and flag bits.

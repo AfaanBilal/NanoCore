@@ -212,4 +212,100 @@ mod tests {
             ]
         )
     }
+
+    #[test]
+    fn test_assemble_stack() {
+        let mut c = Assembler::default();
+        c.assemble(
+            "PUSH R0
+             POP R1",
+        );
+
+        assert_eq!(
+            &c.program,
+            &[
+                Op::PUSH.into(), 0,
+                Op::POP.into(), 1,
+            ]
+        )
+    }
+
+    #[test]
+    fn test_assemble_arithmetic() {
+        let mut c = Assembler::default();
+        c.assemble(
+            "ADD R0 R1
+             SUB R0 R1
+             MUL R0 R1
+             DIV R0 R1
+             MOD R0 R1
+             ADDI R0 1
+             SUBI R0 1
+             MULI R0 1
+             DIVI R0 1
+             MODI R0 1",
+        );
+
+        assert_eq!(
+            &c.program,
+            &[
+                Op::ADD.into(), 0x01,
+                Op::SUB.into(), 0x01,
+                Op::MUL.into(), 0x01,
+                Op::DIV.into(), 0x01,
+                Op::MOD.into(), 0x01,
+                Op::ADDI.into(), 0, 1,
+                Op::SUBI.into(), 0, 1,
+                Op::MULI.into(), 0, 1,
+                Op::DIVI.into(), 0, 1,
+                Op::MODI.into(), 0, 1,
+            ]
+        )
+    }
+
+    #[test]
+    fn test_assemble_control_flow() {
+        let mut c = Assembler::default();
+        c.assemble(
+            "JMP 0x10
+             JZ 0x10
+             JNZ 0x10
+             CALL 0x10
+             RET",
+        );
+
+        assert_eq!(
+            &c.program,
+            &[
+                Op::JMP.into(), 0x10,
+                Op::JZ.into(), 0x10,
+                Op::JNZ.into(), 0x10,
+                Op::CALL.into(), 0x10,
+                Op::RET.into(),
+            ]
+        )
+    }
+
+    #[test]
+    fn test_assemble_logic() {
+        let mut c = Assembler::default();
+        c.assemble(
+            "AND R0 R1
+             OR R0 R1
+             XOR R0 R1
+             NOT R0
+             CMP R0 R1",
+        );
+
+        assert_eq!(
+            &c.program,
+            &[
+                Op::AND.into(), 0x01,
+                Op::OR.into(), 0x01,
+                Op::XOR.into(), 0x01,
+                Op::NOT.into(), 0,
+                Op::CMP.into(), 0x01,
+            ]
+        )
+    }
 }
