@@ -86,6 +86,7 @@ impl Assembler {
                 | Op::SHR
                 | Op::ROL
                 | Op::ROR
+                | Op::IN
                 | Op::PRINT => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
@@ -248,9 +249,13 @@ mod tests {
         assert_eq!(
             &c.program,
             &[
-                Op::LDI.into(), 0, 1,
-                Op::ROL.into(), 0,
-                Op::ROR.into(), 0,
+                Op::LDI.into(),
+                0,
+                1,
+                Op::ROL.into(),
+                0,
+                Op::ROR.into(),
+                0,
                 Op::HLT.into()
             ]
         )
@@ -264,13 +269,7 @@ mod tests {
              POP R1",
         );
 
-        assert_eq!(
-            &c.program,
-            &[
-                Op::PUSH.into(), 0,
-                Op::POP.into(), 1,
-            ]
-        )
+        assert_eq!(&c.program, &[Op::PUSH.into(), 0, Op::POP.into(), 1,])
     }
 
     #[test]
@@ -292,16 +291,31 @@ mod tests {
         assert_eq!(
             &c.program,
             &[
-                Op::ADD.into(), 0x01,
-                Op::SUB.into(), 0x01,
-                Op::MUL.into(), 0x01,
-                Op::DIV.into(), 0x01,
-                Op::MOD.into(), 0x01,
-                Op::ADDI.into(), 0, 1,
-                Op::SUBI.into(), 0, 1,
-                Op::MULI.into(), 0, 1,
-                Op::DIVI.into(), 0, 1,
-                Op::MODI.into(), 0, 1,
+                Op::ADD.into(),
+                0x01,
+                Op::SUB.into(),
+                0x01,
+                Op::MUL.into(),
+                0x01,
+                Op::DIV.into(),
+                0x01,
+                Op::MOD.into(),
+                0x01,
+                Op::ADDI.into(),
+                0,
+                1,
+                Op::SUBI.into(),
+                0,
+                1,
+                Op::MULI.into(),
+                0,
+                1,
+                Op::DIVI.into(),
+                0,
+                1,
+                Op::MODI.into(),
+                0,
+                1,
             ]
         )
     }
@@ -320,10 +334,14 @@ mod tests {
         assert_eq!(
             &c.program,
             &[
-                Op::JMP.into(), 0x10,
-                Op::JZ.into(), 0x10,
-                Op::JNZ.into(), 0x10,
-                Op::CALL.into(), 0x10,
+                Op::JMP.into(),
+                0x10,
+                Op::JZ.into(),
+                0x10,
+                Op::JNZ.into(),
+                0x10,
+                Op::CALL.into(),
+                0x10,
                 Op::RET.into(),
             ]
         )
@@ -343,11 +361,16 @@ mod tests {
         assert_eq!(
             &c.program,
             &[
-                Op::AND.into(), 0x01,
-                Op::OR.into(), 0x01,
-                Op::XOR.into(), 0x01,
-                Op::NOT.into(), 0,
-                Op::CMP.into(), 0x01,
+                Op::AND.into(),
+                0x01,
+                Op::OR.into(),
+                0x01,
+                Op::XOR.into(),
+                0x01,
+                Op::NOT.into(),
+                0,
+                Op::CMP.into(),
+                0x01,
             ]
         )
     }
@@ -362,12 +385,17 @@ mod tests {
              JMP ADDR",
         );
 
-        assert_eq!(
-            &c.program,
-            &[
-                Op::LDI.into(), 0, 10,
-                Op::JMP.into(), 0x10,
-            ]
-        )
+        assert_eq!(&c.program, &[Op::LDI.into(), 0, 10, Op::JMP.into(), 0x10,])
+    }
+
+    #[test]
+    fn test_assemble_input() {
+        let mut c = Assembler::default();
+        c.assemble(
+            "IN R0
+             PRINT R0",
+        );
+
+        assert_eq!(&c.program, &[Op::IN.into(), 0, Op::PRINT.into(), 0,])
     }
 }

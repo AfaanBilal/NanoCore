@@ -58,6 +58,7 @@ pub enum Op {
     ROL, // Rotate left: ROL Rx
     ROR, // Rotate right: ROR Rx
 
+    IN,    // Input: IN Rx
     PRINT, // Print to output: PRINT Rx
 
     MUL,  // Multiply: MUL Rx Ry (Rx = Rx * Ry)
@@ -83,8 +84,16 @@ impl Op {
             | Op::DIVI
             | Op::MODI => 3,
             Op::LDR | Op::MOV | Op::PUSH | Op::POP | Op::ADD | Op::SUB | Op::INC | Op::DEC => 2,
-            Op::AND | Op::OR | Op::XOR | Op::NOT | Op::CMP | Op::SHL | Op::SHR | Op::ROL | Op::ROR => 2,
-            Op::JMP | Op::JZ | Op::JNZ | Op::PRINT => 2,
+            Op::AND
+            | Op::OR
+            | Op::XOR
+            | Op::NOT
+            | Op::CMP
+            | Op::SHL
+            | Op::SHR
+            | Op::ROL
+            | Op::ROR => 2,
+            Op::JMP | Op::JZ | Op::JNZ | Op::PRINT | Op::IN => 2,
             Op::MUL | Op::DIV | Op::MOD | Op::CALL => 2,
             _ => 1,
         }
@@ -145,6 +154,7 @@ impl From<Op> for &str {
             Op::ROL => "ROL",
             Op::ROR => "ROR",
 
+            Op::IN => "IN",
             Op::PRINT => "PRINT",
 
             Op::MUL => "MUL",
@@ -199,6 +209,7 @@ impl From<&str> for Op {
             "ROL" => Op::ROL,
             "ROR" => Op::ROR,
 
+            "IN" => Op::IN,
             "PRINT" => Op::PRINT,
 
             "MUL" => Op::MUL,
@@ -255,6 +266,7 @@ impl From<u8> for Op {
             0x17 => Op::JZ,
             0x18 => Op::JNZ,
 
+            0x24 => Op::IN,
             0x19 => Op::PRINT,
 
             0x1A => Op::MUL,
@@ -311,6 +323,7 @@ impl From<Op> for u8 {
             Op::JZ => 0x17,
             Op::JNZ => 0x18,
 
+            Op::IN => 0x24,
             Op::PRINT => 0x19,
 
             Op::MUL => 0x1A,

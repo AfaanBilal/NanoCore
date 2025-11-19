@@ -61,6 +61,7 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 | `0x15` |     2 | `SHR Reg`        | Shift right in `Reg` by 1 (`>> 1`)      | `0x05 0x01`      |
 | `0x22` |     2 | `ROL Reg`        | Rotate left in `Reg` by 1               | `0x22 0x01`      |
 | `0x23` |     2 | `ROR Reg`        | Rotate right in `Reg` by 1              | `0x23 0x01`      |
+| `0x24` |     2 | `IN Reg`         | Read char from stdin into `Reg`         | `0x24 0x01`      |
 | `0x16` |     2 | `JMP addr`       | Unconditional jump to `addr`            | `0x05 0xAA`      |
 | `0x17` |     2 | `JZ addr`        | Jump to `addr` if `Z` flag is set       | `0x05 0xAA`      |
 | `0x18` |     2 | `JNZ addr`       | Jump to `addr` if `Z` flag is not set   | `0x05 0xAA`      |
