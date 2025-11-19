@@ -14,6 +14,8 @@
 //! language programming.
 //!
 
+use std::io::Read;
+
 use crate::{Op, cpu::CPU, end_color, start_color};
 
 #[derive(Debug, Default)]
@@ -139,9 +141,17 @@ impl NanoCore {
                 Operands::RegImm(byte_2, byte_3)
             }
             Op::LDA | Op::STORE => Operands::RegAddr(byte_2, byte_3),
-            Op::PUSH | Op::POP | Op::INC | Op::DEC | Op::NOT | Op::SHL | Op::SHR | Op::ROL | Op::ROR | Op::PRINT => {
-                Operands::Reg(byte_2)
-            }
+            Op::PUSH
+            | Op::POP
+            | Op::INC
+            | Op::DEC
+            | Op::NOT
+            | Op::SHL
+            | Op::SHR
+            | Op::ROL
+            | Op::ROR
+            | Op::IN
+            | Op::PRINT => Operands::Reg(byte_2),
             Op::LDR
             | Op::MOV
             | Op::ADD
@@ -453,6 +463,23 @@ impl NanoCore {
                 if self.print {
                     print!("{}", value as char);
                 }
+            }
+            Op::IN => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let mut buffer = [0; 1];
+                std::io::stdin().read_exact(&mut buffer).unwrap();
+                let value = buffer[0];
+
+                self.cpu.registers[reg as usize] = value;
+                self.cpu.update_zn_flags(value);
+
+                self.current_instruction = format!(
+                    "{op}   R{reg}| '{0}' ({1:03}) ({1:#04X})",
+                    value as char, value
+                );
             }
             Op::SHL | Op::SHR | Op::ROL | Op::ROR => {
                 let Operands::Reg(reg) = operands else {
