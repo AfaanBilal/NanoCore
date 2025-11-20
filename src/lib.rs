@@ -49,9 +49,10 @@ pub enum Op {
     NOT, // Logical NOT: NOT Rx (Rx = !Rx)
     CMP, // Comparison: CMP Rx Ry (Set zero flag if Rx = Ry, otherwise reset)
 
-    JMP, // Unconditional Jump to address: JMP 0xAB
-    JZ,  // Jump if zero flag set: JZ 0xAB
-    JNZ, // Jump if zero flag not set: JNZ 0xAB
+    JMP,  // Unconditional Jump to address: JMP 0xAB
+    JMPR, // Unconditional Jump to address in register: JMPR Rx
+    JZ,   // Jump if zero flag set: JZ 0xAB
+    JNZ,  // Jump if zero flag not set: JNZ 0xAB
 
     SHL, // Shift left: SHL Rx (Rx = Rx << 1)
     SHR, // Shift right: SHR Rx (Rx = Rx >> 1)
@@ -68,8 +69,9 @@ pub enum Op {
     MOD,  // Modulus: MOD Rx Ry (Rx = Rx % Ry)
     MODI, // Modulus using immediate: MOD Rx 123 (Rx = Rx % 123)
 
-    CALL, // CALL a function: CALL raise_to_power
-    RET,  // Return from a function
+    CALL,  // CALL a function: CALL raise_to_power
+    CALLR, // CALL a function at address in register: CALLR Rx
+    RET,   // Return from a function
 }
 
 impl Op {
@@ -93,8 +95,8 @@ impl Op {
             | Op::SHR
             | Op::ROL
             | Op::ROR => 2,
-            Op::JMP | Op::JZ | Op::JNZ | Op::PRINT | Op::IN => 2,
-            Op::MUL | Op::DIV | Op::MOD | Op::CALL => 2,
+            Op::JMP | Op::JMPR | Op::JZ | Op::JNZ | Op::PRINT | Op::IN => 2,
+            Op::MUL | Op::DIV | Op::MOD | Op::CALL | Op::CALLR => 2,
             _ => 1,
         }
     }
@@ -146,6 +148,7 @@ impl From<Op> for &str {
             Op::CMP => "CMP",
 
             Op::JMP => "JMP",
+            Op::JMPR => "JMPR",
             Op::JZ => "JZ",
             Op::JNZ => "JNZ",
 
@@ -165,6 +168,7 @@ impl From<Op> for &str {
             Op::MODI => "MODI",
 
             Op::CALL => "CALL",
+            Op::CALLR => "CALLR",
             Op::RET => "RET",
         }
     }
@@ -201,6 +205,7 @@ impl From<&str> for Op {
             "CMP" => Op::CMP,
 
             "JMP" => Op::JMP,
+            "JMPR" => Op::JMPR,
             "JZ" => Op::JZ,
             "JNZ" => Op::JNZ,
 
@@ -220,6 +225,7 @@ impl From<&str> for Op {
             "MODI" => Op::MODI,
 
             "CALL" => Op::CALL,
+            "CALLR" => Op::CALLR,
             "RET" => Op::RET,
 
             _ => panic!("Invalid operation: {value}"),
@@ -263,6 +269,7 @@ impl From<u8> for Op {
             0x23 => Op::ROR,
 
             0x16 => Op::JMP,
+            0x25 => Op::JMPR,
             0x17 => Op::JZ,
             0x18 => Op::JNZ,
 
@@ -277,6 +284,7 @@ impl From<u8> for Op {
             0x1F => Op::MODI,
 
             0x20 => Op::CALL,
+            0x26 => Op::CALLR,
             0x21 => Op::RET,
 
             _ => Op::NOP,
@@ -320,6 +328,7 @@ impl From<Op> for u8 {
             Op::ROR => 0x23,
 
             Op::JMP => 0x16,
+            Op::JMPR => 0x25,
             Op::JZ => 0x17,
             Op::JNZ => 0x18,
 
@@ -334,6 +343,7 @@ impl From<Op> for u8 {
             Op::MODI => 0x1F,
 
             Op::CALL => 0x20,
+            Op::CALLR => 0x26,
             Op::RET => 0x21,
         }
     }

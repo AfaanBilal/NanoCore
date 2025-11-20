@@ -87,6 +87,8 @@ impl Assembler {
                 | Op::ROL
                 | Op::ROR
                 | Op::IN
+                | Op::JMPR
+                | Op::CALLR
                 | Op::PRINT => {
                     self.program.push(opcode);
                     self.program.push(Self::register(parts[1]));
@@ -397,5 +399,16 @@ mod tests {
         );
 
         assert_eq!(&c.program, &[Op::IN.into(), 0, Op::PRINT.into(), 0,])
+    }
+
+    #[test]
+    fn test_assemble_indirect_jumps() {
+        let mut c = Assembler::default();
+        c.assemble(
+            "JMPR R0
+             CALLR R1",
+        );
+
+        assert_eq!(&c.program, &[Op::JMPR.into(), 0, Op::CALLR.into(), 1,])
     }
 }

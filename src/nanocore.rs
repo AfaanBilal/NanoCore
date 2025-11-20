@@ -151,6 +151,8 @@ impl NanoCore {
             | Op::ROL
             | Op::ROR
             | Op::IN
+            | Op::JMPR
+            | Op::CALLR
             | Op::PRINT => Operands::Reg(byte_2),
             Op::LDR
             | Op::MOV
@@ -424,6 +426,17 @@ impl NanoCore {
                 self.current_instruction =
                     format!("JMP   {a:#04X}| Mem({:#04X})", self.cpu.memory[a as usize]);
             }
+            Op::JMPR => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let addr = self.cpu.registers[reg as usize];
+                self.cpu.pc = addr;
+                pc_override = true;
+
+                self.current_instruction = format!("{op}  R{reg} ({addr:#04X})");
+            }
             Op::JZ | Op::JNZ => {
                 let Operands::Addr(a) = operands else {
                     panic!("Invalid!");
@@ -533,6 +546,24 @@ impl NanoCore {
 
                 self.current_instruction =
                     format!("CALL  {a:#04X}| Mem({:#04X})", self.cpu.memory[a as usize]);
+            }
+            Op::CALLR => {
+                let Operands::Reg(reg) = operands else {
+                    panic!("Invalid!");
+                };
+
+                if self.cpu.sp == CPU::STACK_MIN {
+                    panic!("Error: Stack Overflow SP: {}", self.cpu.sp);
+                }
+
+                self.cpu.memory[self.cpu.sp as usize] = self.cpu.pc.wrapping_add(2);
+                self.cpu.sp = self.cpu.sp.wrapping_sub(1);
+
+                let addr = self.cpu.registers[reg as usize];
+                self.cpu.pc = addr;
+                pc_override = true;
+
+                self.current_instruction = format!("CALLR R{reg} ({addr:#04X})");
             }
             Op::RET => {
                 if self.cpu.sp == CPU::STACK_MAX {
