@@ -37,7 +37,14 @@ impl Assembler {
 
         for line in lines {
             let line = line.trim();
-            if line.is_empty() || Self::is_comment(line) {
+            // Strip comment
+            let line = if let Some(idx) = line.find(';') {
+                line[..idx].trim()
+            } else {
+                line
+            };
+
+            if line.is_empty() {
                 continue;
             }
 
@@ -63,7 +70,7 @@ impl Assembler {
                 continue;
             }
 
-            let parts = line.split(" ").collect::<Vec<&str>>();
+            let parts = line.split_whitespace().collect::<Vec<&str>>();
             let op: Op = parts[0].into();
             let opcode: u8 = op.into();
 
@@ -90,7 +97,8 @@ impl Assembler {
                 | Op::CMP
                 | Op::MUL
                 | Op::DIV
-                | Op::MOD => {
+                | Op::MOD
+                | Op::STR => {
                     self.program.push(opcode);
                     self.program
                         .push(Self::register(parts[1]) << 4 | Self::register(parts[2]));
@@ -132,7 +140,15 @@ impl Assembler {
 
         for line in lines {
             let line = line.trim();
-            if line.is_empty() || Self::is_comment(line) || Self::is_constant(line) {
+
+            // Strip comment
+            let line = if let Some(idx) = line.find(';') {
+                line[..idx].trim()
+            } else {
+                line
+            };
+
+            if line.is_empty() || Self::is_constant(line) {
                 continue;
             }
 
@@ -155,7 +171,7 @@ impl Assembler {
                 continue;
             }
 
-            let parts = line.split(" ").collect::<Vec<&str>>();
+            let parts = line.split_whitespace().collect::<Vec<&str>>();
 
             let op: Op = parts[0].into();
             addr += op.instruction_len();
@@ -167,11 +183,19 @@ impl Assembler {
 
         for line in lines {
             let line = line.trim();
+
+            // Strip comment
+            let line = if let Some(idx) = line.find(';') {
+                line[..idx].trim()
+            } else {
+                line
+            };
+
             if !Self::is_constant(line) {
                 continue;
             }
 
-            let parts = line.split(" ").collect::<Vec<&str>>();
+            let parts = line.split_whitespace().collect::<Vec<&str>>();
             let name = parts[1];
             let value = if parts[2].starts_with("0x") {
                 Self::from_hex_str(parts[2])
@@ -466,5 +490,13 @@ mod tests {
                 0xFF // LDI R0 0xFF
             ]
         )
+    }
+
+    #[test]
+    fn test_assemble_str() {
+        let mut c = Assembler::default();
+        c.assemble("STR R0 R1");
+
+        assert_eq!(&c.program, &[Op::STR.into(), 0x01])
     }
 }

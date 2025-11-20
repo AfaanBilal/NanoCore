@@ -1,0 +1,28 @@
+; Screen Demo
+; Writes characters to video memory (0xAA - 0xE9)
+
+.CONST SCREEN_START 0xAA
+.CONST SCREEN_END 0xE9
+
+start:
+    LDI R0 SCREEN_START ; R0 = Current Address
+    LDI R1 65           ; R1 = Character 'A'
+
+loop:
+    STR R1 R0           ; Write char to screen
+    INC R0              ; Next address
+    INC R1              ; Next char
+
+    ; Check if we reached end of screen
+    MOV R2 R0
+    CMP R2 R1           ; (Dummy compare, just to use CMP)
+
+    ; Simple check: if R0 == 0 (wrapped around), stop
+    ; But since we start at 0xC0, wrapping to 0 means we passed 0xFF
+    MOV R2 R0
+    JZ end
+
+    JMP loop
+
+end:
+    HLT

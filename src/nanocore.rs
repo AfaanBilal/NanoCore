@@ -164,7 +164,8 @@ impl NanoCore {
             | Op::CMP
             | Op::MUL
             | Op::DIV
-            | Op::MOD => Operands::RegReg((byte_2 >> 4) & 0x0F, byte_2 & 0x0F),
+            | Op::MOD
+            | Op::STR => Operands::RegReg((byte_2 >> 4) & 0x0F, byte_2 & 0x0F),
             Op::JMP | Op::JZ | Op::JNZ | Op::CALL => Operands::Addr(byte_2),
         };
 
@@ -223,6 +224,18 @@ impl NanoCore {
                 self.cpu.update_zn_flags(value);
 
                 self.current_instruction = format!("{op}   R{reg} {addr:#04X}| ({value:03})");
+            }
+            Op::STR => {
+                let Operands::RegReg(rd, rs) = operands else {
+                    panic!("Invalid!");
+                };
+
+                let addr = self.cpu.registers[rs as usize];
+                let value = self.cpu.registers[rd as usize];
+                self.cpu.memory[addr as usize] = value;
+
+                self.current_instruction =
+                    format!("{op}   R{rd} [R{rs}]| ({value:03}) -> [{addr:#04X}]");
             }
             Op::LDR => {
                 let Operands::RegReg(rd, rs) = operands else {

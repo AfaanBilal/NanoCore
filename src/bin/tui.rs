@@ -383,20 +383,49 @@ impl App {
         let bottom_block = Block::default();
         let bottom_block_inner = bottom_block.inner(cpu[4]);
 
-        let bottom_columns = Layout::horizontal([Constraint::Percentage(70), Constraint::Fill(1)])
-            .split(bottom_block_inner);
+        let bottom_columns = Layout::horizontal([
+            Constraint::Percentage(50),
+            Constraint::Percentage(20),
+            Constraint::Fill(1),
+        ])
+        .split(bottom_block_inner);
 
         let output = Paragraph::new(self.nano_core.output.clone())
             .block(Block::bordered().title(" Output "));
+
         frame.render_widget(output, bottom_columns[0]);
+
+        // -- Screen
+
+        let mut screen_lines = Vec::new();
+        for y in 0..8 {
+            let mut line_spans = Vec::new();
+            for x in 0..8 {
+                let addr = 0xAA + y * 8 + x;
+                let char_code = self.nano_core.cpu.memory[addr];
+                let char = if (32..=126).contains(&char_code) {
+                    char_code as char
+                } else {
+                    '·'
+                };
+                line_spans.push(Span::raw(format!(" {char} ")).on_black().white());
+            }
+            screen_lines.push(Line::from(line_spans));
+        }
+
+        frame.render_widget(
+            Paragraph::new(screen_lines)
+                .block(Block::bordered().title(Line::from(" Screen (0xAA-0xE9) ").centered())),
+            bottom_columns[1],
+        );
 
         // -- Stack
 
         let stack_block = Block::default()
             .borders(Borders::TOP)
             .title(Line::from(" Stack ").centered());
-        let stack_block_inner = stack_block.inner(bottom_columns[1]);
-        frame.render_widget(stack_block, bottom_columns[1]);
+        let stack_block_inner = stack_block.inner(bottom_columns[2]);
+        frame.render_widget(stack_block, bottom_columns[2]);
 
         let stack = Layout::horizontal([Constraint::Percentage(35), Constraint::Fill(1)])
             .split(stack_block_inner);
