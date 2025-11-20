@@ -45,6 +45,24 @@ impl Assembler {
                 continue;
             }
 
+            if line.starts_with(".DB") {
+                let parts = line.split_whitespace().collect::<Vec<&str>>();
+                for part in parts.iter().skip(1) {
+                    self.program.push(self.resolve_number(part));
+                }
+                continue;
+            }
+
+            if line.starts_with(".STRING") {
+                let start = line.find('"').expect("Expected start of string") + 1;
+                let end = line.rfind('"').expect("Expected end of string");
+                let content = &line[start..end];
+                for byte in content.bytes() {
+                    self.program.push(byte);
+                }
+                continue;
+            }
+
             let parts = line.split(" ").collect::<Vec<&str>>();
             let op: Op = parts[0].into();
             let opcode: u8 = op.into();
@@ -115,6 +133,19 @@ impl Assembler {
         for line in lines {
             let line = line.trim();
             if line.is_empty() || Self::is_comment(line) || Self::is_constant(line) {
+                continue;
+            }
+
+            if line.starts_with(".DB") {
+                let parts = line.split_whitespace().collect::<Vec<&str>>();
+                addr += (parts.len() - 1) as u8;
+                continue;
+            }
+
+            if line.starts_with(".STRING") {
+                let start = line.find('"').expect("Expected start of string") + 1;
+                let end = line.rfind('"').expect("Expected end of string");
+                addr += (end - start) as u8;
                 continue;
             }
 
@@ -410,5 +441,30 @@ mod tests {
         );
 
         assert_eq!(&c.program, &[Op::JMPR.into(), 0, Op::CALLR.into(), 1,])
+    }
+
+    #[test]
+    fn test_assemble_data_directives() {
+        let mut c = Assembler::default();
+        c.assemble(
+            ".DB 0x01 0x02 10
+             .STRING \"ABC\"
+             LDI R0 0xFF",
+        );
+
+        assert_eq!(
+            &c.program,
+            &[
+                0x01,
+                0x02,
+                10, // .DB
+                0x41,
+                0x42,
+                0x43, // .STRING "ABC"
+                Op::LDI.into(),
+                0,
+                0xFF // LDI R0 0xFF
+            ]
+        )
     }
 }

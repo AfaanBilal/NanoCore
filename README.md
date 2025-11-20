@@ -110,12 +110,15 @@ cargo r --bin nca -- -i example.nca -o example.ncb
 ```
 This should assemble the `example.nca` (NanoCore Assembly) to `example.ncb` (NanoCore Binary).
 
-### Constants
+### Constants & Data
 
-You can define constants using the `.CONST` directive:
+You can define constants using the `.CONST` directive, and embed data using `.DB` and `.STRING`:
 ```assembly
 .CONST MAX_VAL 10
 .CONST ADDR 0x10
+
+.DB 0x01 0x02 10    ; Embed bytes 0x01, 0x02, 0x0A
+.STRING "Hello"     ; Embed ASCII bytes for "Hello"
 
 LDI R0 MAX_VAL
 JMP ADDR
