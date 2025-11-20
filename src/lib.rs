@@ -31,6 +31,7 @@ pub enum Op {
     MOV, // Move data between registers: MOV Rx Ry
 
     STORE, // Store to address: ST Rx 0xF1
+    STR,   // Store register to address in register: STR Rd Rs (Store Rd to [Rs])
 
     PUSH, // Push register to stack: PUSH Rx
     POP,  // Pop register from stack: POP Rx
@@ -96,7 +97,7 @@ impl Op {
             | Op::ROL
             | Op::ROR => 2,
             Op::JMP | Op::JMPR | Op::JZ | Op::JNZ | Op::PRINT | Op::IN => 2,
-            Op::MUL | Op::DIV | Op::MOD | Op::CALL | Op::CALLR => 2,
+            Op::MUL | Op::DIV | Op::MOD | Op::CALL | Op::CALLR | Op::STR => 2,
             _ => 1,
         }
     }
@@ -129,6 +130,7 @@ impl From<Op> for &str {
 
             Op::MOV => "MOV",
             Op::STORE => "STORE",
+            Op::STR => "STR",
 
             Op::PUSH => "PUSH",
             Op::POP => "POP",
@@ -186,6 +188,7 @@ impl From<&str> for Op {
 
             "MOV" => Op::MOV,
             "STORE" => Op::STORE,
+            "STR" => Op::STR,
 
             "PUSH" => Op::PUSH,
             "POP" => Op::POP,
@@ -245,6 +248,7 @@ impl From<u8> for Op {
 
             0x05 => Op::MOV,
             0x06 => Op::STORE,
+            0x27 => Op::STR,
 
             0x07 => Op::PUSH,
             0x08 => Op::POP,
@@ -304,6 +308,7 @@ impl From<Op> for u8 {
 
             Op::MOV => 0x05,
             Op::STORE => 0x06,
+            Op::STR => 0x27,
 
             Op::PUSH => 0x07,
             Op::POP => 0x08,

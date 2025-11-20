@@ -76,6 +76,7 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 | `0x21` |     1 | `RET`            | Return from `CALL`ed function.          | `0x21`           |
 | `0x25` |     2 | `JMPR Reg`       | Unconditional jump to address in `Reg`  | `0x25 0x01`      |
 | `0x26` |     2 | `CALLR Reg`      | CALL address in `Reg`                   | `0x26 0x01`      |
+| `0x27` |     2 | `STR Rd Rs`      | Store `Rd` to addr in `Rs`              | `0x27 0x01 0x02` |
 
 > - `val` = `Immediate value`
 > - `addr` = `Memory address`
