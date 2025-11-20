@@ -74,6 +74,8 @@ NanoCore features a small but functional instruction set designed for its 8-bit 
 | `0x1F` |     3 | `MODI Reg val`   | Modulus `Reg` by immediate `val`        | `0x1F 0x01 0xAB` |
 | `0x20` |     2 | `CALL addr`      | CALL `addr` or function label.          | `0x20 0xAA`      |
 | `0x21` |     1 | `RET`            | Return from `CALL`ed function.          | `0x21`           |
+| `0x25` |     2 | `JMPR Reg`       | Unconditional jump to address in `Reg`  | `0x25 0x01`      |
+| `0x26` |     2 | `CALLR Reg`      | CALL address in `Reg`                   | `0x26 0x01`      |
 
 > - `val` = `Immediate value`
 > - `addr` = `Memory address`
