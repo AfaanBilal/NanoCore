@@ -3,12 +3,14 @@ use nanocore::{EmulatorError, assembler::Assembler, nanocore::NanoCore};
 #[test]
 fn test_division_by_zero_div() -> Result<(), Box<dyn std::error::Error>> {
     let mut assembler = Assembler::default();
-    assembler.assemble(
-        "LDI R0 10
+    assembler
+        .assemble(
+            "LDI R0 10
          LDI R1 0
          DIV R0 R1
          HLT",
-    );
+        )
+        .unwrap();
 
     let mut nano = NanoCore::new();
     nano.load_program(&assembler.program, 0)?;
@@ -35,12 +37,14 @@ fn test_division_by_zero_div() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_division_by_zero_mod() -> Result<(), Box<dyn std::error::Error>> {
     let mut assembler = Assembler::default();
-    assembler.assemble(
-        "LDI R0 10
+    assembler
+        .assemble(
+            "LDI R0 10
          LDI R1 0
          MOD R0 R1
          HLT",
-    );
+        )
+        .unwrap();
 
     let mut nano = NanoCore::new();
     nano.load_program(&assembler.program, 0)?;
@@ -63,11 +67,13 @@ fn test_division_by_zero_mod() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_division_by_zero_divi() -> Result<(), Box<dyn std::error::Error>> {
     let mut assembler = Assembler::default();
-    assembler.assemble(
-        "LDI R0 42
+    assembler
+        .assemble(
+            "LDI R0 42
          DIVI R0 0
          HLT",
-    );
+        )
+        .unwrap();
 
     let mut nano = NanoCore::new();
     nano.load_program(&assembler.program, 0)?;
@@ -83,11 +89,13 @@ fn test_division_by_zero_divi() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_division_by_zero_modi() -> Result<(), Box<dyn std::error::Error>> {
     let mut assembler = Assembler::default();
-    assembler.assemble(
-        "LDI R0 42
+    assembler
+        .assemble(
+            "LDI R0 42
          MODI R0 0
          HLT",
-    );
+        )
+        .unwrap();
 
     let mut nano = NanoCore::new();
     nano.load_program(&assembler.program, 0)?;
@@ -143,7 +151,7 @@ fn test_stack_overflow() -> Result<(), Box<dyn std::error::Error>> {
 fn test_stack_underflow() -> Result<(), Box<dyn std::error::Error>> {
     let mut assembler = Assembler::default();
     // Try to RET without a corresponding CALL
-    assembler.assemble("RET");
+    assembler.assemble("RET").unwrap();
 
     let mut nano = NanoCore::new();
     nano.load_program(&assembler.program, 0)?;
@@ -186,12 +194,14 @@ fn test_program_too_large_with_offset() {
 #[test]
 fn test_normal_division_works() -> Result<(), Box<dyn std::error::Error>> {
     let mut assembler = Assembler::default();
-    assembler.assemble(
-        "LDI R0 10
+    assembler
+        .assemble(
+            "LDI R0 10
          LDI R1 2
          DIV R0 R1
          HLT",
-    );
+        )
+        .unwrap();
 
     let mut nano = NanoCore::new();
     nano.load_program(&assembler.program, 0)?;
@@ -204,13 +214,15 @@ fn test_normal_division_works() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_normal_stack_operations() -> Result<(), Box<dyn std::error::Error>> {
     let mut assembler = Assembler::default();
-    assembler.assemble(
-        "LDI R0 42
+    assembler
+        .assemble(
+            "LDI R0 42
          PUSH R0
          LDI R0 0
          POP R1
          HLT",
-    );
+        )
+        .unwrap();
 
     let mut nano = NanoCore::new();
     nano.load_program(&assembler.program, 0)?;

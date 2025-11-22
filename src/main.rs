@@ -53,7 +53,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let mut c = Assembler::default();
-        c.assemble(&asm);
+        c.assemble(&asm)
+            .map_err(|e| format!("Assembly failed: {}", e))?;
 
         c.program
     } else {

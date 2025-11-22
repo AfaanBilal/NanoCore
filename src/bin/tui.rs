@@ -322,14 +322,14 @@ impl App {
 
         if !op.is_empty() {
             if matches!(
-                Op::from(op.as_str()),
+                Op::try_from(op.as_str()).unwrap_or(Op::NOP),
                 Op::JMP | Op::JZ | Op::JNZ | Op::CALL | Op::RET
             ) {
                 op_span = op_span.magenta();
                 op_bin_span = op_bin_span.magenta();
             }
 
-            if Op::from(op.as_str()) == Op::HLT {
+            if Op::try_from(op.as_str()).unwrap_or(Op::NOP) == Op::HLT {
                 op_span = op_span.red();
                 op_bin_span = op_bin_span.red();
             }
@@ -715,13 +715,13 @@ impl App {
         let mut rest_span = Span::raw(format!(" │{}", rest.clone())).dim();
 
         if matches!(
-            Op::from(op.as_str()),
+            Op::try_from(op.as_str()).unwrap_or(Op::NOP),
             Op::JMP | Op::JZ | Op::JNZ | Op::CALL | Op::RET
         ) {
             op_span = op_span.magenta();
         }
 
-        if Op::from(op.as_str()) == Op::HLT {
+        if Op::try_from(op.as_str()).unwrap_or(Op::NOP) == Op::HLT {
             op_span = op_span.red();
         }
 
@@ -910,10 +910,12 @@ fn main() -> io::Result<()> {
     let bytes = if bin.ends_with(".nca") {
         let asm = fs::read_to_string(&bin).unwrap();
 
-        let mut c = Assembler::default();
-        c.assemble(&asm);
-
-        c.program
+        let mut assembler = Assembler::default();
+        assembler
+            .assemble(&asm)
+            .map_err(|e| format!("Failed to assemble '{}': {}", bin, e))
+            .unwrap();
+        assembler.program
     } else {
         fs::read(&bin).unwrap()
     };
