@@ -36,6 +36,20 @@ pub struct NanoCore {
 impl NanoCore {
     pub const MAX_CYCLES: u16 = 1024;
 
+    /// Creates a new NanoCore emulator instance.
+    ///
+    /// Initializes the CPU with default state, resets all registers and flags,
+    /// and prepares an empty instruction log with capacity for 100 entries.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nanocore::nanocore::NanoCore;
+    ///
+    /// let mut nano = NanoCore::new();
+    /// assert_eq!(nano.cycle, 0);
+    /// assert!(!nano.cpu.is_halted);
+    /// ```
     #[must_use]
     pub fn new() -> Self {
         NanoCore {
@@ -53,6 +67,28 @@ impl NanoCore {
         }
     }
 
+    /// Loads a program into emulator memory at the specified address.
+    ///
+    /// # Arguments
+    ///
+    /// * `program` - Byte slice containing machine code to load
+    /// * `start_address` - Memory address where the program should be loaded
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EmulatorError::ProgramTooLarge`](crate::EmulatorError::ProgramTooLarge)
+    /// if the program size plus start address exceeds 256 bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nanocore::nanocore::NanoCore;
+    ///
+    /// let mut nano = NanoCore::new();
+    /// let program = vec![0x02, 0x00, 0x42, 0x00]; // LDI R0, 0x42; HLT
+    /// nano.load_program(&program, 0x00).unwrap();
+    /// assert_eq!(nano.cpu.pc, 0x00);
+    /// ```
     pub fn load_program(&mut self, program: &[u8], start_address: u8) -> crate::EmulatorResult<()> {
         if (start_address as usize + program.len()) > 256 {
             return Err(crate::EmulatorError::ProgramTooLarge {
@@ -70,6 +106,28 @@ impl NanoCore {
         Ok(())
     }
 
+    /// Runs the emulator until the CPU halts or max cycles reached.
+    ///
+    /// Executes instructions in a loop, checking for halt condition or
+    /// [`MAX_CYCLES`](Self::MAX_CYCLES) limit. Optionally prints state and instructions
+    /// based on configuration flags.
+    ///
+    /// # Errors
+    ///
+    /// Propagates any [`EmulatorError`](crate::EmulatorError) from instruction execution,
+    /// such as division by zero, stack overflow, or invalid operands.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use nanocore::nanocore::NanoCore;
+    ///
+    /// let mut nano = NanoCore::new();
+    /// let program = vec![0x02, 0x00, 0x0A, 0x00]; // LDI R0, 10; HLT
+    /// nano.load_program(&program, 0x00).unwrap();
+    /// nano.run().unwrap();
+    /// assert_eq!(nano.cpu.registers[0], 10);
+    /// ```
     pub fn run(&mut self) -> crate::EmulatorResult<()> {
         self.print_colored(&format!(
             "{}  NanoCore Start  {}",
@@ -111,6 +169,30 @@ impl NanoCore {
         println!();
     }
 
+    /// Executes a single CPU cycle: fetch, decode, and execute.
+    ///
+    /// Performs one complete instruction cycle, updating the program counter
+    /// unless the instruction explicitly overrides it (e.g., jumps).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if instruction execution fails. Common errors include:
+    /// - Division by zero ([`EmulatorError::DivisionByZero`](crate::EmulatorError::DivisionByZero))
+    /// - Stack overflow/underflow ([`EmulatorError::StackOverflow`](crate::EmulatorError::StackOverflow))
+    /// - Invalid operands ([`EmulatorError::InvalidOperand`](crate::EmulatorError::InvalidOperand))
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nanocore::nanocore::NanoCore;
+    ///
+    /// let mut nano = NanoCore::new();
+    /// let program = vec![0x02, 0x00, 0x42]; // LDI R0, 0x42
+    /// nano.load_program(&program, 0x00).unwrap();
+    /// nano.cycle().unwrap();
+    /// assert_eq!(nano.cpu.registers[0], 0x42);
+    /// assert_eq!(nano.cycle, 1);
+    /// ```
     pub fn cycle(&mut self) -> crate::EmulatorResult<()> {
         let (op, operands) = self.fetch_decode();
 

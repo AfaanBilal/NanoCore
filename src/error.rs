@@ -16,27 +16,29 @@
 
 use std::fmt;
 
+/// Errors that can occur during emulation.
 #[derive(Debug, Clone, PartialEq)]
 pub enum EmulatorError {
+    /// Operand type mismatch for an instruction.
+    ///
+    /// Occurs when an instruction receives the wrong type of operand,
+    /// such as expecting a register but receiving an immediate value.
     InvalidOperand {
         op: String,
         expected: String,
         got: String,
     },
-    StackOverflow {
-        sp: u8,
-    },
-    StackUnderflow {
-        sp: u8,
-    },
-    ProgramTooLarge {
-        size: usize,
-        start: u8,
-        max: usize,
-    },
-    DivisionByZero {
-        op: String,
-    },
+    /// Stack overflow - attempting to push beyond stack limit.
+    StackOverflow { sp: u8 },
+    /// Stack underflow - attempting to pop from empty stack.
+    StackUnderflow { sp: u8 },
+    /// Program too large to fit in memory.
+    ///
+    /// The 8-bit architecture limits total addressable memory to 256 bytes.
+    ProgramTooLarge { size: usize, start: u8, max: usize },
+    /// Division or modulus by zero.
+    DivisionByZero { op: String },
+    /// I/O operation error.
     IoError(String),
 }
 
@@ -71,6 +73,7 @@ impl fmt::Display for EmulatorError {
 
 impl std::error::Error for EmulatorError {}
 
+/// Errors that can occur during assembly.
 #[derive(Debug, Clone, PartialEq)]
 pub enum AssemblerError {
     SyntaxError { line: usize, message: String },
@@ -104,6 +107,8 @@ impl fmt::Display for AssemblerError {
 
 impl std::error::Error for AssemblerError {}
 
+/// Result type for emulator operations.
 pub type EmulatorResult<T> = std::result::Result<T, EmulatorError>;
 
+/// Result type for assembler operations.
 pub type AssemblerResult<T> = std::result::Result<T, AssemblerError>;
