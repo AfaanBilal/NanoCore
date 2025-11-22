@@ -56,7 +56,12 @@ pub struct App {
 impl App {
     pub fn run(&mut self, terminal: &mut DefaultTerminal, bytes: &[u8]) -> io::Result<()> {
         self.program = bytes.to_vec();
-        self.nano_core.load_program(&self.program, 0x00);
+        self.nano_core
+            .load_program(&self.program, 0x00)
+            .unwrap_or_else(|e| {
+                eprintln!("Error loading program: {}", e);
+                std::process::exit(1);
+            });
 
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
@@ -850,24 +855,38 @@ impl App {
     }
 
     fn next(&mut self) {
-        self.nano_core.cycle();
+        if !self.nano_core.cpu.is_halted
+            && let Err(e) = self.nano_core.cycle()
+        {
+            eprintln!("Emulator error: {}", e);
+            self.nano_core.cpu.is_halted = true;
+        }
     }
 
     fn run_full(&mut self) {
-        if self.last_tick.elapsed() >= self.tick_rate {
-            self.nano_core.cycle();
-            self.last_tick = Instant::now();
+        if self.nano_core.cpu.is_halted || self.breakpoints.contains(&self.nano_core.cpu.pc) {
+            self.running = false;
+            return;
+        }
 
-            if self.nano_core.cpu.is_halted || self.breakpoints.contains(&self.nano_core.cpu.pc) {
+        if Instant::now().duration_since(self.last_tick) > self.tick_rate {
+            self.last_tick = Instant::now();
+            if let Err(e) = self.nano_core.cycle() {
+                eprintln!("Emulator error: {}", e);
+                self.nano_core.cpu.is_halted = true;
                 self.running = false;
             }
         }
     }
 
     fn reset(&mut self) {
-        self.running = false;
         self.nano_core = NanoCore::new();
-        self.nano_core.load_program(&self.program, 0x00);
+        self.nano_core
+            .load_program(&self.program, 0x00)
+            .unwrap_or_else(|e| {
+                eprintln!("Error reloading program: {}", e);
+            });
+        self.running = false;
     }
 
     fn parse_addr(s: &str) -> u8 {
