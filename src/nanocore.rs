@@ -14,7 +14,7 @@
 //! language programming.
 //!
 
-use std::io::Read;
+use std::{collections::VecDeque, io::Read};
 
 use crate::{Op, cpu::CPU, end_color, start_color};
 
@@ -25,7 +25,7 @@ pub struct NanoCore {
     pub current_instruction: String,
     pub current_instruction_bin: String,
     pub current_skipped: bool,
-    pub instruction_log: Vec<String>,
+    pub instruction_log: VecDeque<String>,
     pub output: String,
 
     pub print: bool,
@@ -44,7 +44,7 @@ impl NanoCore {
             current_instruction: String::new(),
             current_instruction_bin: String::new(),
             current_skipped: false,
-            instruction_log: vec![],
+            instruction_log: VecDeque::with_capacity(100),
             output: String::new(),
 
             print: false,
@@ -128,6 +128,33 @@ impl NanoCore {
         Ok(())
     }
 
+    /// Executes binary arithmetic operation with division by zero check
+    fn execute_arithmetic(&self, op: Op, v1: u8, v2: u8) -> crate::EmulatorResult<(u8, bool)> {
+        let result = match op {
+            Op::ADD | Op::ADDI => v1.overflowing_add(v2),
+            Op::SUB | Op::SUBI => v1.overflowing_sub(v2),
+            Op::MUL | Op::MULI => v1.overflowing_mul(v2),
+            Op::DIV | Op::DIVI => {
+                if v2 == 0 {
+                    return Err(crate::EmulatorError::DivisionByZero {
+                        op: format!("{:?}", op),
+                    });
+                }
+                v1.overflowing_div(v2)
+            }
+            Op::MOD | Op::MODI => {
+                if v2 == 0 {
+                    return Err(crate::EmulatorError::DivisionByZero {
+                        op: format!("{:?}", op),
+                    });
+                }
+                v1.overflowing_rem(v2)
+            }
+            _ => unreachable!(),
+        };
+        Ok(result)
+    }
+
     pub fn fetch_decode(&mut self) -> (Op, Operands) {
         // FETCH
         let opcode = self.cpu.memory[self.cpu.pc as usize];
@@ -180,7 +207,11 @@ impl NanoCore {
         let mut pc_override = false;
 
         if !self.current_instruction.is_empty() {
-            self.instruction_log.push(format!(
+            // Limit instruction log to 100 entries to prevent unbounded growth
+            if self.instruction_log.len() >= 100 {
+                self.instruction_log.pop_front();
+            }
+            self.instruction_log.push_back(format!(
                 "{} {}",
                 self.current_instruction,
                 if self.current_skipped { "(SKIP)" } else { "" }
@@ -366,28 +397,7 @@ impl NanoCore {
                 let v1 = self.cpu.registers[rd as usize];
                 let v2 = self.cpu.registers[rs as usize];
 
-                let (result, carry) = match op {
-                    Op::ADD => v1.overflowing_add(v2),
-                    Op::SUB => v1.overflowing_sub(v2),
-                    Op::MUL => v1.overflowing_mul(v2),
-                    Op::DIV => {
-                        if v2 == 0 {
-                            return Err(crate::EmulatorError::DivisionByZero {
-                                op: "DIV".to_string(),
-                            });
-                        }
-                        v1.overflowing_div(v2)
-                    }
-                    Op::MOD => {
-                        if v2 == 0 {
-                            return Err(crate::EmulatorError::DivisionByZero {
-                                op: "MOD".to_string(),
-                            });
-                        }
-                        v1.overflowing_rem(v2)
-                    }
-                    _ => unreachable!(),
-                };
+                let (result, carry) = self.execute_arithmetic(op, v1, v2)?;
 
                 self.cpu.registers[rd as usize] = result;
                 self.cpu.update_zn_flags(result);
@@ -414,28 +424,7 @@ impl NanoCore {
 
                 let v1 = self.cpu.registers[reg as usize];
 
-                let (result, carry) = match op {
-                    Op::ADDI => v1.overflowing_add(v2),
-                    Op::SUBI => v1.overflowing_sub(v2),
-                    Op::MULI => v1.overflowing_mul(v2),
-                    Op::DIVI => {
-                        if v2 == 0 {
-                            return Err(crate::EmulatorError::DivisionByZero {
-                                op: "DIVI".to_string(),
-                            });
-                        }
-                        v1.overflowing_div(v2)
-                    }
-                    Op::MODI => {
-                        if v2 == 0 {
-                            return Err(crate::EmulatorError::DivisionByZero {
-                                op: "MODI".to_string(),
-                            });
-                        }
-                        v1.overflowing_rem(v2)
-                    }
-                    _ => unreachable!(),
-                };
+                let (result, carry) = self.execute_arithmetic(op, v1, v2)?;
 
                 self.cpu.registers[reg as usize] = result;
                 self.cpu.update_zn_flags(result);
