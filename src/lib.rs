@@ -179,62 +179,67 @@ impl From<Op> for &str {
     }
 }
 
-impl From<&str> for Op {
-    fn from(value: &str) -> Self {
+impl TryFrom<&str> for Op {
+    type Error = crate::AssemblerError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
-            "HLT" => Op::HLT,
-            "NOP" => Op::NOP,
+            "HLT" => Ok(Op::HLT),
+            "NOP" => Ok(Op::NOP),
 
-            "LDI" => Op::LDI,
-            "LDA" => Op::LDA,
-            "LDR" => Op::LDR,
+            "LDI" => Ok(Op::LDI),
+            "LDA" => Ok(Op::LDA),
+            "LDR" => Ok(Op::LDR),
 
-            "MOV" => Op::MOV,
-            "STORE" => Op::STORE,
-            "STR" => Op::STR,
+            "MOV" => Ok(Op::MOV),
+            "STORE" => Ok(Op::STORE),
+            "STR" => Ok(Op::STR),
 
-            "PUSH" => Op::PUSH,
-            "POP" => Op::POP,
+            "PUSH" => Ok(Op::PUSH),
+            "POP" => Ok(Op::POP),
 
-            "ADD" => Op::ADD,
-            "ADDI" => Op::ADDI,
-            "SUB" => Op::SUB,
-            "SUBI" => Op::SUBI,
+            "ADD" => Ok(Op::ADD),
+            "ADDI" => Ok(Op::ADDI),
+            "SUB" => Ok(Op::SUB),
+            "SUBI" => Ok(Op::SUBI),
 
-            "INC" => Op::INC,
-            "DEC" => Op::DEC,
+            "INC" => Ok(Op::INC),
+            "DEC" => Ok(Op::DEC),
 
-            "AND" => Op::AND,
-            "OR" => Op::OR,
-            "XOR" => Op::XOR,
-            "NOT" => Op::NOT,
-            "CMP" => Op::CMP,
+            "AND" => Ok(Op::AND),
+            "OR" => Ok(Op::OR),
+            "XOR" => Ok(Op::XOR),
+            "NOT" => Ok(Op::NOT),
+            "CMP" => Ok(Op::CMP),
 
-            "JMP" => Op::JMP,
-            "JMPR" => Op::JMPR,
-            "JZ" => Op::JZ,
-            "JNZ" => Op::JNZ,
+            "JMP" => Ok(Op::JMP),
+            "JMPR" => Ok(Op::JMPR),
+            "JZ" => Ok(Op::JZ),
+            "JNZ" => Ok(Op::JNZ),
 
-            "SHL" => Op::SHL,
-            "SHR" => Op::SHR,
-            "ROL" => Op::ROL,
-            "ROR" => Op::ROR,
+            "SHL" => Ok(Op::SHL),
+            "SHR" => Ok(Op::SHR),
+            "ROL" => Ok(Op::ROL),
+            "ROR" => Ok(Op::ROR),
 
-            "IN" => Op::IN,
-            "PRINT" => Op::PRINT,
+            "IN" => Ok(Op::IN),
+            "PRINT" => Ok(Op::PRINT),
 
-            "MUL" => Op::MUL,
-            "MULI" => Op::MULI,
-            "DIV" => Op::DIV,
-            "DIVI" => Op::DIVI,
-            "MOD" => Op::MOD,
-            "MODI" => Op::MODI,
+            "MUL" => Ok(Op::MUL),
+            "MULI" => Ok(Op::MULI),
+            "DIV" => Ok(Op::DIV),
+            "DIVI" => Ok(Op::DIVI),
+            "MOD" => Ok(Op::MOD),
+            "MODI" => Ok(Op::MODI),
 
-            "CALL" => Op::CALL,
-            "CALLR" => Op::CALLR,
-            "RET" => Op::RET,
+            "CALL" => Ok(Op::CALL),
+            "CALLR" => Ok(Op::CALLR),
+            "RET" => Ok(Op::RET),
 
-            _ => panic!("Invalid operation: {value}"),
+            _ => Err(crate::AssemblerError::SyntaxError {
+                line: 0, // Line number not available here, will be filled by caller
+                message: format!("Invalid operation: {value}"),
+            }),
         }
     }
 }

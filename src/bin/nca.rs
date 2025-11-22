@@ -48,7 +48,10 @@ fn main() -> std::io::Result<()> {
 
     let mut c = Assembler::default();
 
-    c.assemble(&asm);
+    if let Err(e) = c.assemble(&asm) {
+        eprintln!("Error assembling '{}': {}", args.input, e);
+        std::process::exit(1);
+    }
 
     print!("Assembled. Writing to bin.");
 
