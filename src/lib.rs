@@ -16,7 +16,10 @@
 
 pub mod assembler;
 pub mod cpu;
+pub mod error;
 pub mod nanocore;
+
+pub use error::{AssemblerError, AssemblerResult, EmulatorError, EmulatorResult};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Op {

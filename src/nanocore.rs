@@ -53,13 +53,13 @@ impl NanoCore {
         }
     }
 
-    pub fn load_program(&mut self, program: &[u8], start_address: u8) {
+    pub fn load_program(&mut self, program: &[u8], start_address: u8) -> crate::EmulatorResult<()> {
         if (start_address as usize + program.len()) > 256 {
-            panic!(
-                "Error: Program ({} bytes) starting at {:#04X} exceeds 256-byte memory limit!",
-                program.len(),
-                start_address
-            );
+            return Err(crate::EmulatorError::ProgramTooLarge {
+                size: program.len(),
+                start: start_address,
+                max: 256,
+            });
         }
 
         for (i, &byte) in program.iter().enumerate() {
@@ -67,9 +67,10 @@ impl NanoCore {
         }
 
         self.cpu.pc = start_address;
+        Ok(())
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> crate::EmulatorResult<()> {
         self.print_colored(&format!(
             "{}  NanoCore Start  {}",
             "━".repeat(45),
@@ -86,7 +87,7 @@ impl NanoCore {
                 break;
             }
 
-            self.cycle();
+            self.cycle()?;
         }
 
         self.print_colored(&format!(
@@ -94,6 +95,8 @@ impl NanoCore {
             "━".repeat(46),
             "━".repeat(50)
         ));
+
+        Ok(())
     }
 
     pub fn print_colored(&self, s: &str) {
@@ -108,13 +111,13 @@ impl NanoCore {
         println!();
     }
 
-    pub fn cycle(&mut self) {
+    pub fn cycle(&mut self) -> crate::EmulatorResult<()> {
         let (op, operands) = self.fetch_decode();
 
-        let pc_override = self.execute(op, operands);
+        let pc_override = self.execute(op, operands)?;
 
         if self.cpu.is_halted {
-            return;
+            return Ok(());
         }
 
         if !pc_override {
@@ -122,6 +125,7 @@ impl NanoCore {
         }
 
         self.cycle += 1;
+        Ok(())
     }
 
     pub fn fetch_decode(&mut self) -> (Op, Operands) {
@@ -172,7 +176,7 @@ impl NanoCore {
         (op, operands)
     }
 
-    pub fn execute(&mut self, op: Op, operands: Operands) -> bool {
+    pub fn execute(&mut self, op: Op, operands: Operands) -> crate::EmulatorResult<bool> {
         let mut pc_override = false;
 
         if !self.current_instruction.is_empty() {
@@ -195,7 +199,11 @@ impl NanoCore {
             }
             Op::LDI => {
                 let Operands::RegImm(reg, value) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "LDI".to_string(),
+                        expected: "RegImm".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 self.cpu.registers[reg as usize] = value;
@@ -205,7 +213,11 @@ impl NanoCore {
             }
             Op::LDA => {
                 let Operands::RegAddr(reg, addr) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "LDA".to_string(),
+                        expected: "RegAddr".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let value = self.cpu.memory[addr as usize];
@@ -216,7 +228,11 @@ impl NanoCore {
             }
             Op::STORE => {
                 let Operands::RegAddr(reg, addr) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "STORE".to_string(),
+                        expected: "RegAddr".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let value = self.cpu.registers[reg as usize];
@@ -227,7 +243,11 @@ impl NanoCore {
             }
             Op::STR => {
                 let Operands::RegReg(rd, rs) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "STR".to_string(),
+                        expected: "RegReg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let addr = self.cpu.registers[rs as usize];
@@ -239,7 +259,11 @@ impl NanoCore {
             }
             Op::LDR => {
                 let Operands::RegReg(rd, rs) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "LDR".to_string(),
+                        expected: "RegReg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let addr = self.cpu.registers[rs as usize];
@@ -251,7 +275,11 @@ impl NanoCore {
             }
             Op::MOV => {
                 let Operands::RegReg(rd, rs) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "MOV".to_string(),
+                        expected: "RegReg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let value = self.cpu.registers[rs as usize];
@@ -262,11 +290,15 @@ impl NanoCore {
             }
             Op::PUSH => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "PUSH".to_string(),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 if self.cpu.sp == CPU::STACK_MIN {
-                    panic!("Error: Stack Overflow SP: {}", self.cpu.sp);
+                    return Err(crate::EmulatorError::StackOverflow { sp: self.cpu.sp });
                 }
 
                 let value = self.cpu.registers[reg as usize];
@@ -280,11 +312,15 @@ impl NanoCore {
             }
             Op::POP => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "POP".to_string(),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 if self.cpu.sp == CPU::STACK_MAX {
-                    panic!("Error: Stack Underflow SP: {}", self.cpu.sp);
+                    return Err(crate::EmulatorError::StackUnderflow { sp: self.cpu.sp });
                 }
 
                 self.cpu.sp = self.cpu.sp.wrapping_add(1);
@@ -299,7 +335,11 @@ impl NanoCore {
             }
             Op::INC | Op::DEC => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: format!("{:?}", op),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let value = if op == Op::INC {
@@ -316,7 +356,11 @@ impl NanoCore {
             }
             Op::ADD | Op::SUB | Op::MUL | Op::DIV | Op::MOD => {
                 let Operands::RegReg(rd, rs) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: format!("{:?}", op),
+                        expected: "RegReg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let v1 = self.cpu.registers[rd as usize];
@@ -326,8 +370,22 @@ impl NanoCore {
                     Op::ADD => v1.overflowing_add(v2),
                     Op::SUB => v1.overflowing_sub(v2),
                     Op::MUL => v1.overflowing_mul(v2),
-                    Op::DIV => v1.overflowing_div(v2),
-                    Op::MOD => v1.overflowing_rem(v2),
+                    Op::DIV => {
+                        if v2 == 0 {
+                            return Err(crate::EmulatorError::DivisionByZero {
+                                op: "DIV".to_string(),
+                            });
+                        }
+                        v1.overflowing_div(v2)
+                    }
+                    Op::MOD => {
+                        if v2 == 0 {
+                            return Err(crate::EmulatorError::DivisionByZero {
+                                op: "MOD".to_string(),
+                            });
+                        }
+                        v1.overflowing_rem(v2)
+                    }
                     _ => unreachable!(),
                 };
 
@@ -347,7 +405,11 @@ impl NanoCore {
             }
             Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                 let Operands::RegImm(reg, v2) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: format!("{:?}", op),
+                        expected: "RegImm".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let v1 = self.cpu.registers[reg as usize];
@@ -356,8 +418,22 @@ impl NanoCore {
                     Op::ADDI => v1.overflowing_add(v2),
                     Op::SUBI => v1.overflowing_sub(v2),
                     Op::MULI => v1.overflowing_mul(v2),
-                    Op::DIVI => v1.overflowing_div(v2),
-                    Op::MODI => v1.overflowing_rem(v2),
+                    Op::DIVI => {
+                        if v2 == 0 {
+                            return Err(crate::EmulatorError::DivisionByZero {
+                                op: "DIVI".to_string(),
+                            });
+                        }
+                        v1.overflowing_div(v2)
+                    }
+                    Op::MODI => {
+                        if v2 == 0 {
+                            return Err(crate::EmulatorError::DivisionByZero {
+                                op: "MODI".to_string(),
+                            });
+                        }
+                        v1.overflowing_rem(v2)
+                    }
                     _ => unreachable!(),
                 };
 
@@ -377,7 +453,11 @@ impl NanoCore {
             }
             Op::AND | Op::OR | Op::XOR | Op::CMP => {
                 let Operands::RegReg(rd, rs) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: format!("{:?}", op),
+                        expected: "RegReg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let v1 = self.cpu.registers[rs as usize];
@@ -415,7 +495,11 @@ impl NanoCore {
             }
             Op::NOT => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "NOT".to_string(),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let value = self.cpu.registers[reg as usize];
@@ -430,7 +514,11 @@ impl NanoCore {
             }
             Op::JMP => {
                 let Operands::Addr(a) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "JMP".to_string(),
+                        expected: "Addr".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 self.cpu.pc = a;
@@ -441,7 +529,11 @@ impl NanoCore {
             }
             Op::JMPR => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "JMPR".to_string(),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let addr = self.cpu.registers[reg as usize];
@@ -452,7 +544,11 @@ impl NanoCore {
             }
             Op::JZ | Op::JNZ => {
                 let Operands::Addr(a) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: format!("{:?}", op),
+                        expected: "Addr".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 self.current_instruction = format!(
@@ -475,7 +571,11 @@ impl NanoCore {
             }
             Op::PRINT => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "PRINT".to_string(),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let value = self.cpu.registers[reg as usize];
@@ -492,7 +592,11 @@ impl NanoCore {
             }
             Op::IN => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "IN".to_string(),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let mut buffer = [0; 1];
@@ -509,7 +613,11 @@ impl NanoCore {
             }
             Op::SHL | Op::SHR | Op::ROL | Op::ROR => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: format!("{:?}", op),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 let value = self.cpu.registers[reg as usize];
@@ -544,11 +652,15 @@ impl NanoCore {
             }
             Op::CALL => {
                 let Operands::Addr(a) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "CALL".to_string(),
+                        expected: "Addr".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 if self.cpu.sp == CPU::STACK_MIN {
-                    panic!("Error: Stack Overflow SP: {}", self.cpu.sp);
+                    return Err(crate::EmulatorError::StackOverflow { sp: self.cpu.sp });
                 }
 
                 self.cpu.memory[self.cpu.sp as usize] = self.cpu.pc.wrapping_add(2);
@@ -562,11 +674,15 @@ impl NanoCore {
             }
             Op::CALLR => {
                 let Operands::Reg(reg) = operands else {
-                    panic!("Invalid!");
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "CALLR".to_string(),
+                        expected: "Reg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
                 };
 
                 if self.cpu.sp == CPU::STACK_MIN {
-                    panic!("Error: Stack Overflow SP: {}", self.cpu.sp);
+                    return Err(crate::EmulatorError::StackOverflow { sp: self.cpu.sp });
                 }
 
                 self.cpu.memory[self.cpu.sp as usize] = self.cpu.pc.wrapping_add(2);
@@ -580,7 +696,7 @@ impl NanoCore {
             }
             Op::RET => {
                 if self.cpu.sp == CPU::STACK_MAX {
-                    panic!("Error: Stack Underflow SP: {}", self.cpu.sp);
+                    return Err(crate::EmulatorError::StackUnderflow { sp: self.cpu.sp });
                 }
 
                 self.cpu.sp = self.cpu.sp.wrapping_add(1);
@@ -595,10 +711,10 @@ impl NanoCore {
         }
 
         if self.print_instructions {
-            println!("-> {}", self.current_instruction);
+            println!("->{}", self.current_instruction);
         }
 
-        pc_override
+        Ok(pc_override)
     }
 }
 
