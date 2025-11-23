@@ -108,10 +108,7 @@ fn test_division_by_zero_modi() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// Note: Stack overflow test is complex due to stack architecture details
-// The other 9 error handling tests provide excellent coverage
 #[test]
-#[ignore] // Ignoring due to complexity of stack pointer mechanics
 fn test_stack_overflow() -> Result<(), Box<dyn std::error::Error>> {
     let mut nano = NanoCore::new();
 
@@ -120,7 +117,7 @@ fn test_stack_overflow() -> Result<(), Box<dyn std::error::Error>> {
     let mut program = vec![];
 
     for _ in 0..10 {
-        program.push(0x10); // PUSH opcode
+        program.push(0x07); // PUSH opcode
         program.push(0x00); // R0
     }
     program.push(0x00); // HLT
