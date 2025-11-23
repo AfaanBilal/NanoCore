@@ -27,15 +27,16 @@ pub struct Assembler {
 }
 
 impl Assembler {
-    pub fn assemble(&mut self, asm: &str) {
+    pub fn assemble(&mut self, asm: &str) -> crate::AssemblerResult<()> {
         self.asm = asm.to_owned();
 
-        self.map_constants();
-        self.map_labels();
+        self.map_constants()?;
+        self.map_labels()?;
 
         let lines = self.asm.lines();
 
-        for line in lines {
+        for (line_idx, line) in lines.enumerate() {
+            let line_num = line_idx + 1;
             let line = line.trim();
             // Strip comment
             let line = if let Some(idx) = line.find(';') {
@@ -55,14 +56,20 @@ impl Assembler {
             if line.starts_with(".DB") {
                 let parts = line.split_whitespace().collect::<Vec<&str>>();
                 for part in parts.iter().skip(1) {
-                    self.program.push(self.resolve_number(part));
+                    self.program.push(self.resolve_number(part, line_num)?);
                 }
                 continue;
             }
 
             if line.starts_with(".STRING") {
-                let start = line.find('"').expect("Expected start of string") + 1;
-                let end = line.rfind('"').expect("Expected end of string");
+                let start = line.find('"').ok_or(crate::AssemblerError::SyntaxError {
+                    line: line_num,
+                    message: "Expected start of string".to_string(),
+                })? + 1;
+                let end = line.rfind('"').ok_or(crate::AssemblerError::SyntaxError {
+                    line: line_num,
+                    message: "Expected end of string".to_string(),
+                })?;
                 let content = &line[start..end];
                 for byte in content.bytes() {
                     self.program.push(byte);
@@ -71,21 +78,47 @@ impl Assembler {
             }
 
             let parts = line.split_whitespace().collect::<Vec<&str>>();
-            let op: Op = parts[0].into();
+            if parts.is_empty() {
+                continue;
+            }
+
+            let op: Op = match Op::try_from(parts[0]) {
+                Ok(op) => op,
+                Err(crate::AssemblerError::SyntaxError { message, .. }) => {
+                    return Err(crate::AssemblerError::SyntaxError {
+                        line: line_num,
+                        message,
+                    });
+                }
+                Err(e) => return Err(e),
+            };
+
             let opcode: u8 = op.into();
 
             match op {
                 Op::HLT | Op::RET => self.program.push(opcode),
                 Op::NOP => {}
                 Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
+                    if parts.len() < 3 {
+                        return Err(crate::AssemblerError::SyntaxError {
+                            line: line_num,
+                            message: format!("{} requires 2 arguments", op),
+                        });
+                    }
                     self.program.push(opcode);
-                    self.program.push(Self::register(parts[1]));
-                    self.program.push(self.resolve_number(parts[2]));
+                    self.program.push(Self::register(parts[1], line_num)?);
+                    self.program.push(self.resolve_number(parts[2], line_num)?);
                 }
                 Op::LDA | Op::STORE => {
+                    if parts.len() < 3 {
+                        return Err(crate::AssemblerError::SyntaxError {
+                            line: line_num,
+                            message: format!("{} requires 2 arguments", op),
+                        });
+                    }
                     self.program.push(opcode);
-                    self.program.push(Self::register(parts[1]));
-                    self.program.push(self.resolve_number(parts[2]));
+                    self.program.push(Self::register(parts[1], line_num)?);
+                    self.program.push(self.resolve_number(parts[2], line_num)?);
                 }
                 Op::LDR
                 | Op::MOV
@@ -99,9 +132,17 @@ impl Assembler {
                 | Op::DIV
                 | Op::MOD
                 | Op::STR => {
+                    if parts.len() < 3 {
+                        return Err(crate::AssemblerError::SyntaxError {
+                            line: line_num,
+                            message: format!("{} requires 2 arguments", op),
+                        });
+                    }
                     self.program.push(opcode);
-                    self.program
-                        .push(Self::register(parts[1]) << 4 | Self::register(parts[2]));
+                    self.program.push(
+                        Self::register(parts[1], line_num)? << 4
+                            | Self::register(parts[2], line_num)?,
+                    );
                 }
                 Op::PUSH
                 | Op::POP
@@ -116,14 +157,26 @@ impl Assembler {
                 | Op::JMPR
                 | Op::CALLR
                 | Op::PRINT => {
+                    if parts.len() < 2 {
+                        return Err(crate::AssemblerError::SyntaxError {
+                            line: line_num,
+                            message: format!("{} requires 1 argument", op),
+                        });
+                    }
                     self.program.push(opcode);
-                    self.program.push(Self::register(parts[1]));
+                    self.program.push(Self::register(parts[1], line_num)?);
                 }
                 Op::JMP | Op::JZ | Op::JNZ | Op::CALL => {
+                    if parts.len() < 2 {
+                        return Err(crate::AssemblerError::SyntaxError {
+                            line: line_num,
+                            message: format!("{} requires 1 argument", op),
+                        });
+                    }
                     let addr = if self.labels.contains_key(parts[1]) {
                         *self.labels.get(parts[1]).unwrap()
                     } else {
-                        self.resolve_number(parts[1])
+                        self.resolve_number(parts[1], line_num)?
                     };
 
                     self.program.push(opcode);
@@ -131,14 +184,16 @@ impl Assembler {
                 }
             }
         }
+        Ok(())
     }
 
-    pub fn map_labels(&mut self) {
+    pub fn map_labels(&mut self) -> crate::AssemblerResult<()> {
         let lines = self.asm.lines();
 
         let mut addr: u8 = 0;
 
-        for line in lines {
+        for (line_idx, line) in lines.enumerate() {
+            let line_num = line_idx + 1;
             let line = line.trim();
 
             // Strip comment
@@ -154,34 +209,55 @@ impl Assembler {
 
             if line.starts_with(".DB") {
                 let parts = line.split_whitespace().collect::<Vec<&str>>();
-                addr += (parts.len() - 1) as u8;
+                addr = addr.wrapping_add((parts.len() - 1) as u8);
                 continue;
             }
 
             if line.starts_with(".STRING") {
-                let start = line.find('"').expect("Expected start of string") + 1;
-                let end = line.rfind('"').expect("Expected end of string");
-                addr += (end - start) as u8;
+                let start = line.find('"').ok_or(crate::AssemblerError::SyntaxError {
+                    line: line_num,
+                    message: "Expected start of string".to_string(),
+                })? + 1;
+                let end = line.rfind('"').ok_or(crate::AssemblerError::SyntaxError {
+                    line: line_num,
+                    message: "Expected end of string".to_string(),
+                })?;
+                addr = addr.wrapping_add((end - start) as u8);
                 continue;
             }
 
             if Self::is_label(line) {
                 self.labels
-                    .insert(line.strip_suffix(':').unwrap().to_owned(), addr);
+                    .insert(line.trim_end_matches(':').to_owned(), addr);
                 continue;
             }
 
             let parts = line.split_whitespace().collect::<Vec<&str>>();
+            if parts.is_empty() {
+                continue;
+            }
 
-            let op: Op = parts[0].into();
-            addr += op.instruction_len();
+            let op: Op = match Op::try_from(parts[0]) {
+                Ok(op) => op,
+                Err(crate::AssemblerError::SyntaxError { message, .. }) => {
+                    return Err(crate::AssemblerError::SyntaxError {
+                        line: line_num,
+                        message,
+                    });
+                }
+                Err(e) => return Err(e),
+            };
+
+            addr = addr.wrapping_add(op.instruction_len());
         }
+        Ok(())
     }
 
-    pub fn map_constants(&mut self) {
+    pub fn map_constants(&mut self) -> crate::AssemblerResult<()> {
         let lines = self.asm.lines();
 
-        for line in lines {
+        for (line_idx, line) in lines.enumerate() {
+            let line_num = line_idx + 1;
             let line = line.trim();
 
             // Strip comment
@@ -196,50 +272,84 @@ impl Assembler {
             }
 
             let parts = line.split_whitespace().collect::<Vec<&str>>();
+            if parts.len() < 3 {
+                return Err(crate::AssemblerError::SyntaxError {
+                    line: line_num,
+                    message: "Invalid constant definition".to_string(),
+                });
+            }
+
             let name = parts[1];
             let value = if parts[2].starts_with("0x") {
-                Self::from_hex_str(parts[2])
+                Self::from_hex_str(parts[2], line_num)?
             } else {
-                Self::from_value_str(parts[2])
+                Self::from_value_str(parts[2], line_num)?
             };
 
             self.constants.insert(name.to_owned(), value);
         }
+        Ok(())
     }
 
-    pub fn resolve_number(&self, v: &str) -> u8 {
+    pub fn resolve_number(&self, v: &str, line: usize) -> crate::AssemblerResult<u8> {
         if let Some(value) = self.constants.get(v) {
-            return *value;
+            return Ok(*value);
         }
 
         if v.starts_with("0x") {
-            Self::from_hex_str(v)
+            Self::from_hex_str(v, line)
         } else {
-            Self::from_value_str(v)
+            Self::from_value_str(v, line)
         }
     }
 
-    pub fn register(r: &str) -> u8 {
+    pub fn register(r: &str, line: usize) -> crate::AssemblerResult<u8> {
         let register = r
             .strip_prefix("R")
-            .expect("Expected register R0..R15")
+            .ok_or(crate::AssemblerError::InvalidRegister {
+                line,
+                name: r.to_string(),
+            })?
             .parse::<u8>()
-            .expect("Expected register R0..R15");
+            .map_err(|_| crate::AssemblerError::InvalidRegister {
+                line,
+                name: r.to_string(),
+            })?;
 
         if register > 15 {
-            panic!("Invalid register {r}");
+            return Err(crate::AssemblerError::InvalidRegister {
+                line,
+                name: r.to_string(),
+            });
         }
 
-        register
+        Ok(register)
     }
 
-    pub fn from_value_str(v: &str) -> u8 {
-        v.parse::<u8>().expect("Invalid value")
+    pub fn from_value_str(v: &str, line: usize) -> crate::AssemblerResult<u8> {
+        v.parse::<u8>()
+            .map_err(|_| crate::AssemblerError::InvalidValue {
+                line,
+                value: v.to_string(),
+            })
     }
 
-    pub fn from_hex_str(v: &str) -> u8 {
-        hex::decode(v.strip_prefix("0x").expect("Invalid hex address")).expect("Expected address")
-            [0]
+    pub fn from_hex_str(v: &str, line: usize) -> crate::AssemblerResult<u8> {
+        let bytes = hex::decode(v.strip_prefix("0x").unwrap_or(v)).map_err(|_| {
+            crate::AssemblerError::InvalidHexAddress {
+                line,
+                value: v.to_string(),
+            }
+        })?;
+
+        if bytes.is_empty() {
+            return Err(crate::AssemblerError::InvalidValue {
+                line,
+                value: v.to_string(),
+            });
+        }
+
+        Ok(bytes[0])
     }
 
     pub fn is_label(l: &str) -> bool {
@@ -269,7 +379,7 @@ mod tests {
     #[allow(clippy::identity_op)]
     fn test_assemble() {
         let mut c = Assembler::default();
-        c.assemble(
+        let _ = c.assemble(
             "LDI R0 253
                  LDI R1 65
                  PRINT R1
@@ -301,7 +411,8 @@ mod tests {
              ROL R0
              ROR R0
              HLT",
-        );
+        )
+        .unwrap();
 
         assert_eq!(
             &c.program,
@@ -324,7 +435,8 @@ mod tests {
         c.assemble(
             "PUSH R0
              POP R1",
-        );
+        )
+        .unwrap();
 
         assert_eq!(&c.program, &[Op::PUSH.into(), 0, Op::POP.into(), 1,])
     }
@@ -343,7 +455,8 @@ mod tests {
              MULI R0 1
              DIVI R0 1
              MODI R0 1",
-        );
+        )
+        .unwrap();
 
         assert_eq!(
             &c.program,
@@ -386,8 +499,8 @@ mod tests {
              JNZ 0x10
              CALL 0x10
              RET",
-        );
-
+        )
+        .unwrap();
         assert_eq!(
             &c.program,
             &[
@@ -413,7 +526,8 @@ mod tests {
              XOR R0 R1
              NOT R0
              CMP R0 R1",
-        );
+        )
+        .unwrap();
 
         assert_eq!(
             &c.program,
@@ -440,7 +554,8 @@ mod tests {
              .CONST ADDR 0x10
              LDI R0 VAL
              JMP ADDR",
-        );
+        )
+        .unwrap();
 
         assert_eq!(&c.program, &[Op::LDI.into(), 0, 10, Op::JMP.into(), 0x10,])
     }
@@ -451,7 +566,8 @@ mod tests {
         c.assemble(
             "IN R0
              PRINT R0",
-        );
+        )
+        .unwrap();
 
         assert_eq!(&c.program, &[Op::IN.into(), 0, Op::PRINT.into(), 0,])
     }
@@ -462,7 +578,8 @@ mod tests {
         c.assemble(
             "JMPR R0
              CALLR R1",
-        );
+        )
+        .unwrap();
 
         assert_eq!(&c.program, &[Op::JMPR.into(), 0, Op::CALLR.into(), 1,])
     }
@@ -474,7 +591,8 @@ mod tests {
             ".DB 0x01 0x02 10
              .STRING \"ABC\"
              LDI R0 0xFF",
-        );
+        )
+        .unwrap();
 
         assert_eq!(
             &c.program,
@@ -495,7 +613,7 @@ mod tests {
     #[test]
     fn test_assemble_str() {
         let mut c = Assembler::default();
-        c.assemble("STR R0 R1");
+        c.assemble("STR R0 R1").unwrap();
 
         assert_eq!(&c.program, &[Op::STR.into(), 0x01])
     }

@@ -41,22 +41,24 @@ struct Args {
     print_instructions: bool,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     let bytes = if args.input.ends_with(".nca") {
-        let asm = fs::read_to_string(&args.input).unwrap();
+        let asm = fs::read_to_string(&args.input)
+            .map_err(|e| format!("Failed to read '{}': {}", args.input, e))?;
 
         if args.print_state {
             println!("Assembling {}", &args.input);
         }
 
         let mut c = Assembler::default();
-        c.assemble(&asm);
+        c.assemble(&asm)
+            .map_err(|e| format!("Assembly failed: {}", e))?;
 
         c.program
     } else {
-        fs::read(args.input).unwrap()
+        fs::read(&args.input).map_err(|e| format!("Failed to read '{}': {}", args.input, e))?
     };
 
     let mut nano = NanoCore::new();
@@ -64,6 +66,8 @@ fn main() {
     nano.print_state = args.print_state;
     nano.print_instructions = args.print_instructions;
 
-    nano.load_program(&bytes, 0x00);
-    nano.run();
+    nano.load_program(&bytes, 0x00)?;
+    nano.run()?;
+
+    Ok(())
 }
