@@ -18,6 +18,7 @@ pub mod assembler;
 pub mod cpu;
 pub mod error;
 pub mod nanocore;
+pub mod tui;
 
 pub use error::{AssemblerError, AssemblerResult, EmulatorError, EmulatorResult};
 
