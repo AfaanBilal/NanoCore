@@ -228,7 +228,7 @@ impl Assembler {
 
             if Self::is_label(line) {
                 self.labels
-                    .insert(line.strip_suffix(':').unwrap().to_owned(), addr);
+                    .insert(line.trim_end_matches(':').to_owned(), addr);
                 continue;
             }
 
