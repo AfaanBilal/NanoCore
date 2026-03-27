@@ -19,7 +19,7 @@ This project serves as an educational exercise in understanding the fundamental 
   * **Variable-Length Instruction Set:** Supports both 1-byte, 2-byte and 3-byte instructions to maximize opcode efficiency and flexibility within the limited address space.
   * **Modular Design:** CPU cycle is broken down into distinct Fetch, Decode, and Execute phases for clarity.
   * **Inbuilt Two-Pass Assembler:** The NanoCore Assembler makes it easier to program it by writing NanoCore Assembly instead of direct machine code.
-  * **Terminal User Interface:** Fully function TUI as seen above with breakpoints for easy debugging.
+  * **Terminal User Interface:** Fully functional TUI as seen above with breakpoints for easy debugging.
 
 ## 🧮 Instruction Set Architecture (ISA)
 
