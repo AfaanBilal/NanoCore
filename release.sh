@@ -44,7 +44,7 @@ rm -f Cargo.toml.bak
 cargo update --workspace --quiet
 
 # Commit
-git add Cargo.toml Cargo.lock docs/index.html
+git add Cargo.toml Cargo.lock
 git commit -m "chore: release $TAG"
 
 # Tag and push
