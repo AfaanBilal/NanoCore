@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build — ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+            asset_name: nanocore-linux-x86_64
+
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+            asset_name: nanocore-linux-arm64
+
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            archive: tar.gz
+            asset_name: nanocore-macos-x86_64
+
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            archive: tar.gz
+            asset_name: nanocore-macos-arm64
+
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive: zip
+            asset_name: nanocore-windows-x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools (aarch64 Linux)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package (Unix)
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          BINARY=target/${{ matrix.target }}/release/nanocore
+          ARCHIVE=${{ matrix.asset_name }}.tar.gz
+          tar -czf "$ARCHIVE" -C "$(dirname $BINARY)" "$(basename $BINARY)"
+          echo "ASSET=$ARCHIVE" >> $GITHUB_ENV
+
+      - name: Package (Windows)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          $binary = "target\${{ matrix.target }}\release\nanocore.exe"
+          $archive = "${{ matrix.asset_name }}.zip"
+          Compress-Archive -Path $binary -DestinationPath $archive
+          "ASSET=$archive" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ env.ASSET }}
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: artifacts/*

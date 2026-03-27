@@ -3,6 +3,12 @@ name = "nanocore"
 version = "0.1.0"
 edition = "2024"
 default-run = "nanocore"
+description = "NanoCore is a meticulously crafted emulator for a custom, true 8-bit CPU."
+license = "MIT"
+repository = "https://github.com/AfaanBilal/NanoCore"
+homepage = "https://github.com/AfaanBilal/NanoCore"
+documentation = "https://github.com/AfaanBilal/NanoCore"
+authors = ["Afaan Bilal"]
 
 [dependencies]
 clap = { version = "4.5.41", features = ["derive"] }
