@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Afaan Bilal" />
+  <title>NanoCore — 8-bit CPU Emulator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo">NanoCore<span class="dot accent">.</span></a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#isa">ISA</a>
+      <a href="#assembly">Assembly</a>
+      <a href="#cli">CLI</a>
+      <a href="#tui">TUI</a>
+      <a href="https://github.com/AfaanBilal/NanoCore" target="_blank" class="btn-nav">GitHub</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="hero-badge">v0.1.1 &mdash; MIT License</div>
+        <h1>A meticulously crafted<br /><span class="accent">8-bit CPU emulator</span></h1>
+        <p class="hero-sub">
+          256 bytes of memory. 16 registers. 45+ instructions.<br />
+          Built in Rust. Complete with assembler and TUI debugger.
+        </p>
+        <div class="hero-actions">
+          <div class="code-block hero-code">
+<span class="prompt">$</span> <span class="sh-cmd">git</span> <span class="sh-sub">clone</span> <span class="sh-path">https://github.com/AfaanBilal/NanoCore.git</span>
+<span class="prompt">$</span> <span class="sh-cmd">cd</span> <span class="sh-path">NanoCore</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-op">--</span> <span class="sh-path">programs/counter.nca</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-gif-wrap">
+          <img src="https://raw.githubusercontent.com/AfaanBilal/NanoCore/master/assets/NanoCoreTUI.gif" alt="NanoCore TUI debugger" />
+        </div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="accent stat-num">256</span><span class="stat-label">bytes memory</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="accent stat-num">16</span><span class="stat-label">registers</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="accent stat-num">45+</span><span class="stat-label">instructions</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="accent stat-num">3</span><span class="stat-label">CLI tools</span></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="section">
+    <h2 class="section-title">Features</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon accent">CPU</div>
+        <h3>True 8-bit Architecture</h3>
+        <p>All registers, Program Counter, Stack Pointer, and memory addresses are strictly 8-bit. No shortcuts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon accent">ASM</div>
+        <h3>Built-in Two-pass Assembler</h3>
+        <p>Write <code>.nca</code> assembly files with labels, constants, strings, and raw data directives. Assembles to compact binary <code>.ncb</code> format.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon accent">TUI</div>
+        <h3>Terminal UI Debugger</h3>
+        <p>Interactive debugger with register state visualization, memory view, instruction log, and breakpoint support — all in your terminal.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon accent">VAR</div>
+        <h3>Variable-length Instructions</h3>
+        <p>1-byte, 2-byte, and 3-byte instructions pack maximum program logic into 256 bytes of addressable space.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon accent">FDE</div>
+        <h3>Fetch-Decode-Execute</h3>
+        <p>Modular CPU design with distinct Fetch, Decode, and Execute phases makes the architecture transparent and educational.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon accent">ERR</div>
+        <h3>Typed Error Handling</h3>
+        <p>Stack overflow/underflow, division by zero, invalid operands — all represented as structured Rust error types with useful diagnostics.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture" class="section">
+    <h2 class="section-title">Architecture</h2>
+    <p class="section-desc">NanoCore models a simple but complete von Neumann architecture. All components live in 256 bytes.</p>
+
+    <div class="arch-layout">
+      <!-- Registers -->
+      <div class="arch-block">
+        <div class="arch-block-title">Registers</div>
+        <div class="reg-grid">
+          <div class="reg"><span class="reg-name">R0</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R1</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R2</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R3</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R4</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R5</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R6</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R7</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R8</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R9</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R10</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R11</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R12</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R13</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R14</span><span class="reg-bits">8-bit</span></div>
+          <div class="reg"><span class="reg-name">R15</span><span class="reg-bits">8-bit</span></div>
+        </div>
+      </div>
+
+      <!-- Special Registers + Flags -->
+      <div class="arch-col">
+        <div class="arch-block">
+          <div class="arch-block-title">Special Registers</div>
+          <div class="special-regs">
+            <div class="sreg"><span class="sreg-name accent">PC</span><span class="sreg-desc">Program Counter</span><span class="sreg-bits">0x00 – 0xFF</span></div>
+            <div class="sreg"><span class="sreg-name accent">SP</span><span class="sreg-desc">Stack Pointer</span><span class="sreg-bits">0xEA – 0xFF</span></div>
+          </div>
+        </div>
+        <div class="arch-block">
+          <div class="arch-block-title">Flags</div>
+          <div class="flags-grid">
+            <div class="flag"><span class="flag-name accent">Z</span><span class="flag-desc">Zero</span></div>
+            <div class="flag"><span class="flag-name accent">C</span><span class="flag-desc">Carry</span></div>
+            <div class="flag"><span class="flag-name accent">N</span><span class="flag-desc">Negative</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Memory Map -->
+      <div class="arch-block">
+        <div class="arch-block-title">Memory Map (256 bytes)</div>
+        <div class="memory-map">
+          <div class="mem-seg" style="flex:0.9">
+            <span class="mem-label">Program / Data</span>
+            <span class="mem-range">0x00 – 0xE9</span>
+          </div>
+          <div class="mem-seg mem-stack" style="flex:0.1">
+            <span class="mem-label accent">Stack</span>
+            <span class="mem-range">0xEA – 0xFF</span>
+          </div>
+        </div>
+        <p class="mem-note">Stack grows downward from 0xFF. 22 bytes available. Program loads at configurable start address.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ISA -->
+  <section id="isa" class="section">
+    <h2 class="section-title">Instruction Set</h2>
+    <p class="section-desc">45+ instructions across 7 categories. Variable-length encoding (1–3 bytes).</p>
+
+    <div class="isa-categories">
+
+      <div class="isa-category">
+        <div class="isa-cat-title">Control Flow</div>
+        <table class="isa-table">
+          <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>HLT</code></td><td>—</td><td>1</td><td>Halt execution</td></tr>
+            <tr><td><code>NOP</code></td><td>—</td><td>1</td><td>No operation</td></tr>
+            <tr><td><code>JMP</code></td><td>addr</td><td>2</td><td>Unconditional jump to address</td></tr>
+            <tr><td><code>JMPR</code></td><td>Rx</td><td>2</td><td>Jump to address in register</td></tr>
+            <tr><td><code>JZ</code></td><td>addr</td><td>2</td><td>Jump if Zero flag set</td></tr>
+            <tr><td><code>JNZ</code></td><td>addr</td><td>2</td><td>Jump if Zero flag clear</td></tr>
+            <tr><td><code>CALL</code></td><td>addr</td><td>2</td><td>Call subroutine (push return addr)</td></tr>
+            <tr><td><code>CALLR</code></td><td>Rx</td><td>2</td><td>Call subroutine via register</td></tr>
+            <tr><td><code>RET</code></td><td>—</td><td>1</td><td>Return from subroutine</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="isa-category">
+        <div class="isa-cat-title">Load / Store</div>
+        <table class="isa-table">
+          <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>LDI</code></td><td>Rd, imm8</td><td>3</td><td>Load immediate value into register</td></tr>
+            <tr><td><code>LDA</code></td><td>Rd, addr</td><td>3</td><td>Load from memory address into register</td></tr>
+            <tr><td><code>LDR</code></td><td>Rd, Rs</td><td>2</td><td>Load from address in Rs into Rd</td></tr>
+            <tr><td><code>MOV</code></td><td>Rd, Rs</td><td>2</td><td>Copy register Rs into Rd</td></tr>
+            <tr><td><code>STORE</code></td><td>addr, Rs</td><td>3</td><td>Store register into memory address</td></tr>
+            <tr><td><code>STR</code></td><td>Rd, Rs</td><td>2</td><td>Store Rs at address held in Rd</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="isa-category">
+        <div class="isa-cat-title">Arithmetic</div>
+        <table class="isa-table">
+          <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ADD</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd + Rs</td></tr>
+            <tr><td><code>ADDI</code></td><td>Rd, imm8</td><td>3</td><td>Rd = Rd + imm8</td></tr>
+            <tr><td><code>SUB</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd − Rs</td></tr>
+            <tr><td><code>SUBI</code></td><td>Rd, imm8</td><td>3</td><td>Rd = Rd − imm8</td></tr>
+            <tr><td><code>INC</code></td><td>Rd</td><td>2</td><td>Rd = Rd + 1</td></tr>
+            <tr><td><code>DEC</code></td><td>Rd</td><td>2</td><td>Rd = Rd − 1</td></tr>
+            <tr><td><code>MUL</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd × Rs</td></tr>
+            <tr><td><code>MULI</code></td><td>Rd, imm8</td><td>3</td><td>Rd = Rd × imm8</td></tr>
+            <tr><td><code>DIV</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd ÷ Rs</td></tr>
+            <tr><td><code>DIVI</code></td><td>Rd, imm8</td><td>3</td><td>Rd = Rd ÷ imm8</td></tr>
+            <tr><td><code>MOD</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd mod Rs</td></tr>
+            <tr><td><code>MODI</code></td><td>Rd, imm8</td><td>3</td><td>Rd = Rd mod imm8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="isa-two-col">
+        <div class="isa-category">
+          <div class="isa-cat-title">Logic</div>
+          <table class="isa-table">
+            <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>AND</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd &amp; Rs</td></tr>
+              <tr><td><code>OR</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd | Rs</td></tr>
+              <tr><td><code>XOR</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd ^ Rs</td></tr>
+              <tr><td><code>NOT</code></td><td>Rd</td><td>2</td><td>Rd = ~Rd</td></tr>
+              <tr><td><code>CMP</code></td><td>Rd, Rs</td><td>2</td><td>Set flags from Rd − Rs (no store)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="isa-category">
+          <div class="isa-cat-title">Bit Shifts</div>
+          <table class="isa-table">
+            <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>SHL</code></td><td>Rd, Rs</td><td>2</td><td>Logical shift left</td></tr>
+              <tr><td><code>SHR</code></td><td>Rd, Rs</td><td>2</td><td>Logical shift right</td></tr>
+              <tr><td><code>ROL</code></td><td>Rd, Rs</td><td>2</td><td>Rotate left</td></tr>
+              <tr><td><code>ROR</code></td><td>Rd, Rs</td><td>2</td><td>Rotate right</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="isa-two-col">
+        <div class="isa-category">
+          <div class="isa-cat-title">Stack</div>
+          <table class="isa-table">
+            <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>PUSH</code></td><td>Rs</td><td>2</td><td>Push register onto stack</td></tr>
+              <tr><td><code>POP</code></td><td>Rd</td><td>2</td><td>Pop top of stack into register</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="isa-category">
+          <div class="isa-cat-title">I/O</div>
+          <table class="isa-table">
+            <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>IN</code></td><td>Rd</td><td>2</td><td>Read a byte from stdin into Rd</td></tr>
+              <tr><td><code>PRINT</code></td><td>Rs</td><td>2</td><td>Print register value as ASCII char</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ASSEMBLY -->
+  <section id="assembly" class="section">
+    <h2 class="section-title">Assembly Language</h2>
+    <p class="section-desc">NanoCore Assembly (<code>.nca</code>) is a simple, human-readable format. Write programs, assemble to binary, run or debug them.</p>
+
+    <div class="asm-layout">
+
+      <div class="asm-col">
+        <h3 class="subsection-title">Syntax Reference</h3>
+        <div class="code-block">
+<span class="asm-comment">; This is a comment</span>
+
+<span class="asm-comment">; Define a constant</span>
+<span class="asm-directive">.CONST</span> <span class="asm-label-name">MAX</span> <span class="asm-num">10</span>
+
+<span class="asm-comment">; Embed raw bytes</span>
+<span class="asm-directive">.DB</span> <span class="asm-num">0x41 0x42 0x43</span>
+
+<span class="asm-comment">; Embed an ASCII string</span>
+<span class="asm-directive">.STRING</span> <span class="asm-str">"Hello"</span>
+
+<span class="asm-comment">; Label definition</span>
+<span class="asm-label-name">start</span><span class="asm-punct">:</span>
+    <span class="asm-op">LDI</span>  <span class="asm-reg">R0</span>  <span class="asm-num">0</span>     <span class="asm-comment">; R0 = 0</span>
+    <span class="asm-op">LDI</span>  <span class="asm-reg">R1</span>  <span class="asm-num">1</span>     <span class="asm-comment">; R1 = 1</span>
+    <span class="asm-op">LDI</span>  <span class="asm-reg">R2</span>  <span class="asm-num">MAX</span>   <span class="asm-comment">; R2 = 10 (constant)</span>
+
+<span class="asm-label-name">loop</span><span class="asm-punct">:</span>
+    <span class="asm-op">ADD</span>  <span class="asm-reg">R0</span>  <span class="asm-reg">R1</span>    <span class="asm-comment">; R0 += R1</span>
+    <span class="asm-op">DEC</span>  <span class="asm-reg">R2</span>        <span class="asm-comment">; R2--</span>
+    <span class="asm-op">JNZ</span>  <span class="asm-label-name">loop</span>      <span class="asm-comment">; repeat if R2 != 0</span>
+    <span class="asm-op">HLT</span>            <span class="asm-comment">; done</span>
+        </div>
+      </div>
+
+      <div class="asm-col">
+        <h3 class="subsection-title">Fibonacci Sequence</h3>
+        <div class="code-block">
+<span class="asm-label-name">start</span><span class="asm-punct">:</span>
+    <span class="asm-op">LDI</span>  <span class="asm-reg">R0</span>   <span class="asm-num">0</span>
+    <span class="asm-op">LDI</span>  <span class="asm-reg">R1</span>   <span class="asm-num">1</span>
+    <span class="asm-op">LDI</span>  <span class="asm-reg">R2</span>   <span class="asm-num">12</span>     <span class="asm-comment">; count</span>
+    <span class="asm-op">LDI</span>  <span class="asm-reg">R12</span>  <span class="asm-num">32</span>     <span class="asm-comment">; space char</span>
+
+<span class="asm-label-name">loop</span><span class="asm-punct">:</span>
+    <span class="asm-op">JMP</span>  <span class="asm-label-name">print</span>
+<span class="asm-label-name">resume</span><span class="asm-punct">:</span>
+    <span class="asm-op">MOV</span>  <span class="asm-reg">R3</span>   <span class="asm-reg">R1</span>
+    <span class="asm-op">ADD</span>  <span class="asm-reg">R1</span>   <span class="asm-reg">R0</span>
+    <span class="asm-op">MOV</span>  <span class="asm-reg">R0</span>   <span class="asm-reg">R3</span>
+    <span class="asm-op">DEC</span>  <span class="asm-reg">R2</span>
+    <span class="asm-op">JNZ</span>  <span class="asm-label-name">loop</span>
+    <span class="asm-op">HLT</span>
+
+<span class="asm-label-name">print</span><span class="asm-punct">:</span>
+    <span class="asm-op">PUSH</span> <span class="asm-reg">R10</span>
+    <span class="asm-op">MOV</span>  <span class="asm-reg">R10</span>  <span class="asm-reg">R0</span>
+    <span class="asm-op">DIVI</span> <span class="asm-reg">R10</span>  <span class="asm-num">10</span>
+    <span class="asm-op">JZ</span>   <span class="asm-label-name">unit</span>
+    <span class="asm-op">ADDI</span> <span class="asm-reg">R10</span>  <span class="asm-num">48</span>
+    <span class="asm-op">PRINT</span> <span class="asm-reg">R10</span>
+<span class="asm-label-name">unit</span><span class="asm-punct">:</span>
+    <span class="asm-op">MOV</span>  <span class="asm-reg">R10</span>  <span class="asm-reg">R0</span>
+    <span class="asm-op">MODI</span> <span class="asm-reg">R10</span>  <span class="asm-num">10</span>
+    <span class="asm-op">ADDI</span> <span class="asm-reg">R10</span>  <span class="asm-num">48</span>
+    <span class="asm-op">PRINT</span> <span class="asm-reg">R10</span>
+    <span class="asm-op">PRINT</span> <span class="asm-reg">R12</span>
+    <span class="asm-op">POP</span>  <span class="asm-reg">R10</span>
+    <span class="asm-op">JMP</span>  <span class="asm-label-name">resume</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="directives-row">
+      <h3 class="subsection-title">Assembler Directives</h3>
+      <div class="directives-grid">
+        <div class="directive-card">
+          <code class="accent">.CONST name value</code>
+          <p>Define a named constant. Use the name anywhere an immediate value is expected.</p>
+        </div>
+        <div class="directive-card">
+          <code class="accent">.DB byte [byte ...]</code>
+          <p>Embed raw byte literals directly into the program at the current position.</p>
+        </div>
+        <div class="directive-card">
+          <code class="accent">.STRING "text"</code>
+          <p>Embed a null-terminated ASCII string into the program at the current position.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLI -->
+  <section id="cli" class="section">
+    <h2 class="section-title">CLI Tools</h2>
+    <p class="section-desc">Three binaries — emulator, assembler, and debugger.</p>
+
+    <div class="cli-cards">
+      <div class="cli-card">
+        <div class="cli-card-header">
+          <span class="cli-bin accent">nanocore</span>
+          <span class="cli-desc">Emulator</span>
+        </div>
+        <div class="code-block">
+<span class="asm-comment"># Run a pre-assembled binary</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-op">--</span> <span class="sh-path">programs/test.ncb</span>
+
+<span class="asm-comment"># Auto-assemble and run .nca source</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-op">--</span> <span class="sh-path">programs/fib.nca</span>
+
+<span class="asm-comment"># Print CPU state after each cycle</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-op">--</span> <span class="sh-path">programs/test.nca</span> <span class="sh-flag">-s</span>
+
+<span class="asm-comment"># Print each instruction as it executes</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-op">--</span> <span class="sh-path">programs/test.nca</span> <span class="sh-flag">-i</span>
+        </div>
+      </div>
+
+      <div class="cli-card">
+        <div class="cli-card-header">
+          <span class="cli-bin accent">nca</span>
+          <span class="cli-desc">Assembler</span>
+        </div>
+        <div class="code-block">
+<span class="asm-comment"># Assemble source to binary</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-flag">--bin</span> nca <span class="sh-op">-- \</span>
+    <span class="sh-flag">-i</span> <span class="sh-path">programs/fib.nca</span> <span class="sh-op">\</span>
+    <span class="sh-flag">-o</span> <span class="sh-path">programs/fib.ncb</span>
+
+<span class="asm-comment"># Outputs compact .ncb binary</span>
+<span class="asm-comment"># ready for distribution</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TUI -->
+  <section id="tui" class="section">
+    <h2 class="section-title">Terminal UI Debugger</h2>
+    <p class="section-desc">Step through instructions, inspect registers and memory live, and set breakpoints — all inside your terminal.</p>
+
+    <div class="tui-layout">
+      <div class="tui-preview">
+        <img src="https://raw.githubusercontent.com/AfaanBilal/NanoCore/master/assets/NanoCoreTUI.gif" alt="NanoCore TUI debugger demo" />
+      </div>
+      <div class="tui-detail">
+        <div class="tui-features">
+          <div class="tui-feature"><span class="accent tui-bullet">→</span><span>Live register state for all R0–R15, PC, SP, and flags</span></div>
+          <div class="tui-feature"><span class="accent tui-bullet">→</span><span>Full 256-byte memory view</span></div>
+          <div class="tui-feature"><span class="accent tui-bullet">→</span><span>Instruction log with cycle counter</span></div>
+          <div class="tui-feature"><span class="accent tui-bullet">→</span><span>Step, run, and breakpoint controls</span></div>
+          <div class="tui-feature"><span class="accent tui-bullet">→</span><span>Program output panel</span></div>
+        </div>
+        <div class="code-block tui-cmd">
+<span class="asm-comment"># Launch with any .nca or .ncb file</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-flag">--bin</span> tui <span class="sh-op">--</span> <span class="sh-path">programs/counter.nca</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK START -->
+  <section id="quickstart" class="section section-cta">
+    <h2 class="section-title">Get Started</h2>
+    <p class="section-desc">Three ways to install NanoCore.</p>
+
+    <div class="install-options">
+      <div class="install-option">
+        <div class="install-label">Compiled binaries</div>
+        <div class="install-desc">Download pre-built binaries for your platform from the GitHub releases page.</div>
+        <a href="https://github.com/AfaanBilal/NanoCore/releases" target="_blank" class="install-link">GitHub Releases →</a>
+      </div>
+      <div class="install-option">
+        <div class="install-label">cargo install</div>
+        <div class="install-desc">Install directly from crates.io. Requires Rust stable.</div>
+        <div class="code-block">
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">install</span> nanocore
+        </div>
+      </div>
+      <div class="install-option">
+        <div class="install-label">Build from source</div>
+        <div class="install-desc">Clone the repository and build with Cargo.</div>
+        <div class="code-block">
+<span class="prompt">$</span> <span class="sh-cmd">git</span> <span class="sh-sub">clone</span> <span class="sh-path">https://github.com/AfaanBilal/NanoCore.git</span>
+<span class="prompt">$</span> <span class="sh-cmd">cd</span> <span class="sh-path">NanoCore</span> <span class="sh-op">&amp;&amp;</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">build</span> <span class="sh-flag">--release</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="install-run">
+      <div class="install-label">Then run</div>
+      <div class="code-block quickstart-block">
+<span class="asm-comment"># Run an example program</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-op">--</span> <span class="sh-path">programs/fib.nca</span>
+
+<span class="asm-comment"># Launch the TUI debugger</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">run</span> <span class="sh-flag">--bin</span> tui <span class="sh-op">--</span> <span class="sh-path">programs/counter.nca</span>
+
+<span class="asm-comment"># Run the test suite</span>
+<span class="prompt">$</span> <span class="sh-cmd">cargo</span> <span class="sh-sub">test</span>
+      </div>
+    </div>
+
+    <a href="https://github.com/AfaanBilal/NanoCore" target="_blank" class="btn-primary">View on GitHub</a>
+  </section>
+
+  <!-- AUTHOR -->
+  <section id="author" class="section">
+    <h2 class="section-title">Author</h2>
+    <div class="author-layout">
+      <div class="author-avatar">
+        <img src="https://afaan.dev/assets/afaan.png" alt="Afaan Bilal" />
+      </div>
+      <div class="author-info">
+        <span class="author-name">Afaan Bilal</span>
+        <p class="author-bio">
+          Principal Software Engineer, CISO and open-source enthusiast. <br /><br />
+          NanoCore was built as a deep dive into CPU design, instruction set architecture, and the craft of writing an emulator from scratch in Rust.
+        </p>
+        <div class="author-links">
+          <a href="https://afaan.dev" target="_blank" class="author-link">afaan.dev</a>
+          <a href="https://github.com/AfaanBilal" target="_blank" class="author-link">GitHub</a>
+          <a href="https://github.com/AfaanBilal/NanoCore" target="_blank" class="author-link">NanoCore repo</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <span class="logo">NanoCore<span class="dot accent">.</span></span>
+      <span class="footer-sep"></span>
+      <span>MIT License</span>
+      <span class="footer-sep"></span>
+      <span>By <a href="https://afaan.dev" target="_blank">Afaan Bilal</a></span>
+      <span class="footer-sep"></span>
+      <a href="https://github.com/AfaanBilal/NanoCore" target="_blank">GitHub</a>
+    </div>
+  </footer>
+
+</body>
+</html>

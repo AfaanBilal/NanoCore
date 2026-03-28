@@ -40,11 +40,15 @@ echo "Releasing $TAG..."
 sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
 rm -f Cargo.toml.bak
 
+# Bump version in docs
+sed -i.bak "s/v[0-9]\+\.[0-9]\+\.[0-9]\+ \&mdash;/v$VERSION \&mdash;/" docs/index.html
+rm -f docs/index.html.bak
+
 # Update Cargo.lock
 cargo update --workspace --quiet
 
 # Commit
-git add Cargo.toml Cargo.lock
+git add Cargo.toml Cargo.lock docs/index.html
 git commit -m "chore: release $TAG"
 
 # Tag and push
