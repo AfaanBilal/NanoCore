@@ -4,7 +4,7 @@
 
 This project serves as an educational exercise in understanding the fundamental principles of computer architecture, low-level instruction set design, memory management under severe constraints, and assembly language programming.
 
-**Website:** [AfaanBilal.github.io/NanoCore](https://AfaanBilal.github.io/NanoCore) &nbsp;|&nbsp; **DeepWiki:** [AfaanBilal/NanoCore](https://deepwiki.com/AfaanBilal/NanoCore)
+**Website:** [nanocore.afaan.dev](https://nanocore.afaan.dev) &nbsp;|&nbsp; **DeepWiki:** [AfaanBilal/NanoCore](https://deepwiki.com/AfaanBilal/NanoCore)
 
 <img src="assets/NanoCoreTUI.gif" alt="NanoCore TUI">
 
