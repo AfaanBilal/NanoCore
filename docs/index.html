@@ -12,7 +12,7 @@
   <!-- NAV -->
   <nav>
     <a href="#" class="logo">NanoCore<span class="dot accent">.</span></a>
-    <div class="nav-links">
+    <div class="nav-links" id="nav-links">
       <a href="#features">Features</a>
       <a href="#architecture">Architecture</a>
       <a href="#isa">ISA</a>
@@ -21,6 +21,9 @@
       <a href="#tui">TUI</a>
       <a href="https://github.com/AfaanBilal/NanoCore" target="_blank" class="btn-nav">GitHub</a>
     </div>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
   <!-- HERO -->
@@ -519,5 +522,19 @@
     </div>
   </footer>
 
+  <script>
+    var toggle = document.getElementById('nav-toggle');
+    var links = document.getElementById('nav-links');
+    toggle.addEventListener('click', function() {
+      var open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open);
+    });
+    links.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        links.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  </script>
 </body>
 </html>
