@@ -146,7 +146,7 @@ nav {
 }
 
 .hero h1 {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 1.4rem;
