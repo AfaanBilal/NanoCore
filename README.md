@@ -1,176 +1,213 @@
 # NanoCore: An 8-bit CPU Emulator
 
-## 🌟 Introduction
-
-`NanoCore` is a meticulously crafted emulator for a custom 8-bit CPU.
-
-DeepWiki: [AfaanBilal/NanoCore](https://deepwiki.com/AfaanBilal/NanoCore)
-
-Designed with extreme minimalism in mind, this CPU operates within a strict 256-byte memory space, with all registers, the Program Counter (PC), and the Stack Pointer (SP) being 8-bit.
+`NanoCore` is a meticulously crafted emulator for a custom 8-bit CPU. Designed with extreme minimalism in mind, this CPU operates within a strict 256-byte memory space, with all registers, the Program Counter (PC), and the Stack Pointer (SP) being 8-bit.
 
 This project serves as an educational exercise in understanding the fundamental principles of computer architecture, low-level instruction set design, memory management under severe constraints, and assembly language programming.
 
+**Website:** [AfaanBilal.github.io/NanoCore](https://AfaanBilal.github.io/NanoCore) &nbsp;|&nbsp; **DeepWiki:** [AfaanBilal/NanoCore](https://deepwiki.com/AfaanBilal/NanoCore)
+
 <img src="assets/NanoCoreTUI.gif" alt="NanoCore TUI">
+
+---
 
 ## ✨ Key Features
 
-  * **True 8-bit Architecture:** All general-purpose registers (R0-R15), Program Counter (PC), and Stack Pointer (SP) are 8-bit.
-  * **256-byte Memory:** The entire addressable memory space is limited to 256 bytes (`0x00` to `0xFF`), making it a challenge to write highly optimized and compact code.
-  * **Variable-Length Instruction Set:** Supports both 1-byte, 2-byte and 3-byte instructions to maximize opcode efficiency and flexibility within the limited address space.
-  * **Modular Design:** CPU cycle is broken down into distinct Fetch, Decode, and Execute phases for clarity.
-  * **Inbuilt Two-Pass Assembler:** The NanoCore Assembler makes it easier to program it by writing NanoCore Assembly instead of direct machine code.
-  * **Terminal User Interface:** Fully functional TUI as seen above with breakpoints for easy debugging.
+- **True 8-bit Architecture:** All general-purpose registers (R0–R15), Program Counter (PC), and Stack Pointer (SP) are 8-bit.
+- **256-byte Memory:** The entire addressable memory space is limited to 256 bytes (`0x00` to `0xFF`).
+- **Variable-Length Instruction Set:** 1-byte, 2-byte, and 3-byte instructions to maximize opcode efficiency within the limited address space.
+- **Modular Design:** CPU cycle broken down into distinct Fetch, Decode, and Execute phases.
+- **Inbuilt Two-Pass Assembler:** Write NanoCore Assembly (`.nca`) instead of raw machine code.
+- **Terminal User Interface:** Fully functional TUI with breakpoints for interactive debugging.
+- **Typed Error Handling:** Stack overflow/underflow, division by zero, and invalid operands all surface as structured Rust errors.
+
+---
+
+## 📦 Installation
+
+### Option 1 — Compiled Binaries
+
+Download pre-built binaries for your platform from the [GitHub Releases](https://github.com/AfaanBilal/NanoCore/releases) page.
+
+### Option 2 — cargo install
+
+```bash
+cargo install nanocore
+```
+
+### Option 3 — Build from Source
+
+Requires Rust (stable).
+
+```bash
+git clone https://github.com/AfaanBilal/NanoCore.git
+cd NanoCore
+cargo build --release
+```
+
+---
+
+## 🚀 Usage
+
+### Run a program
+
+```bash
+# Run a pre-assembled binary
+cargo run -- programs/test.ncb
+
+# Auto-assemble and run a .nca source file
+cargo run -- programs/fib.nca
+
+# Print CPU state after each cycle
+cargo run -- programs/test.nca -s
+
+# Print each instruction as it executes
+cargo run -- programs/test.nca -i
+```
+
+### Assemble to binary
+
+```bash
+cargo run --bin nca -- -i example.nca -o example.ncb
+```
+
+### Launch the TUI debugger
+
+```bash
+cargo run --bin tui -- programs/counter.nca
+```
+
+### Run the test suite
+
+```bash
+cargo test
+```
+
+---
+
+## 🧮 Architecture
+
+| Component | Details |
+| :--- | :--- |
+| Registers | R0–R15, all 8-bit |
+| Program Counter | 8-bit (0x00–0xFF) |
+| Stack Pointer | 8-bit (stack: 0xEA–0xFF) |
+| Flags | Zero (Z), Carry (C), Negative (N) |
+| Memory | 256 bytes total |
+| Stack size | 22 bytes |
+| Max cycles | 1024 per run |
+
+---
 
 ## 🧮 Instruction Set Architecture (ISA)
 
 > See `programs/` for example programs and compiled binaries.
 
-NanoCore features a small but functional instruction set designed for its 8-bit constraints.
+NanoCore features a small but complete instruction set across 7 categories.
 
 ### Instruction Format
 
-  * **1-byte instructions:** One 8-bit opcode.
-  * **2-byte instructions:** An 8-bit opcode followed by an 8-bit operand (e.g., an immediate value or an address).
-  * **3-byte instructions:** An 8-bit opcode followed by two 8-bit operands (e.g., an immediate value or an address).
+- **1-byte:** Opcode only.
+- **2-byte:** Opcode + one 8-bit operand (register or address).
+- **3-byte:** Opcode + two 8-bit operands (register + immediate or address).
 
 ### Implemented Instructions
 
-| Opcode | Bytes | Mnemonic         | Description                             | Encoding Example |
-| :----- | ----: | :--------------- | :-------------------------------------- | :--------------- |
-| `0x00` |     1 | `HLT`            | Halts CPU execution                     | `0x00`           |
-| `0x01` |     1 | `NOP`            | No operation                            | `0x01`           |
-| `0x02` |     3 | `LDI Reg val`    | Load immediate `val` into `Reg`         | `0x02 0x00 0xAB` |
-| `0x03` |     3 | `LDA Reg addr`   | Load from mem address `addr` into `Reg` | `0x03 0x00 0xCC` |
-| `0x04` |     2 | `LDR Rd Rs`      | Load from mem address in `Rs` into `Rd` | `0x04 0x00 0x01` |
-| `0x05` |     2 | `MOV Rd Rs`      | Copy value from `Rs` into `Rd`          | `0x05 0x01 0x02` |
-| `0x06` |     3 | `STORE Reg addr` | Store `Reg` into mem address `addr`     | `0x05 0x01 0xAA` |
-| `0x07` |     2 | `PUSH Reg`       | Push `Reg` value into stack.            | `0x05 0x01`      |
-| `0x08` |     2 | `POP Reg`        | Pop from stack into `Reg`               | `0x05 0x01`      |
-| `0x09` |     2 | `ADD Rd Rs`      | Add value of `Rs` to `Rd`               | `0x05 0x01 0x02` |
-| `0x0A` |     3 | `ADDI Reg val`   | Add immediate `val` to `Reg`            | `0x05 0x01 0xAB` |
-| `0x0B` |     2 | `SUB Rd Rs`      | Subtract value of `Rd` from `Rs`        | `0x05 0x01 0x02` |
-| `0x0C` |     3 | `SUBI Reg val`   | Subtract immediate `val` from `Reg`     | `0x05 0x01 0xAB` |
-| `0x0D` |     2 | `INC Reg`        | Increment `Reg`                         | `0x05 0x01`      |
-| `0x0E` |     2 | `DEC Reg`        | Decrement `Reg`                         | `0x05 0x01`      |
-| `0x0F` |     2 | `AND Rd Rs`      | Set `Rd` to `Rd & Rs`                   | `0x05 0x01 0x02` |
-| `0x10` |     2 | `OR Rd Rs`       | Set `Rd` to `Rd \| Rs`                  | `0x05 0x01 0x02` |
-| `0x11` |     2 | `XOR Rd Rs`      | Set `Rd` to `Rd ^ Rs`                   | `0x05 0x01 0x02` |
-| `0x12` |     2 | `NOT Reg`        | Set `Reg` to `!Reg`                     | `0x05 0x01`      |
-| `0x13` |     2 | `CMP Rd Rs`      | Set `Z` flag if `Rd == Rs`              | `0x05 0x01 0x02` |
-| `0x14` |     2 | `SHL Reg`        | Shift left in `Reg` by 1 (`<< 1`)       | `0x05 0x01`      |
-| `0x15` |     2 | `SHR Reg`        | Shift right in `Reg` by 1 (`>> 1`)      | `0x05 0x01`      |
-| `0x22` |     2 | `ROL Reg`        | Rotate left in `Reg` by 1               | `0x22 0x01`      |
-| `0x23` |     2 | `ROR Reg`        | Rotate right in `Reg` by 1              | `0x23 0x01`      |
-| `0x16` |     2 | `JMP addr`       | Unconditional jump to `addr`            | `0x05 0xAA`      |
-| `0x17` |     2 | `JZ addr`        | Jump to `addr` if `Z` flag is set       | `0x05 0xAA`      |
-| `0x18` |     2 | `JNZ addr`       | Jump to `addr` if `Z` flag is not set   | `0x05 0xAA`      |
-| `0x24` |     2 | `IN Reg`         | Read char from stdin into `Reg`         | `0x24 0x01`      |
-| `0x19` |     2 | `PRINT Reg`      | Print `Reg` as an ASCII character       | `0x19 0x01`      |
-| `0x1A` |     2 | `MUL Rd Rs`      | Multiply value of `Rs` to `Rd`          | `0x1A 0x01 0x02` |
-| `0x1B` |     3 | `MULI Reg val`   | Multiply immediate `val` to `Reg`       | `0x1B 0x01 0xAB` |
-| `0x1C` |     2 | `DIV Rd Rs`      | Divide value of `Rs` by `Rd`            | `0x1C 0x01 0x02` |
-| `0x1D` |     3 | `DIVI Reg val`   | Divide `Reg` by immediate `val`         | `0x1D 0x01 0xAB` |
-| `0x1E` |     2 | `MOD Rd Rs`      | Modulus value of `Rs` by `Rd`           | `0x1E 0x01 0x02` |
-| `0x1F` |     3 | `MODI Reg val`   | Modulus `Reg` by immediate `val`        | `0x1F 0x01 0xAB` |
-| `0x20` |     2 | `CALL addr`      | CALL `addr` or function label.          | `0x20 0xAA`      |
-| `0x21` |     1 | `RET`            | Return from `CALL`ed function.          | `0x21`           |
-| `0x25` |     2 | `JMPR Reg`       | Unconditional jump to address in `Reg`  | `0x25 0x01`      |
-| `0x26` |     2 | `CALLR Reg`      | CALL address in `Reg`                   | `0x26 0x01`      |
-| `0x27` |     2 | `STR Rd Rs`      | Store `Rd` to addr in `Rs`              | `0x27 0x01 0x02` |
+| Opcode | Bytes | Mnemonic         | Description                             |
+| :----- | ----: | :--------------- | :-------------------------------------- |
+| `0x00` |     1 | `HLT`            | Halt execution                          |
+| `0x01` |     1 | `NOP`            | No operation                            |
+| `0x02` |     3 | `LDI Rd val`     | Load immediate `val` into `Rd`          |
+| `0x03` |     3 | `LDA Rd addr`    | Load from memory address into `Rd`      |
+| `0x04` |     2 | `LDR Rd Rs`      | Load from address in `Rs` into `Rd`     |
+| `0x05` |     2 | `MOV Rd Rs`      | Copy `Rs` into `Rd`                     |
+| `0x06` |     3 | `STORE addr Rd`  | Store `Rd` into memory address          |
+| `0x07` |     2 | `PUSH Rd`        | Push `Rd` onto stack                    |
+| `0x08` |     2 | `POP Rd`         | Pop top of stack into `Rd`              |
+| `0x09` |     2 | `ADD Rd Rs`      | `Rd = Rd + Rs`                          |
+| `0x0A` |     3 | `ADDI Rd val`    | `Rd = Rd + val`                         |
+| `0x0B` |     2 | `SUB Rd Rs`      | `Rd = Rd - Rs`                          |
+| `0x0C` |     3 | `SUBI Rd val`    | `Rd = Rd - val`                         |
+| `0x0D` |     2 | `INC Rd`         | `Rd = Rd + 1`                           |
+| `0x0E` |     2 | `DEC Rd`         | `Rd = Rd - 1`                           |
+| `0x0F` |     2 | `AND Rd Rs`      | `Rd = Rd & Rs`                          |
+| `0x10` |     2 | `OR Rd Rs`       | `Rd = Rd \| Rs`                         |
+| `0x11` |     2 | `XOR Rd Rs`      | `Rd = Rd ^ Rs`                          |
+| `0x12` |     2 | `NOT Rd`         | `Rd = ~Rd`                              |
+| `0x13` |     2 | `CMP Rd Rs`      | Set flags from `Rd - Rs` (no store)     |
+| `0x14` |     2 | `SHL Rd Rs`      | Logical shift left                      |
+| `0x15` |     2 | `SHR Rd Rs`      | Logical shift right                     |
+| `0x16` |     2 | `JMP addr`       | Unconditional jump                      |
+| `0x17` |     2 | `JZ addr`        | Jump if Zero flag set                   |
+| `0x18` |     2 | `JNZ addr`       | Jump if Zero flag clear                 |
+| `0x19` |     2 | `PRINT Rd`       | Print `Rd` as ASCII character           |
+| `0x1A` |     2 | `MUL Rd Rs`      | `Rd = Rd * Rs`                          |
+| `0x1B` |     3 | `MULI Rd val`    | `Rd = Rd * val`                         |
+| `0x1C` |     2 | `DIV Rd Rs`      | `Rd = Rd / Rs`                          |
+| `0x1D` |     3 | `DIVI Rd val`    | `Rd = Rd / val`                         |
+| `0x1E` |     2 | `MOD Rd Rs`      | `Rd = Rd mod Rs`                        |
+| `0x1F` |     3 | `MODI Rd val`    | `Rd = Rd mod val`                       |
+| `0x20` |     2 | `CALL addr`      | Call subroutine (push return address)   |
+| `0x21` |     1 | `RET`            | Return from subroutine                  |
+| `0x22` |     2 | `ROL Rd Rs`      | Rotate left                             |
+| `0x23` |     2 | `ROR Rd Rs`      | Rotate right                            |
+| `0x24` |     2 | `IN Rd`          | Read byte from stdin into `Rd`          |
+| `0x25` |     2 | `JMPR Rd`        | Jump to address in `Rd`                 |
+| `0x26` |     2 | `CALLR Rd`       | Call subroutine at address in `Rd`      |
+| `0x27` |     2 | `STR Rd Rs`      | Store `Rd` to address held in `Rs`      |
 
-> - `val` = `Immediate value`
-> - `addr` = `Memory address`
-> - `Reg` = `Register`
-> - `Rs` = `Source register`
-> - `Rd` = `Destination register`
-> - `Z` flag = Zero Flag
-> - `R0` = `0x00`, `R1` = `0x01` ..., `R15` = `0x0F`
-> - All addition, subtraction, increment and decrement is wrapping.
-
-## 🚀 Getting Started
-
-To run the NanoCore emulator, you'll need to setup Rust locally.
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/AfaanBilal/nanocore.git
-    cd nanocore
-    ```
-2.  **Run the example program:**
-    The `programs/test.ncb` file contains a small, assembled program that demonstrates the CPU's basic functionality.
-    ```bash
-    cargo run -- programs/test.ncb
-    ```
-    You should see the emulator's debug output and the program's output to your console. The source assembly file is `programs/test.nca`.
-
-## 🛠️ Assembling
-
-To assemble a program (say `example.nca`), run the NanoCore Assembler (`nca`):
-```bash
-cargo r --bin nca -- -i example.nca -o example.ncb
-```
-This should assemble the `example.nca` (NanoCore Assembly) to `example.ncb` (NanoCore Binary).
-
-### Constants & Data
-
-You can define constants using the `.CONST` directive, and embed data using `.DB` and `.STRING`:
-```assembly
-.CONST MAX_VAL 10
-.CONST ADDR 0x10
-
-.DB 0x01 0x02 10    ; Embed bytes 0x01, 0x02, 0x0A
-.STRING "Hello"     ; Embed ASCII bytes for "Hello"
-
-LDI R0 MAX_VAL
-JMP ADDR
-```
-
-## ⚙️ Running
-
-To run this assembled binary, run:
-```bash
-cargo r -- example.ncb
-```
-
-## 🪄 Assemble and Run
-
-To assemble and run without saving a binary:
-```bash
-cargo r -- example.nca
-```
-> Note that the filename MUST end with the `.nca` extension to be considered a NanoCore Assembly file which will be automatically assembled before running.
-
-## 📟 Terminal Interface
-
-To run the TUI visualizer:
-```bash
-cargo r --bin tui -- programs/counter.nca
-```
-
-## 🧪 Testing
-
-To run the test suite, including assembler verification:
-```bash
-cargo test
-```
-
-## 📂 Code Structure
-
-  * `CPU (cpu.rs)`: Defines the CPU's internal state, including registers, program counter, stack pointer, memory, and flag bits.
-  * `NanoCore (nanocore.rs)`: The main emulator struct, responsible for loading programs, running cycles, and managing the `CPU`.
-      * `NanoCore::new()`: Initializes a fresh computer state.
-      * `NanoCore::load_program()`: Places machine code into the simulated memory.
-      * `NanoCore::run()`: Executes the CPU cycle loop until halted.
-      * `NanoCore::cycle()`: Performs a single CPU cycle (Fetch, Decode, Execute).
-      * `NanoCore::fetch_decode()`: Reads the instruction byte(s) from memory and determines its type and operands.
-      * `NanoCore::execute_instruction()`: Performs the operation defined by the decoded instruction, updating the CPU state.
-  * `Assembler (assembler.rs)`: The NanoCore assembler core.
-  * `Assembler bin (bin/nca.rs)`: The NanoCore assembler binary.
-  * `TUI bin (bin/tui.rs)`: The NanoCore Terminal UI.
+> All arithmetic is wrapping. `R0 = 0x00`, `R1 = 0x01`, ..., `R15 = 0x0F`.
 
 ---
 
-## Example Program `Fibonacci Sequence`
+## 🛠️ Assembly Language
+
+NanoCore Assembly (`.nca`) files are plain text. The assembler performs two passes — first to map labels and constants, then to emit bytecode.
+
+### Syntax
+
+```assembly
+; Comment
+.CONST MAX 10          ; Named constant
+.DB 0x01 0x02 0x03     ; Embed raw bytes
+.STRING "Hello"        ; Embed ASCII string (null-terminated)
+
+start:                 ; Label
+    LDI R0 0
+    LDI R1 MAX         ; Use constant
+loop:
+    ADD R0 R1
+    DEC R2
+    JNZ loop
+    HLT
+```
+
+### Directives
+
+| Directive | Description |
+| :--- | :--- |
+| `.CONST name val` | Define a named constant |
+| `.DB byte ...` | Embed raw bytes at current position |
+| `.STRING "text"` | Embed a null-terminated ASCII string |
+
+---
+
+## 📂 Code Structure
+
+| File | Description |
+| :--- | :--- |
+| `src/cpu.rs` | CPU state — registers, PC, SP, memory, flags |
+| `src/nanocore.rs` | Main emulator — load, run, cycle, fetch/decode/execute |
+| `src/assembler.rs` | Two-pass assembler core |
+| `src/lib.rs` | Library exports and `Op` enum (instruction set) |
+| `src/error.rs` | Typed error definitions |
+| `src/bin/nca.rs` | `nca` assembler binary |
+| `src/bin/tui.rs` | `tui` debugger binary entry point |
+| `src/tui/` | TUI implementation (ratatui) |
+| `programs/` | Example `.nca` source files and `.ncb` binaries |
+
+---
+
+## 📝 Example Program — Fibonacci Sequence
 
 ```assembly
 ; Print the fibonacci sequence (two-digit)
@@ -187,7 +224,6 @@ post_print:
     ADD R1 R0
     MOV R0 R3
     DEC R2
-
     JNZ loop
 end:
     HLT
@@ -195,40 +231,31 @@ end:
 print_digits:
     PUSH R10
     PUSH R11
-
     MOV R10 R0
     DIVI R10 10
-
     JZ unit_digit
-
     ADDI R10 48
     PRINT R10
-
 unit_digit:
     MOV R11 R0
     MODI R11 10
     ADDI R11 48
     PRINT R11
-
 print_space:
     PRINT R12
-
     POP R11
     POP R10
     JMP post_print
 ```
 
+---
 
 ## 🤝 Contributing
 
-All contributions are welcome. Please create an issue first for any feature request
-or bug. Then fork the repository, create a branch and make any changes to fix the bug
-or add the feature and create a pull request. That's it!
-Thanks!
+All contributions are welcome. Please create an issue first for any feature request or bug. Then fork the repository, create a branch, make your changes, and open a pull request.
 
 ---
 
 ## 📄 License
 
-**NanoCore** is released under the MIT License.
-Check out the full license [here](LICENSE).
+**NanoCore** is released under the MIT License. See [LICENSE](LICENSE) for details.
