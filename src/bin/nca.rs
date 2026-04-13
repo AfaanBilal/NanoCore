@@ -21,7 +21,7 @@ use nanocore::{assembler::Assembler, end_color, start_color};
 
 #[derive(Parser, Debug)]
 #[command(name = "assembler")]
-#[command(about = "Assembles NanoCore ASM (.nca) file into binary output (.ncb)", long_about = None)]
+#[command(version, about = "Assembles NanoCore ASM (.nca) file into binary output (.ncb)", long_about = None)]
 struct Args {
     /// Path to the source assembly file
     #[arg(short, long)]
