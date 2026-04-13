@@ -1,6 +1,6 @@
 [package]
 name = "nanocore"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 default-run = "nanocore"
 description = "NanoCore is a meticulously crafted emulator for a custom, true 8-bit CPU."
