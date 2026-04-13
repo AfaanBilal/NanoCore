@@ -653,7 +653,7 @@ fn get_instruction_list(app: &App, skip: usize, take: usize) -> List<'_> {
 }
 
 fn get_instruction_line(i: usize, l: &str) -> Line<'static> {
-    let (op, args, rest) = get_instruction_parts(&l);
+    let (op, args, rest) = get_instruction_parts(l);
 
     let mut op_span = Span::raw(format!("{op:5}")).cyan();
     let mut args_span = Span::raw(format!(" {:<8}", args.trim()));
