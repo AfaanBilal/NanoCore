@@ -22,7 +22,7 @@ use nanocore::{assembler::Assembler, nanocore::NanoCore};
 
 #[derive(Parser, Debug)]
 #[command(name = "nanocore")]
-#[command(about = "Run NanoCore", long_about = None)]
+#[command(version, about = "Run NanoCore", long_about = None)]
 struct Args {
     /// Path to the source assembly file / compiled bin file
     #[arg(index = 1)]

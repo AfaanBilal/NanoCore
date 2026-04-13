@@ -492,7 +492,14 @@ impl NanoCore {
 
                 self.current_instruction = format!(
                     "{op}   R{rd} R{rs}| {v1:03} ({v1:#04X}) {} {v2:03} ({v2:#04X}) = {result:03} ({result:#04X})",
-                    if op == Op::ADD { "+" } else { "-" }
+                    match op {
+                        Op::ADD => "+",
+                        Op::SUB => "-",
+                        Op::MUL => "*",
+                        Op::DIV => "/",
+                        Op::MOD => "%",
+                        _ => unreachable!(),
+                    }
                 );
             }
             Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
@@ -519,7 +526,14 @@ impl NanoCore {
 
                 self.current_instruction = format!(
                     "{op}   R{reg} {v2:03}| {v1:03} ({v1:#04X}) {} {v2:03} ({v2:#04X}) = {result:03} ({result:#04X})",
-                    if op == Op::ADD { "+" } else { "-" }
+                    match op {
+                        Op::ADDI => "+",
+                        Op::SUBI => "-",
+                        Op::MULI => "*",
+                        Op::DIVI => "/",
+                        Op::MODI => "%",
+                        _ => unreachable!(),
+                    }
                 );
             }
             Op::AND | Op::OR | Op::XOR | Op::CMP => {
@@ -671,7 +685,9 @@ impl NanoCore {
                 };
 
                 let mut buffer = [0; 1];
-                std::io::stdin().read_exact(&mut buffer).unwrap();
+                std::io::stdin()
+                    .read_exact(&mut buffer)
+                    .map_err(|e| crate::EmulatorError::IoError(e.to_string()))?;
                 let value = buffer[0];
 
                 self.cpu.registers[reg as usize] = value;
