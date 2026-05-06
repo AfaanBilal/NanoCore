@@ -536,7 +536,7 @@ impl NanoCore {
                     }
                 );
             }
-            Op::AND | Op::OR | Op::XOR | Op::CMP => {
+            Op::AND | Op::OR | Op::XOR => {
                 let Operands::RegReg(rd, rs) = operands else {
                     return Err(crate::EmulatorError::InvalidOperand {
                         op: format!("{:?}", op),
@@ -552,15 +552,6 @@ impl NanoCore {
                     Op::AND => v1 & v2,
                     Op::OR => v1 | v2,
                     Op::XOR => v1 ^ v2,
-                    Op::CMP => {
-                        if v1 == v2 {
-                            0
-                        } else if v1 > v2 {
-                            1
-                        } else {
-                            2
-                        }
-                    }
                     _ => unreachable!(),
                 };
 
@@ -573,9 +564,33 @@ impl NanoCore {
                         Op::AND => "&",
                         Op::OR => "|",
                         Op::XOR => "^",
-                        Op::CMP => "==",
                         _ => unreachable!(),
                     }
+                );
+            }
+            Op::CMP => {
+                let Operands::RegReg(rd, rs) = operands else {
+                    return Err(crate::EmulatorError::InvalidOperand {
+                        op: "CMP".to_string(),
+                        expected: "RegReg".to_string(),
+                        got: format!("{:?}", operands),
+                    });
+                };
+
+                let v1 = self.cpu.registers[rd as usize];
+                let v2 = self.cpu.registers[rs as usize];
+                let (result, borrow) = v1.overflowing_sub(v2);
+
+                self.cpu.update_zn_flags(result);
+
+                if borrow {
+                    self.cpu.set_flag(CPU::FLAG_C);
+                } else {
+                    self.cpu.clear_flag(CPU::FLAG_C);
+                }
+
+                self.current_instruction = format!(
+                    "{op}   R{rd} R{rs}| {v1:03} ({v1:#04X}) - {v2:03} ({v2:#04X}) = {result:03} ({result:#04X})",
                 );
             }
             Op::NOT => {

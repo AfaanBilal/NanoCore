@@ -234,7 +234,7 @@
               <tr><td><code>OR</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd | Rs</td></tr>
               <tr><td><code>XOR</code></td><td>Rd, Rs</td><td>2</td><td>Rd = Rd ^ Rs</td></tr>
               <tr><td><code>NOT</code></td><td>Rd</td><td>2</td><td>Rd = ~Rd</td></tr>
-              <tr><td><code>CMP</code></td><td>Rd, Rs</td><td>2</td><td>Set flags from Rd − Rs (no store)</td></tr>
+              <tr><td><code>CMP</code></td><td>Rd, Rs</td><td>2</td><td>Set Z/N/C from Rd − Rs (no store; C=borrow if Rd &lt; Rs)</td></tr>
             </tbody>
           </table>
         </div>
