@@ -133,7 +133,7 @@ NanoCore features a small but complete instruction set across 7 categories.
 | `0x10` |     2 | `OR Rd Rs`       | `Rd = Rd \| Rs`                         |
 | `0x11` |     2 | `XOR Rd Rs`      | `Rd = Rd ^ Rs`                          |
 | `0x12` |     2 | `NOT Rd`         | `Rd = ~Rd`                              |
-| `0x13` |     2 | `CMP Rd Rs`      | Set flags from `Rd - Rs` (no store)     |
+| `0x13` |     2 | `CMP Rd Rs`      | Set Z/N/C from `Rd - Rs` (no store; C=borrow if `Rd < Rs`) |
 | `0x14` |     2 | `SHL Rd Rs`      | Logical shift left                      |
 | `0x15` |     2 | `SHR Rd Rs`      | Logical shift right                     |
 | `0x16` |     2 | `JMP addr`       | Unconditional jump                      |
