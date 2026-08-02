@@ -113,7 +113,7 @@ fn test_stack_overflow() -> Result<(), Box<dyn std::error::Error>> {
     let mut nano = NanoCore::new();
 
     // Stack pointer decrements on PUSH, STACK_MIN is 0xEA (234)
-    // PUSH opcode is 0x10
+    // PUSH opcode is 0x07
     let mut program = vec![];
 
     for _ in 0..10 {

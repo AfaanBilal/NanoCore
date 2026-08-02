@@ -28,8 +28,8 @@ struct Args {
     #[arg(index = 1)]
     input: String,
 
-    /// Print output
-    #[arg(short, long, default_value_t = true)]
+    /// Print output (use --print=false to disable)
+    #[arg(short, long, action = clap::ArgAction::Set, default_value_t = true)]
     print: bool,
 
     /// Print state
@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map_err(|e| format!("Failed to read '{}': {}", args.input, e))?;
 
         if args.print_state {
-            println!("Assembling {}", &args.input);
+            println!("Assembling {}", args.input);
         }
 
         let mut c = Assembler::default();

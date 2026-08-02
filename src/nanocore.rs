@@ -725,8 +725,8 @@ impl NanoCore {
                 let value = self.cpu.registers[reg as usize];
 
                 let (result, carry) = match op {
-                    Op::SHL => value.overflowing_shl(1),
-                    Op::SHR => value.overflowing_shr(1),
+                    Op::SHL => (value << 1, (value & 0x80) != 0),
+                    Op::SHR => (value >> 1, (value & 0x01) != 0),
                     Op::ROL => (value.rotate_left(1), (value & 0x80) != 0),
                     Op::ROR => (value.rotate_right(1), (value & 0x01) != 0),
                     _ => unreachable!(),

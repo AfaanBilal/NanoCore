@@ -90,10 +90,10 @@ cargo test
 | :--- | :--- |
 | Registers | R0–R15, all 8-bit |
 | Program Counter | 8-bit (0x00–0xFF) |
-| Stack Pointer | 8-bit (stack: 0xEA–0xFF) |
+| Stack Pointer | 8-bit (stack: 0xEB–0xFF; 0xEA is the overflow guard) |
 | Flags | Zero (Z), Carry (C), Negative (N) |
 | Memory | 256 bytes total |
-| Stack size | 22 bytes |
+| Stack size | 21 bytes (0xEB–0xFF) |
 | Max cycles | 1024 per run |
 
 ---

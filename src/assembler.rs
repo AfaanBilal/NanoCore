@@ -74,6 +74,7 @@ impl Assembler {
                 for byte in content.bytes() {
                     self.program.push(byte);
                 }
+                self.program.push(0); // null terminator
                 continue;
             }
 
@@ -96,8 +97,7 @@ impl Assembler {
             let opcode: u8 = op.into();
 
             match op {
-                Op::HLT | Op::RET => self.program.push(opcode),
-                Op::NOP => {}
+                Op::HLT | Op::RET | Op::NOP => self.program.push(opcode),
                 Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
                     if parts.len() < 3 {
                         return Err(crate::AssemblerError::SyntaxError {
@@ -222,7 +222,7 @@ impl Assembler {
                     line: line_num,
                     message: "Expected end of string".to_string(),
                 })?;
-                addr = addr.wrapping_add((end - start) as u8);
+                addr = addr.wrapping_add((end - start) as u8 + 1); // +1 for null terminator
                 continue;
             }
 
@@ -602,7 +602,8 @@ mod tests {
                 10, // .DB
                 0x41,
                 0x42,
-                0x43, // .STRING "ABC"
+                0x43,
+                0x00, // .STRING "ABC" (null-terminated)
                 Op::LDI.into(),
                 0,
                 0xFF // LDI R0 0xFF
