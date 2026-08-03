@@ -100,6 +100,7 @@ cargo test
 
 ## 🧮 Instruction Set Architecture (ISA)
 
+> [!TIP]
 > See `programs/` for example programs and compiled binaries.
 
 NanoCore features a small but complete instruction set across 7 categories.
@@ -155,6 +156,7 @@ NanoCore features a small but complete instruction set across 7 categories.
 | `0x26` |     2 | `CALLR Rd`       | Call subroutine at address in `Rd`      |
 | `0x27` |     2 | `STR Rd Rs`      | Store `Rd` to address held in `Rs`      |
 
+> [!TIP]
 > All arithmetic is wrapping. `R0 = 0x00`, `R1 = 0x01`, ..., `R15 = 0x0F`.
 
 ---
