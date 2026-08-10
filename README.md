@@ -159,6 +159,35 @@ NanoCore features a small but complete instruction set across 7 categories.
 > [!TIP]
 > All arithmetic is wrapping. `R0 = 0x00`, `R1 = 0x01`, ..., `R15 = 0x0F`.
 
+### Flag Effects
+
+The rule: **an instruction that writes a register sets Z and N; one that writes memory or the stack sets nothing.** `CMP` is the only exception — it sets flags without writing a register, which is its entire job.
+
+**Z** is set when the result is `0x00`, **N** from bit 7 of the result. **C** is written only where marked — every other instruction leaves the previous **C** intact.
+
+| Instruction                            |  Z  |  C  |  N  | Notes                                         |
+| :------------------------------------- | :-: | :-: | :-: | :-------------------------------------------- |
+| `LDI`, `LDA`, `LDR`, `MOV`, `IN`, `POP` |  ✔  |  —  |  ✔  | From the loaded / popped value                |
+| `STORE`, `STR`, `PUSH`                 |  —  |  —  |  —  | Write memory — no register result to flag     |
+| `INC`, `DEC`                      |  ✔  |  —  |  ✔  | Wraps silently — no C on `0xFF` → `0x00`           |
+| `ADD`, `ADDI`, `SUB`, `SUBI`      |  ✔  |  ✔  |  ✔  | C = carry-out (`ADD`) / borrow (`SUB`)             |
+| `MUL`, `MULI`                     |  ✔  |  ✔  |  ✔  | C set when the product exceeds `0xFF`              |
+| `DIV`, `DIVI`, `MOD`, `MODI`      |  ✔  |  ✔  |  ✔  | C always cleared — 8-bit division cannot overflow  |
+| `AND`, `OR`, `XOR`, `NOT`         |  ✔  |  —  |  ✔  |                                                    |
+| `CMP`                             |  ✔  |  ✔  |  ✔  | From `Rd - Rs`; C = borrow. No register written    |
+| `SHL`, `ROL`                      |  ✔  |  ✔  |  ✔  | C = old bit 7                                      |
+| `SHR`, `ROR`                      |  ✔  |  ✔  |  ✔  | C = old bit 0                                      |
+| `JMP`, `JMPR`, `JZ`, `JNZ`        |  —  |  —  |  —  | `JZ` / `JNZ` read Z, never write it                |
+| `CALL`, `CALLR`, `RET`            |  —  |  —  |  —  |                                                    |
+| `PRINT`                           |  —  |  —  |  —  |                                                    |
+| `HLT`, `NOP`                      |  —  |  —  |  —  |                                                    |
+
+> [!NOTE]
+> Loads set Z/N, so a `MOV` or `LDI` between a `CMP` and a `JZ` clobbers the comparison. The flip side is useful: since there is no `TST`, `MOV Rd Rs` doubles as a test-for-zero on `Rs`.
+
+> [!TIP]
+> `PUSH` and `STORE` preserve flags, so a subroutine prologue can save registers without destroying the caller's comparison. `POP` does not — it loads a register.
+
 ---
 
 ## 🛠️ Assembly Language

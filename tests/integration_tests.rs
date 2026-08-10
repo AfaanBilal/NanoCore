@@ -1,4 +1,15 @@
-use nanocore::{assembler::Assembler, nanocore::NanoCore};
+use nanocore::{assembler::Assembler, cpu::CPU, nanocore::NanoCore};
+
+fn run(asm: &str) -> Result<NanoCore, Box<dyn std::error::Error>> {
+    let mut assembler = Assembler::default();
+    assembler.assemble(asm)?;
+
+    let mut nano = NanoCore::new();
+    nano.load_program(&assembler.program, 0)?;
+    nano.run()?;
+
+    Ok(nano)
+}
 
 #[test]
 fn test_jmpr() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,6 +50,45 @@ fn test_callr() -> Result<(), Box<dyn std::error::Error>> {
     vm.run()?;
 
     assert_eq!(vm.cpu.registers[1], 0xFF);
+    Ok(())
+}
+
+#[test]
+fn test_store_and_push_preserve_flags() -> Result<(), Box<dyn std::error::Error>> {
+    // CMP sets Z; writing memory must not disturb it.
+    let nano = run("LDI R0 5
+         LDI R1 5
+         LDI R2 9
+         CMP R0 R1
+         PUSH R2
+         STORE R2 0x40
+         STR R2 R3
+         HLT")?;
+
+    assert!(nano.cpu.get_flag(CPU::FLAG_Z), "PUSH/STORE cleared Z");
+    assert_eq!(nano.cpu.memory[0x40], 9, "STORE did not write");
+    Ok(())
+}
+
+#[test]
+fn test_pop_and_mov_set_flags() -> Result<(), Box<dyn std::error::Error>> {
+    // POP loads a register, so it does set Z.
+    let nano = run("LDI R0 0
+         PUSH R0
+         LDI R1 7
+         POP R2
+         HLT")?;
+
+    assert!(nano.cpu.get_flag(CPU::FLAG_Z), "POP did not set Z");
+    assert_eq!(nano.cpu.registers[2], 0);
+
+    // MOV doubles as a test-for-zero.
+    let nano = run("LDI R0 0
+         LDI R1 7
+         MOV R1 R0
+         HLT")?;
+
+    assert!(nano.cpu.get_flag(CPU::FLAG_Z), "MOV did not set Z");
     Ok(())
 }
 

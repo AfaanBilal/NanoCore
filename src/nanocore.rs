@@ -350,7 +350,6 @@ impl NanoCore {
 
                 let value = self.cpu.registers[reg as usize];
                 self.cpu.memory[addr as usize] = value;
-                self.cpu.update_zn_flags(value);
 
                 self.current_instruction = format!("{op}   R{reg} {addr:#04X}| ({value:03})");
             }
@@ -418,7 +417,6 @@ impl NanoCore {
 
                 self.cpu.memory[self.cpu.sp as usize] = value;
                 self.cpu.sp = self.cpu.sp.wrapping_sub(1);
-                self.cpu.update_zn_flags(value);
 
                 self.current_instruction =
                     format!("PUSH  R{reg}| ({value:03}) (SP: {:#04X})", self.cpu.sp);
