@@ -177,6 +177,7 @@ impl NanoCore {
     /// # Errors
     ///
     /// Returns an error if instruction execution fails. Common errors include:
+    /// - Invalid opcode ([`EmulatorError::InvalidOpcode`](crate::EmulatorError::InvalidOpcode))
     /// - Division by zero ([`EmulatorError::DivisionByZero`](crate::EmulatorError::DivisionByZero))
     /// - Stack overflow/underflow ([`EmulatorError::StackOverflow`](crate::EmulatorError::StackOverflow))
     /// - Invalid operands ([`EmulatorError::InvalidOperand`](crate::EmulatorError::InvalidOperand))
@@ -194,7 +195,7 @@ impl NanoCore {
     /// assert_eq!(nano.cycle, 1);
     /// ```
     pub fn cycle(&mut self) -> crate::EmulatorResult<()> {
-        let (op, operands) = self.fetch_decode();
+        let (op, operands) = self.fetch_decode()?;
 
         let pc_override = self.execute(op, operands)?;
 
@@ -237,7 +238,13 @@ impl NanoCore {
         Ok(result)
     }
 
-    pub fn fetch_decode(&mut self) -> (Op, Operands) {
+    /// Fetches the instruction at `PC` and decodes its operands.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EmulatorError::InvalidOpcode`](crate::EmulatorError::InvalidOpcode)
+    /// if the byte at `PC` does not map to an instruction.
+    pub fn fetch_decode(&mut self) -> crate::EmulatorResult<(Op, Operands)> {
         // FETCH
         let opcode = self.cpu.memory[self.cpu.pc as usize];
         let byte_2 = self.cpu.memory[self.cpu.pc.wrapping_add(1) as usize];
@@ -246,7 +253,10 @@ impl NanoCore {
         self.current_instruction_bin = format!("{opcode:08b} │ {opcode:#04X} │ {opcode:03}");
 
         // DECODE
-        let op: Op = opcode.into();
+        let op = Op::decode(opcode).ok_or(crate::EmulatorError::InvalidOpcode {
+            opcode,
+            pc: self.cpu.pc,
+        })?;
 
         let operands = match op {
             Op::HLT | Op::NOP | Op::RET => Operands::None,
@@ -282,7 +292,7 @@ impl NanoCore {
             Op::JMP | Op::JZ | Op::JNZ | Op::CALL => Operands::Addr(byte_2),
         };
 
-        (op, operands)
+        Ok((op, operands))
     }
 
     pub fn execute(&mut self, op: Op, operands: Operands) -> crate::EmulatorResult<bool> {

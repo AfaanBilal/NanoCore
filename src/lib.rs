@@ -245,9 +245,14 @@ impl TryFrom<&str> for Op {
     }
 }
 
-impl From<u8> for Op {
-    fn from(value: u8) -> Self {
-        match value {
+impl Op {
+    /// Decodes an opcode byte, returning `None` if it maps to no instruction.
+    ///
+    /// This is the decoder the emulator executes from. A `None` here becomes an
+    /// [`EmulatorError::InvalidOpcode`] once the caller adds the PC.
+    #[must_use]
+    pub fn decode(value: u8) -> Option<Self> {
+        Some(match value {
             0x00 => Op::HLT,
             0x01 => Op::NOP,
 
@@ -300,8 +305,18 @@ impl From<u8> for Op {
             0x26 => Op::CALLR,
             0x21 => Op::RET,
 
-            _ => Op::NOP,
-        }
+            _ => return None,
+        })
+    }
+}
+
+/// Infallible decode for display only — the TUI memory view walks arbitrary
+/// bytes, where unmapped values are ordinary data rather than an error.
+///
+/// Unrecognized bytes become [`Op::NOP`]. Use [`Op::decode`] when executing.
+impl From<u8> for Op {
+    fn from(value: u8) -> Self {
+        Op::decode(value).unwrap_or(Op::NOP)
     }
 }
 

@@ -228,3 +228,60 @@ fn test_normal_stack_operations() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(nano.cpu.registers[1], 42);
     Ok(())
 }
+
+#[test]
+fn test_invalid_opcode() -> Result<(), Box<dyn std::error::Error>> {
+    let mut nano = NanoCore::new();
+    // LDI R0 1; <unmapped byte>
+    nano.load_program(&[0x02, 0x00, 0x01, 0xFF], 0)?;
+
+    match nano.run() {
+        Err(EmulatorError::InvalidOpcode { opcode, pc }) => {
+            assert_eq!(opcode, 0xFF);
+            assert_eq!(pc, 0x03);
+        }
+        other => panic!("Expected InvalidOpcode, got {other:?}"),
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_running_into_data_is_an_error() -> Result<(), Box<dyn std::error::Error>> {
+    // Falling off the end of the code into a .DB block must fault, not NOP-slide.
+    let mut assembler = Assembler::default();
+    assembler.assemble(
+        "LDI R0 1
+         .DB 0xFF 0xFE",
+    )?;
+
+    let mut nano = NanoCore::new();
+    nano.load_program(&assembler.program, 0)?;
+
+    assert!(matches!(
+        nano.run(),
+        Err(EmulatorError::InvalidOpcode { opcode: 0xFF, .. })
+    ));
+
+    Ok(())
+}
+
+#[test]
+fn test_opcode_decoding_boundaries() {
+    use nanocore::Op;
+
+    // Every mapped opcode decodes and round-trips back to its byte.
+    for byte in 0x00..=0x27u8 {
+        let op = Op::decode(byte).unwrap_or_else(|| panic!("{byte:#04X} should decode"));
+        assert_eq!(u8::from(op), byte);
+    }
+
+    // Everything above is unmapped.
+    for byte in 0x28..=0xFFu8 {
+        assert!(Op::decode(byte).is_none(), "{byte:#04X} should not decode");
+
+        // ...but the display-only From impl still yields NOP, which the TUI
+        // memory view relies on to walk arbitrary bytes.
+        assert_eq!(Op::from(byte), Op::NOP);
+    }
+}

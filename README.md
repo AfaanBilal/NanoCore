@@ -18,7 +18,7 @@ This project serves as an educational exercise in understanding the fundamental 
 - **Modular Design:** CPU cycle broken down into distinct Fetch, Decode, and Execute phases.
 - **Inbuilt Two-Pass Assembler:** Write NanoCore Assembly (`.nca`) instead of raw machine code.
 - **Terminal User Interface:** Fully functional TUI with breakpoints for interactive debugging.
-- **Typed Error Handling:** Stack overflow/underflow, division by zero, and invalid operands all surface as structured Rust errors.
+- **Typed Error Handling:** Stack overflow/underflow, division by zero, invalid operands, and invalid opcodes all surface as structured Rust errors.
 
 ---
 
@@ -195,6 +195,8 @@ NanoCore features a small but complete instruction set across 7 categories.
 
 > [!TIP]
 > All arithmetic is wrapping. `R0 = 0x00`, `R1 = 0x01`, ..., `R15 = 0x0F`.
+
+Opcodes `0x28`–`0xFF` are unassigned. Executing one raises `EmulatorError::InvalidOpcode`, reporting the byte and the PC — so running off the end of your code into a `.DB` block or jumping to a bad address fails loudly instead of drifting through it.
 
 ### Flag Effects
 

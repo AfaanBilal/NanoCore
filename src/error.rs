@@ -28,6 +28,11 @@ pub enum EmulatorError {
         expected: String,
         got: String,
     },
+    /// Opcode byte does not map to any instruction.
+    ///
+    /// Usually means execution ran into `.DB`/`.STRING` data, jumped to a
+    /// bad address, or the loaded binary is corrupt.
+    InvalidOpcode { opcode: u8, pc: u8 },
     /// Stack overflow - attempting to push beyond stack limit.
     StackOverflow { sp: u8 },
     /// Stack underflow - attempting to pop from empty stack.
@@ -47,6 +52,9 @@ impl fmt::Display for EmulatorError {
         match self {
             Self::InvalidOperand { op, expected, got } => {
                 write!(f, "{} expects {} operand, got {}", op, expected, got)
+            }
+            Self::InvalidOpcode { opcode, pc } => {
+                write!(f, "Invalid opcode {:#04X} at PC={:#04X}", opcode, pc)
             }
             Self::StackOverflow { sp } => {
                 write!(f, "Stack overflow at SP={:#04X}", sp)
