@@ -30,6 +30,10 @@ impl Assembler {
     pub fn assemble(&mut self, asm: &str) -> crate::AssemblerResult<()> {
         self.asm = asm.to_owned();
 
+        self.labels.clear();
+        self.constants.clear();
+        self.program.clear();
+
         self.map_constants()?;
         self.map_labels()?;
 
