@@ -244,10 +244,10 @@
           <table class="isa-table">
             <thead><tr><th>Mnemonic</th><th>Operands</th><th>Bytes</th><th>Description</th></tr></thead>
             <tbody>
-              <tr><td><code>SHL</code></td><td>Rd, Rs</td><td>2</td><td>Logical shift left</td></tr>
-              <tr><td><code>SHR</code></td><td>Rd, Rs</td><td>2</td><td>Logical shift right</td></tr>
-              <tr><td><code>ROL</code></td><td>Rd, Rs</td><td>2</td><td>Rotate left</td></tr>
-              <tr><td><code>ROR</code></td><td>Rd, Rs</td><td>2</td><td>Rotate right</td></tr>
+              <tr><td><code>SHL</code></td><td>Rd</td><td>2</td><td>Rd = Rd &lt;&lt; 1 (C = old bit 7)</td></tr>
+              <tr><td><code>SHR</code></td><td>Rd</td><td>2</td><td>Rd = Rd &gt;&gt; 1 (C = old bit 0)</td></tr>
+              <tr><td><code>ROL</code></td><td>Rd</td><td>2</td><td>Rotate Rd left by 1 (C = old bit 7)</td></tr>
+              <tr><td><code>ROR</code></td><td>Rd</td><td>2</td><td>Rotate Rd right by 1 (C = old bit 0)</td></tr>
             </tbody>
           </table>
         </div>

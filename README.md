@@ -135,8 +135,8 @@ NanoCore features a small but complete instruction set across 7 categories.
 | `0x11` |     2 | `XOR Rd Rs`      | `Rd = Rd ^ Rs`                          |
 | `0x12` |     2 | `NOT Rd`         | `Rd = ~Rd`                              |
 | `0x13` |     2 | `CMP Rd Rs`      | Set Z/N/C from `Rd - Rs` (no store; C=borrow if `Rd < Rs`) |
-| `0x14` |     2 | `SHL Rd Rs`      | Logical shift left                      |
-| `0x15` |     2 | `SHR Rd Rs`      | Logical shift right                     |
+| `0x14` |     2 | `SHL Rd`         | `Rd = Rd << 1` (C = old bit 7)          |
+| `0x15` |     2 | `SHR Rd`         | `Rd = Rd >> 1` (C = old bit 0)          |
 | `0x16` |     2 | `JMP addr`       | Unconditional jump                      |
 | `0x17` |     2 | `JZ addr`        | Jump if Zero flag set                   |
 | `0x18` |     2 | `JNZ addr`       | Jump if Zero flag clear                 |
@@ -149,8 +149,8 @@ NanoCore features a small but complete instruction set across 7 categories.
 | `0x1F` |     3 | `MODI Rd val`    | `Rd = Rd mod val`                       |
 | `0x20` |     2 | `CALL addr`      | Call subroutine (push return address)   |
 | `0x21` |     1 | `RET`            | Return from subroutine                  |
-| `0x22` |     2 | `ROL Rd Rs`      | Rotate left                             |
-| `0x23` |     2 | `ROR Rd Rs`      | Rotate right                            |
+| `0x22` |     2 | `ROL Rd`         | Rotate `Rd` left by 1 (C = old bit 7)   |
+| `0x23` |     2 | `ROR Rd`         | Rotate `Rd` right by 1 (C = old bit 0)  |
 | `0x24` |     2 | `IN Rd`          | Read byte from stdin into `Rd`          |
 | `0x25` |     2 | `JMPR Rd`        | Jump to address in `Rd`                 |
 | `0x26` |     2 | `CALLR Rd`       | Call subroutine at address in `Rd`      |
