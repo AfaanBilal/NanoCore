@@ -96,6 +96,43 @@ cargo test
 | Stack size | 21 bytes (0xEB–0xFF) |
 | Max cycles | 1024 per run |
 
+### Memory Map
+
+All 256 bytes are one flat, unprotected address space. The layout below is convention — nothing enforces it.
+
+| Range           |     Size | Purpose                                                  |
+| :-------------- | -------: | :------------------------------------------------------- |
+| `0x00`–`0xA9`   | 170 bytes | Program and data — programs load at `0x00` by default    |
+| `0xAA`–`0xE9`   |  64 bytes | Screen — the TUI debugger renders this as an 8×8 grid    |
+| `0xEA`          |   1 byte  | Stack overflow guard — never written                     |
+| `0xEB`–`0xFF`   |  21 bytes | Stack                                                     |
+
+### Stack Model
+
+The stack **grows downward** from the top of memory. `SP` starts at `0xFF` and always points at the **next free slot**, so the value on top is at `memory[SP + 1]` and an empty stack is `SP == 0xFF`.
+
+| Instruction     | Effect                                                                  |
+| :-------------- | :---------------------------------------------------------------------- |
+| `PUSH Rd`       | `memory[SP] = Rd`, then `SP -= 1`                                       |
+| `POP Rd`        | `SP += 1`, then `Rd = memory[SP]`                                       |
+| `CALL`/`CALLR`  | Pushes the return address (`PC + 2`), then jumps                        |
+| `RET`           | Pops into `PC`                                                          |
+
+```text
+SP = 0xFF          ; empty
+PUSH R0            ; memory[0xFF] = R0,  SP = 0xFE
+PUSH R1            ; memory[0xFE] = R1,  SP = 0xFD
+POP  R2            ; SP = 0xFE,  R2 = memory[0xFE]  (the old R1)
+```
+
+`PUSH` on a full stack (`SP == 0xEA`) raises `StackOverflow`; `POP` on an empty one (`SP == 0xFF`) raises `StackUnderflow`. Both are checked *before* the access, so `0xEA` is never written — hence the guard byte.
+
+> [!IMPORTANT]
+> Return addresses and pushed data share the same 21 bytes. Nesting `CALL`s 21 deep exhausts the stack on its own, and an unbalanced `PUSH` inside a subroutine leaves `RET` popping a data byte and jumping to it.
+
+> [!WARNING]
+> Nothing protects the stack region. `load_program` only checks that the program fits in 256 bytes, so a program longer than 235 bytes overwrites the stack (and one over 170 bytes overwrites the screen). `STORE`/`STR` into `0xEB`–`0xFF` corrupts it silently — there is no fault.
+
 ---
 
 ## 🧮 Instruction Set Architecture (ISA)
