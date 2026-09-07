@@ -177,10 +177,19 @@ impl Assembler {
                             message: format!("{} requires 1 argument", op),
                         });
                     }
-                    let addr = if self.labels.contains_key(parts[1]) {
-                        *self.labels.get(parts[1]).unwrap()
-                    } else {
-                        self.resolve_number(parts[1], line_num)?
+                    let addr = match self.labels.get(parts[1]) {
+                        Some(&addr) => addr,
+                        // A bare word that is neither is a label reference.
+                        None => self.resolve_number(parts[1], line_num).map_err(|e| {
+                            if parts[1].starts_with(|c: char| c.is_ascii_digit()) {
+                                e
+                            } else {
+                                crate::AssemblerError::UndefinedLabel {
+                                    label: parts[1].to_string(),
+                                    line: line_num,
+                                }
+                            }
+                        })?,
                     };
 
                     self.program.push(opcode);
@@ -604,6 +613,29 @@ mod tests {
                 0xFF // LDI R0 0xFF
             ]
         )
+    }
+
+    #[test]
+    fn test_undefined_label() {
+        let mut c = Assembler::default();
+        assert!(matches!(
+            c.assemble("JMP nowhere"),
+            Err(crate::AssemblerError::UndefinedLabel { .. })
+        ));
+
+        // A malformed number keeps its own error.
+        assert!(matches!(
+            c.assemble("JMP 0xZZ"),
+            Err(crate::AssemblerError::InvalidHexAddress { .. })
+        ));
+
+        // Labels still resolve.
+        c.assemble(
+            "loop:
+             JMP loop",
+        )
+        .unwrap();
+        assert_eq!(&c.program, &[Op::JMP.into(), 0]);
     }
 
     #[test]
