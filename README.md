@@ -18,7 +18,7 @@ This project serves as an educational exercise in understanding the fundamental 
 - **Modular Design:** CPU cycle broken down into distinct Fetch, Decode, and Execute phases.
 - **Inbuilt Two-Pass Assembler:** Write NanoCore Assembly (`.nca`) instead of raw machine code.
 - **Terminal User Interface:** Fully functional TUI with breakpoints for interactive debugging.
-- **Typed Error Handling:** Stack overflow/underflow, division by zero, invalid operands, and invalid opcodes all surface as structured Rust errors.
+- **Typed Error Handling:** Stack overflow/underflow, division by zero, invalid operands, invalid opcodes, undefined labels, and runaway programs all surface as structured Rust errors.
 
 ---
 
@@ -62,6 +62,9 @@ cargo run -- programs/test.nca -s
 
 # Print each instruction as it executes
 cargo run -- programs/test.nca -i
+
+# Raise the cycle budget for a long-running program
+cargo run -- programs/screen.nca --max-cycles 4096
 ```
 
 ### Assemble to binary
@@ -94,7 +97,7 @@ cargo test
 | Flags | Zero (Z), Carry (C), Negative (N) |
 | Memory | 256 bytes total |
 | Stack size | 21 bytes (0xEB–0xFF) |
-| Max cycles | 1024 per run |
+| Max cycles | 1024 per run by default (`--max-cycles`) |
 
 ### Memory Map
 
@@ -158,7 +161,7 @@ NanoCore features a small but complete instruction set across 7 categories.
 | `0x03` |     3 | `LDA Rd addr`    | Load from memory address into `Rd`      |
 | `0x04` |     2 | `LDR Rd Rs`      | Load from address in `Rs` into `Rd`     |
 | `0x05` |     2 | `MOV Rd Rs`      | Copy `Rs` into `Rd`                     |
-| `0x06` |     3 | `STORE addr Rd`  | Store `Rd` into memory address          |
+| `0x06` |     3 | `STORE Rd addr`  | Store `Rd` into memory address          |
 | `0x07` |     2 | `PUSH Rd`        | Push `Rd` onto stack                    |
 | `0x08` |     2 | `POP Rd`         | Pop top of stack into `Rd`              |
 | `0x09` |     2 | `ADD Rd Rs`      | `Rd = Rd + Rs`                          |
