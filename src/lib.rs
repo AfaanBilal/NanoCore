@@ -102,7 +102,7 @@ impl Op {
             | Op::ROR => 2,
             Op::JMP | Op::JMPR | Op::JZ | Op::JNZ | Op::PRINT | Op::IN => 2,
             Op::MUL | Op::DIV | Op::MOD | Op::CALL | Op::CALLR | Op::STR => 2,
-            _ => 1,
+            Op::HLT | Op::NOP | Op::RET => 1,
         }
     }
 }
