@@ -258,12 +258,14 @@ impl NanoCore {
             pc: self.cpu.pc,
         })?;
 
+        // Register operands are masked to 4 bits so a stray high nibble
+        // can't index past R15.
         let operands = match op {
             Op::HLT | Op::NOP | Op::RET => Operands::None,
             Op::LDI | Op::ADDI | Op::SUBI | Op::MULI | Op::DIVI | Op::MODI => {
-                Operands::RegImm(byte_2, byte_3)
+                Operands::RegImm(byte_2 & 0x0F, byte_3)
             }
-            Op::LDA | Op::STORE => Operands::RegAddr(byte_2, byte_3),
+            Op::LDA | Op::STORE => Operands::RegAddr(byte_2 & 0x0F, byte_3),
             Op::PUSH
             | Op::POP
             | Op::INC
@@ -276,7 +278,7 @@ impl NanoCore {
             | Op::IN
             | Op::JMPR
             | Op::CALLR
-            | Op::PRINT => Operands::Reg(byte_2),
+            | Op::PRINT => Operands::Reg(byte_2 & 0x0F),
             Op::LDR
             | Op::MOV
             | Op::ADD

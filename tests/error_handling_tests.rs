@@ -285,3 +285,21 @@ fn test_opcode_decoding_boundaries() {
         assert_eq!(Op::from(byte), Op::NOP);
     }
 }
+
+#[test]
+fn test_out_of_range_register_operand_does_not_panic() -> Result<(), Box<dyn std::error::Error>> {
+    let mut nano = NanoCore::new();
+    nano.load_program(
+        &[
+            0x02, 0xF3, 0x2A, // LDI R0xF3 42 -> R3
+            0x07, 0xFF, // PUSH R0xFF -> R15
+            0x00, // HLT
+        ],
+        0x00,
+    )?;
+    nano.run()?;
+
+    assert_eq!(nano.cpu.registers[3], 42);
+    assert_eq!(nano.cpu.sp, 0xFE);
+    Ok(())
+}
