@@ -339,21 +339,12 @@ impl Assembler {
     }
 
     pub fn from_hex_str(v: &str, line: usize) -> crate::AssemblerResult<u8> {
-        let bytes = hex::decode(v.strip_prefix("0x").unwrap_or(v)).map_err(|_| {
+        u8::from_str_radix(v.strip_prefix("0x").unwrap_or(v), 16).map_err(|_| {
             crate::AssemblerError::InvalidHexAddress {
                 line,
                 value: v.to_string(),
             }
-        })?;
-
-        if bytes.is_empty() {
-            return Err(crate::AssemblerError::InvalidValue {
-                line,
-                value: v.to_string(),
-            });
-        }
-
-        Ok(bytes[0])
+        })
     }
 
     pub fn is_label(l: &str) -> bool {
@@ -613,6 +604,16 @@ mod tests {
                 0xFF // LDI R0 0xFF
             ]
         )
+    }
+
+    #[test]
+    fn test_hex_operands() {
+        assert_eq!(Assembler::from_hex_str("0xF", 1).unwrap(), 0x0F);
+        assert_eq!(Assembler::from_hex_str("0xFF", 1).unwrap(), 0xFF);
+        // Wider than a byte is an error, not a silent truncation to 0x12.
+        assert!(Assembler::from_hex_str("0x1234", 1).is_err());
+        assert!(Assembler::from_hex_str("0x", 1).is_err());
+        assert!(Assembler::from_hex_str("0xGG", 1).is_err());
     }
 
     #[test]

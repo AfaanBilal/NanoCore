@@ -163,14 +163,6 @@ impl App {
     }
 
     fn parse_addr(s: &str) -> u8 {
-        let addr = s.strip_prefix("0x").unwrap_or("0");
-
-        if let Ok(addr) = hex::decode(addr)
-            && let Some(&addr) = addr.first()
-        {
-            return addr;
-        }
-
-        0
+        u8::from_str_radix(s.strip_prefix("0x").unwrap_or("0"), 16).unwrap_or(0)
     }
 }
