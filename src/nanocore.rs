@@ -18,7 +18,7 @@ use std::{collections::VecDeque, io::Read};
 
 use crate::{Op, cpu::CPU, end_color, start_color};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct NanoCore {
     pub cpu: CPU,
     pub cycle: u16,
@@ -31,6 +31,14 @@ pub struct NanoCore {
     pub print: bool,
     pub print_state: bool,
     pub print_instructions: bool,
+
+    pub max_cycles: u16,
+}
+
+impl Default for NanoCore {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl NanoCore {
@@ -64,6 +72,8 @@ impl NanoCore {
             print: false,
             print_state: false,
             print_instructions: false,
+
+            max_cycles: Self::MAX_CYCLES,
         }
     }
 
@@ -140,9 +150,10 @@ impl NanoCore {
                 self.cpu.print_state(self.cycle);
             }
 
-            if self.cycle >= Self::MAX_CYCLES {
-                println!("\n== FORCE HALT - max cycles ==\n");
-                break;
+            if self.cycle >= self.max_cycles {
+                return Err(crate::EmulatorError::MaxCyclesExceeded {
+                    cycles: self.max_cycles,
+                });
             }
 
             self.cycle()?;

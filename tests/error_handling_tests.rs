@@ -303,3 +303,16 @@ fn test_out_of_range_register_operand_does_not_panic() -> Result<(), Box<dyn std
     assert_eq!(nano.cpu.sp, 0xFE);
     Ok(())
 }
+
+#[test]
+fn test_max_cycles_exceeded() -> Result<(), Box<dyn std::error::Error>> {
+    let mut nano = NanoCore::new();
+    nano.max_cycles = 16;
+    nano.load_program(&[0x16, 0x00], 0x00)?; // JMP 0x00
+
+    assert!(matches!(
+        nano.run(),
+        Err(EmulatorError::MaxCyclesExceeded { cycles: 16 })
+    ));
+    Ok(())
+}

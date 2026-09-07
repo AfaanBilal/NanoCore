@@ -43,6 +43,8 @@ pub enum EmulatorError {
     ProgramTooLarge { size: usize, start: u8, max: usize },
     /// Division or modulus by zero.
     DivisionByZero { op: String },
+    /// Program ran past its cycle budget without halting.
+    MaxCyclesExceeded { cycles: u16 },
     /// I/O operation error.
     IoError(String),
 }
@@ -71,6 +73,9 @@ impl fmt::Display for EmulatorError {
             }
             Self::DivisionByZero { op } => {
                 write!(f, "{}: division by zero", op)
+            }
+            Self::MaxCyclesExceeded { cycles } => {
+                write!(f, "Ran {} cycles without halting", cycles)
             }
             Self::IoError(msg) => {
                 write!(f, "I/O error: {}", msg)

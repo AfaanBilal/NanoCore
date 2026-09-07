@@ -39,6 +39,10 @@ struct Args {
     /// Print instructions
     #[arg(short = 'i', long, default_value_t = false)]
     print_instructions: bool,
+
+    /// Cycle budget before the program is declared runaway
+    #[arg(long, default_value_t = NanoCore::MAX_CYCLES)]
+    max_cycles: u16,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -65,6 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     nano.print = args.print;
     nano.print_state = args.print_state;
     nano.print_instructions = args.print_instructions;
+    nano.max_cycles = args.max_cycles;
 
     nano.load_program(&bytes, 0x00)?;
     nano.run()?;
